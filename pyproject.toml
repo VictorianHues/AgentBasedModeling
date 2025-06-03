@@ -1,0 +1,23 @@
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "src"
+version = "0.1"
+description = "desc"
+authors = [
+    { name="Victoria Peterson" },
+    { name="Karolina Chlopicka" }
+]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy"
+]
+
+[project.urls]
+Home = "https://github.com/VictorianHues/AgentBasedModeling"
