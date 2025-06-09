@@ -23,10 +23,10 @@ gh repo clone VictorianHues/AgentBasedModeling
 ```
 
 This project uses [uv](https://docs.astral.sh/uv/) for Python package environment and
-environment reasons. As such, to ensure consistent results we recommend using uv when 
+environment reasons. To ensure consistent results we recommend using uv when 
 running experiments. It is also possible to run experiments using 
 [venv](https://docs.python.org/3/library/venv.html), though care must be taken to set up
-a Python environment correctly.
+the Python environment correctly.
 
 
 ### Usage (uv)
@@ -34,7 +34,7 @@ a Python environment correctly.
 1. Configure Python environment and install any required dependencies:
 
     ```sh
-    uv synv
+    uv sync
     ```
 
 2. Run simulations:
