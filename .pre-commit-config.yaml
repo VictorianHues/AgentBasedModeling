@@ -16,6 +16,6 @@ repos:
     hooks:
       - id: export-requirements
         name: Export requirements.txt from uv.lock
-        entry: bash hooks/export_requirements.sh
+        entry: bash .hooks/export_requirements.sh
         language: system
         files: ^uv\.lock$
