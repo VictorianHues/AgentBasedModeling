@@ -26,3 +26,28 @@ build-backend = "flit_core.buildapi"
 
 [project.urls]
 Home = "https://github.com/VictorianHues/AgentBasedModeling"
+
+[tool.ruff.lint]
+select = [
+    # pydocstyle
+    "D", # comment to ignore docstring checks
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore incorrect docstrings in the CLI
+"tests/*" = ["D"]
