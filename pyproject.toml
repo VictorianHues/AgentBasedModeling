@@ -3,21 +3,53 @@ requires = ["flit_core >=3.11,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "src"
-version = "0.1"
-description = "desc"
+name = "abm-project"
+version = "0.1.0"
+description = "Agent-based modelling group project"
 authors = [
     { name="Victoria Peterson" },
-    { name="Karolina Chlopicka" }
+    { name="Karolina Chlopicka" },
+    { name="Henry Zwart" },
 ]
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
+
+requires-python = ">=3.12"
 dependencies = [
-    "matplotlib",
-    "numpy",
-    "scipy"
+    "matplotlib>=3.10.3",
+    "mesa>=3.2.0",
+    "numpy>=2.3.0",
+    "pytest>=8.4.0",
+    "scipy>=1.15.3",
 ]
+
 
 [project.urls]
 Home = "https://github.com/VictorianHues/AgentBasedModeling"
+
+[tool.ruff.lint]
+select = [
+    # pydocstyle
+    "D", # comment to ignore docstring checks
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore incorrect docstrings in the CLI
+"tests/*" = ["D"]
+
