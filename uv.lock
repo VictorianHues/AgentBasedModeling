@@ -10,12 +10,8 @@ dependencies = [
     { name = "matplotlib" },
     { name = "mesa" },
     { name = "numpy" },
-    { name = "scipy" },
-]
-
-[package.dev-dependencies]
-test = [
     { name = "pytest" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -23,11 +19,9 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mesa", specifier = ">=3.2.0" },
     { name = "numpy", specifier = ">=2.3.0" },
+    { name = "pytest", specifier = ">=8.4.0" },
     { name = "scipy", specifier = ">=1.15.3" },
 ]
-
-[package.metadata.requires-dev]
-test = [{ name = "pytest", specifier = ">=8.4.0" }]
 
 [[package]]
 name = "colorama"
