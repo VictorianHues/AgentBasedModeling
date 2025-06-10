@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing &#8212; ABM Project 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API Reference" href="api.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">¶</a></h1>
+<p>You want to contribute to this project? Awesome! There are just a couple of
+housekeeping things to sort out before you dive in.</p>
+<section id="uv">
+<h2>uv<a class="headerlink" href="#uv" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://docs.astral.sh/uv/">uv</a> is a Python environment and package management tool.
+We use it in this repository to keep everything consistent and reproducible. If you don’t
+already have uv installed, now is the time to do so :^)</p>
+<p>Once this is installed, configure the Python environment and download all required
+dependencies by navigating to this repository and running:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>uv<span class="w"> </span>sync
+</pre></div>
+</div>
+<p>This creates a virtual environment under <code class="docutils literal notranslate"><span class="pre">.venv</span></code>, which is used implicitly whenever
+you run a uv command. <em>You do not need to manually activate this virtual
+environment</em>.</p>
+<p>Python packages can be added or removed from the project using <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">&lt;PACKAGE_NAME&gt;</span></code>
+and <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">remove</span> <span class="pre">&lt;PACKAGE_NAME&gt;</span></code>. Doing so will update both:</p>
+<ol class="arabic simple">
+<li><p>The pyproject.toml file, which maintains a human-readable project configuration, and</p></li>
+<li><p>The uv.lock file, which is a machine-generated file used to specify the project dependency
+graph.</p></li>
+</ol>
+<p>Note that the uv.lock file is not intended to be modified manually (or even really looked at).
+For the most part, you can forget it exists.</p>
+</section>
+<section id="pre-commit-and-ruff">
+<h2>pre-commit and ruff<a class="headerlink" href="#pre-commit-and-ruff" title="Link to this heading">¶</a></h2>
+<p>We also use <a class="reference external" href="https://pre-commit.com/">pre-commit</a> with a
+<a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a> hook to automatically format all Python
+code prior to git commits.</p>
+<p>The specific ruff rules which will be applied are specified in the repository
+pyproject.toml file. For more information, and a description of these rules, see
+the <a class="reference external" href="https://docs.astral.sh/ruff/rules/">ruff documentation</a>.</p>
+<p>Installing pre-commit is straightforward using <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">tool</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>pre-commit<span class="w"> </span>--with<span class="w"> </span>pre-commit-uv<span class="w"> </span>--force-reinstall
+
+<span class="gp"># </span>Check<span class="w"> </span>installation<span class="w"> </span>was<span class="w"> </span>successful
+<span class="gp">$ </span>pre-commit<span class="w"> </span>--version<span class="w">  </span><span class="c1"># Should say &#39;pre-commit 4.2.0&#39; or similar</span>
+</pre></div>
+</div>
+<p>Next you need to initialise pre-commit for this specific repository. This
+step will install the pre-commit hooks which will be run prior to every git
+commit:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>Initialise<span class="w"> </span>the<span class="w"> </span>pre-commit<span class="w"> </span>hooks
+<span class="gp">$ </span>pre-commit<span class="w"> </span>install
+
+<span class="gp"># </span>Check<span class="w"> </span>that<span class="w"> </span>everything<span class="w"> </span>works<span class="w"> </span>as<span class="w"> </span>intended<span class="w"> </span><span class="o">(</span>this<span class="w"> </span>should<span class="w"> </span>succeed<span class="o">)</span>
+<span class="gp">$ </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</pre></div>
+</div>
+<p>If the above steps worked as expected, pre-commit should now automatically
+lint and format any Python code prior to git commits, preventing accidentally
+checking in problematic code.</p>
+</section>
+<section id="project-documentation">
+<h2>Project documentation<a class="headerlink" href="#project-documentation" title="Link to this heading">¶</a></h2>
+<p>Finally, we use sphinx to build the project documentation. This can also be installed
+with uv as follows:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>sphinx<span class="w"> </span>--force-reinstall
+
+<span class="gp"># </span>Check<span class="w"> </span>installation<span class="w"> </span>was<span class="w"> </span>successful
+<span class="gp">$ </span>sphinx-build<span class="w"> </span>--version<span class="w">  </span><span class="c1"># Should say &#39;pre-commit 8.2.3&#39; or similar</span>
+</pre></div>
+</div>
+<p>The documentation is automatically rebuilt whenever new changes are push to the main
+branch. However, its never a bad idea to check that everything still works locally
+after making changes.</p>
+<p>To build the documentation locally:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span>html<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+</pre></div>
+</div>
+<p>Open the freshly-built documentation with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>open<span class="w"> </span>docs/build/html/index.html
+</pre></div>
+</div>
+<p>If everything worked correctly, the documentation should open in your browser.</p>
+<section id="adding-new-content">
+<h3>Adding new content<a class="headerlink" href="#adding-new-content" title="Link to this heading">¶</a></h3>
+<p>Sphinx will automatically add any newly-documented functions in existing modules.
+If you are adding a new module, you will need to add it to the <code class="docutils literal notranslate"><span class="pre">docs/source/api.rst</span></code> file.
+There are already a few examples in there.</p>
+</section>
+</section>
+<section id="contribution-process">
+<h2>Contribution process<a class="headerlink" href="#contribution-process" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Fork the repository.</p></li>
+<li><p>Create a new branch for your feature or bugfix.</p></li>
+<li><p>Make your changes and commit them with clear and concise messages.</p></li>
+<li><p>Ensure all tests pass, with <cite>uv run pytest</cite></p></li>
+<li><p>Push your changes to your forked repository.</p></li>
+<li><p>Create a pull request to the main repository.</p></li>
+<li><p>If all GitHub CI checks are successful, great! It’s time to request a review
+from one of the project maintainers.</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">ABM Project</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Karolina Chlopicka, Victoria Peterson, Shania Sinha, Henry Zwart.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/contributing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
