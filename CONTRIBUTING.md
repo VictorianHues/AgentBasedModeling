@@ -7,17 +7,23 @@ environment reasons. Even if you are not modifying the project dependencies, we 
 using uv to ensure consistent runtime and development environments.
 
 We also use [pre-commit](https://pre-commit.com/) for automatic code-formatting prior 
-to git commits. Install pre-commit and initialise the hooks as follows:
+to git commits, and [sphinx](https://www.sphinx-doc.org/en/master/index.html) for building
+project documentation. 
+
+To install and initialise both of these:
 
 ```sh
 # With uv.
 uv tool install pre-commit --with pre-commit-uv --force-reinstall
+uv tool install sphinx --force-reinstall
 
 # With pip (ensure you are in a virtual environment first).
 pip install pre-commit
+pip install sphinx
 
-# Check it installed okay
+# Check both installed okay
 pre-commit --version  # Should say 'pre-commit 4.2.0' or similar
+sphinx-build --version  # Should say 'sphinx-build 8.2.3' or similar
 
 # Initialise the pre-commit hooks for this repository
 pre-commit install
@@ -29,6 +35,7 @@ pre-commit run --all-files
 If the above steps worked as expected, pre-commit should now automatically 
 lint and format any Python code prior to git commits, preventing accidentally
 checking in problematic code.
+
 
 ## Contribution guide
 
