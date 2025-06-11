@@ -4,6 +4,10 @@ Victoria Peterson - 15476758
 
 Karolina Chłopicka - 15716546
 
+Henry Zwart - 15393879
+
+Shania Sinha - 14379031
+
 ## Table of Contents
 
 1. [Overview](#overview)
