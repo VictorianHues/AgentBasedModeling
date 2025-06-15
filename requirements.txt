@@ -139,6 +139,10 @@ mesa==3.2.0 \
     --hash=sha256:74b99e1a1e64ca7617759f0d574def9b3da9a32006ff038db99fcebf6559f447 \
     --hash=sha256:93852391418be2a0e03a1b9c414eecbd1359b4cdd9aad3ba354c69978361425d
     # via abm-project
+networkx==3.5 \
+    --hash=sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec \
+    --hash=sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037
+    # via abm-project
 numpy==2.3.0 \
     --hash=sha256:0898c67a58cdaaf29994bc0e2c65230fd4de0ac40afaf1584ed0b02cd74c6fdd \
     --hash=sha256:0eba4a1ea88f9a6f30f56fdafdeb8da3774349eacddab9581a21234b8535d3d3 \
