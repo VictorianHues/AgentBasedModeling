@@ -107,7 +107,7 @@ class KraanModel:
         r"""Sample a decision for each agent.
 
         After sampling a random number $r \in [0,1]$, decisions are taken to
-        be +1 (action) if $r < p_\text{active}$ for a given agent, and -1 (inactive)
+        be +1 (action) if $r < p\_\text{active}$ for a given agent, and -1 (inactive)
         otherwise.
 
         Args:
