@@ -71,25 +71,17 @@ checking in problematic code.
 Project documentation
 ----------------------
 
-Finally, we use sphinx to build the project documentation. This can also be installed
-with uv as follows:
-
-.. code-block:: console
-
-   $ uv tool install sphinx --force-reinstall
-
-   # Check installation was successful
-   $ sphinx-build --version  # Should say 'pre-commit 8.2.3' or similar
-
-The documentation is automatically rebuilt whenever new changes are push to the main 
-branch. However, its never a bad idea to check that everything still works locally 
-after making changes. 
+Finally, we use Sphinx to build the project documentation. The documentation is 
+automatically rebuilt whenever new changes are push to the main branch. However, 
+its never a bad idea to check that everything still works locally after making 
+changes. 
 
 To build the documentation locally:
 
 .. code-block:: console
 
-   $ cd docs && make clean html && cd ..
+   # uv will handle the Sphinx dependencies for you
+   $ make documentation
 
 Open the freshly-built documentation with:
 
