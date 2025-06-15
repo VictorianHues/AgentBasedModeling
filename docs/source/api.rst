@@ -16,3 +16,10 @@ Test module
    :members:
    :undoc-members:
 
+
+Kraan Model
+------------
+
+.. automodule:: abm_project.kraan
+   :members:
+   :undoc-members:
