@@ -55,3 +55,8 @@ convention = "google"
 "tests/*" = ["D"]
 "docs/*" = ["D"]
 
+[dependency-groups]
+docs = [
+    "sphinx>=8.2.3",
+]
+
