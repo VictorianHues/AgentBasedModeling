@@ -23,3 +23,16 @@ Kraan Model
 .. automodule:: abm_project.kraan
    :members:
    :undoc-members:
+
+Basic OOP Model
+----------------
+.. automodule:: abm_project.oop_model
+   :members:
+   :undoc-members:
+
+Basic OOP Agent
+----------------
+.. automodule:: abm_project.agent
+   :members:
+   :undoc-members:
+
