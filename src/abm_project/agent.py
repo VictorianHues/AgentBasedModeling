@@ -10,7 +10,8 @@ import numpy as np
 
 class Agent:
     """Agent class for an agent-based model simulation.
-
+    
+    
     This class represents an agent that interacts
     with its environment and peers.
     It includes methods for decision-making based on
