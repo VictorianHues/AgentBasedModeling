@@ -126,7 +126,7 @@ class Agent:
         Returns:
             float: The perceived severity of the environment.
         """
-        return self.env_perception_coeff[-1] * self.env_status[-1] * -1
+        return self.env_perception_coeff[-1] * self.env_status[-1] * -1.0
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
         """Calculate the utility of taking a specific action.
