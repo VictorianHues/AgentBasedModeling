@@ -91,8 +91,8 @@ class Agent:
             action_decision (int): The action taken by the agent, either -1 or 1.
         """
         current_env_status = self.get_recent_env_status()
-        current_env_status += 0.1 * action_decision
-        current_env_status = max(0, min(1, current_env_status))
+        current_env_status += 0.05 * action_decision
+        current_env_status = max(-1, min(1, current_env_status))
         self.env_status.append(current_env_status)
         if len(self.env_status) > self.HISTORY_LENGTH:
             self.env_status.pop(0)
@@ -149,9 +149,7 @@ class Agent:
         env_action_utility = action * perceived_severity
         return env_action_utility - deviation_cost
 
-    def calculate_action_probabilities(
-        self, ave_peer_action: float
-    ) -> tuple[list[int], np.ndarray]:
+    def calculate_action_probabilities(self, ave_peer_action: float) -> np.ndarray:
         """Calculate the probability of each possible action.
 
         The probabilities are calculated using a logit softmax
@@ -164,16 +162,14 @@ class Agent:
             ave_peer_action (float): The average action of peers.
 
         Returns:
-            Tuple[List[int], np.ndarray]:
-                A tuple containing the list of actions and
-                their corresponding probabilities.
+            np.ndarray: An array of probabilities for each action.
         """
         utilities = np.array(
             [self.calculate_action_utility(a, ave_peer_action) for a in self.ACTIONS]
         )
-        exp_utilities = np.exp(utilities - np.max(utilities))  # for numerical stability
+        exp_utilities = np.exp(utilities - np.max(utilities))
         probabilities = exp_utilities / np.sum(exp_utilities)
-        return self.ACTIONS, probabilities
+        return probabilities
 
     def update_past_actions(self, action) -> None:
         """Update the history of past actions.
@@ -187,8 +183,8 @@ class Agent:
 
     def decide_action(self, ave_peer_action: float) -> None:
         """Decide on a new action based on peer actions and environment."""
-        action_set, probabilities = self.calculate_action_probabilities(ave_peer_action)
-        action = self.rng.choice(action_set, p=probabilities)
+        probabilities = self.calculate_action_probabilities(ave_peer_action)
+        action = self.rng.choice(self.ACTIONS, p=probabilities)
         self.update_past_actions(action)
         self.update_environment_status(action)
 

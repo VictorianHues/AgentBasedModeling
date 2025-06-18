@@ -25,21 +25,21 @@ def main():
 
     def env_status_fn():
         if rng:
-            return rng.uniform(-1, 1)
+            return rng.uniform(-1.0, 1.0)
         else:
-            return np.random.uniform(0, 1)
+            return np.random.uniform(-1.0, 1.0)
 
     def peer_pressure_coeff_fn():
         if rng:
             return rng.uniform(0, 1)
         else:
-            return np.random.uniform(0.0, 0.1)
+            return np.random.uniform(0.0, 1.0)
 
     def env_perception_coeff_fn():
         if rng:
-            return rng.uniform(0.1, 1.0)
+            return rng.uniform(0.0, 1.0)
         else:
-            return np.random.uniform(0.1, 1.0)
+            return np.random.uniform(0.0, 1.0)
 
     model = BaseModel(
         num_agents=num_agents,
