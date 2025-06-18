@@ -40,6 +40,7 @@ class BaseModel:
     DEFAULT_HEIGHT = 10
     DEFAULT_RADIUS = 1
     DEFAULT_MEMORY_COUNT = 1
+    DEFAULT_ENV_UPDATE_OPTION = "linear"
 
     def __init__(
         self,
@@ -48,6 +49,7 @@ class BaseModel:
         height: int = DEFAULT_HEIGHT,
         radius: int = DEFAULT_RADIUS,
         memory_count: int = DEFAULT_MEMORY_COUNT,
+        env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         rng: np.random.Generator = None,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
@@ -63,6 +65,8 @@ class BaseModel:
             memory_count (int): Number of past actions to remember for each agent.
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
+            env_update_option (str, optional):
+                Method to update the environment status.
             env_status_fn (callable, optional):
                 Function to initialize env_status.
             peer_pressure_coeff_fn (callable, optional):
@@ -76,6 +80,7 @@ class BaseModel:
         self.width = width
         self.height = height
         self.memory_count = memory_count
+        self.env_update_option = env_update_option.lower()
         self.rng = rng or np.random.default_rng()
 
         self.agents = np.empty((width, height), dtype=object)
@@ -86,6 +91,7 @@ class BaseModel:
                     i,
                     self.memory_count,
                     self.rng,
+                    self.env_update_option,
                     env_status_fn,
                     peer_pressure_coeff_fn,
                     env_perception_coeff_fn,

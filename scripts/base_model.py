@@ -21,6 +21,7 @@ def main():
     radius = 1
     num_steps = 100
     memory_count = 10
+    env_update_option = "linear"
     rng = None
 
     def env_status_fn():
@@ -48,6 +49,7 @@ def main():
         radius=radius,
         memory_count=memory_count,
         rng=rng,
+        env_update_option=env_update_option,
         env_status_fn=env_status_fn,
         peer_pressure_coeff_fn=peer_pressure_coeff_fn,
         env_perception_coeff_fn=env_perception_coeff_fn,

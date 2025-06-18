@@ -18,13 +18,15 @@ class Agent:
     """
 
     ACTIONS = [-1, 1]
-    HISTORY_LENGTH = 1
+    DEFAULT_MEMORY_COUNT = 1
+    DEFAULT_ENV_UPDATE_OPTION = "linear"
 
     def __init__(
         self,
         id: int,
-        memory_count: int = HISTORY_LENGTH,
+        memory_count: int = DEFAULT_MEMORY_COUNT,
         rng: np.random.Generator = None,
+        env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
@@ -39,9 +41,11 @@ class Agent:
             id (int):
                 Unique identifier for the agent.
             memory_count (int):
-                Number of past steps to remember (history length).
+                Number of past steps to remember.
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
+            env_update_option (str):
+                Method to update the environment status.
             env_status_fn (callable):
                 Function that returns the initial status of the environment,
                 typically between -1 and 1.
@@ -54,6 +58,7 @@ class Agent:
         self.id = id
         self.memory_count = memory_count
         self.rng = rng or np.random.default_rng()
+        self.env_update_option = env_update_option
         self.past_actions = [
             self.rng.choice(self.ACTIONS) for _ in range(self.memory_count)
         ]
@@ -82,19 +87,38 @@ class Agent:
         return self.peer_pressure_coeff[-1]
 
     def update_environment_status(self, action_decision: int) -> None:
-        """Update the agent's perception of the environment status.
+        """Update the environment status based on the agent's action.
 
-        The environment status is updated based on the agent's action decision.
-        The status is limited to the range [0, 1].
+        The environment status is updated based on the agent's action
+        and the current environment status. The update is done using
+        a sigmoid function, exponential decay, or linear update,
+        depending on the `env_update_option` specified during initialization.
+        The formula for the update is:
+        env_status(t+1) = env_status(t) + delta
+        where delta is calculated based on the action decision
+        and the current environment status.
 
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
+
+        Raises:
+            ValueError: If the `env_update_option` is invalid.
         """
         current_env_status = self.get_recent_env_status()
-        current_env_status += 0.05 * action_decision
+        if self.env_update_option == "sigmoid":
+            sensitivity = 1 / (1 + np.exp(6 * (current_env_status - 0.5)))
+            delta = sensitivity * action_decision * 0.05
+        elif self.env_update_option == "exponential":
+            delta = action_decision * 0.05 * np.exp(-current_env_status)
+        elif self.env_update_option == "linear":
+            delta = action_decision * 0.05
+        else:
+            raise ValueError("Invalid environment update option.")
+
+        current_env_status += delta
         current_env_status = max(0.0, min(1, current_env_status))
         self.env_status.append(current_env_status)
-        if len(self.env_status) > self.HISTORY_LENGTH:
+        if len(self.env_status) > self.memory_count:
             self.env_status.pop(0)
 
     def calculate_deviation_cost(self, action: int, ave_peer_action: float) -> float:
@@ -172,12 +196,12 @@ class Agent:
         return probabilities
 
     def update_past_actions(self, action) -> None:
-        """Update the history of past actions.
+        """Update the memory of past actions.
 
-        This method maintains a fixed-length history of past actions.
-        If the history exceeds the defined length, the oldest action is removed.
+        This method maintains a fixed-length memory of past actions.
+        If the memory exceeds the specified count, the oldest action is removed.
         """
-        if len(self.past_actions) >= self.HISTORY_LENGTH:
+        if len(self.past_actions) >= self.memory_count:
             self.past_actions.pop(0)
         self.past_actions.append(action)
 
