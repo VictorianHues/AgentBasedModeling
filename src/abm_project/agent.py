@@ -81,7 +81,7 @@ class Agent:
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
         """
-        self.env_status += 0.1 * action_decision
+        self.env_status += 0.05 * action_decision
         self.env_status = max(-1, min(1, self.env_status))
 
     def calculate_deviation_cost(self, action: int, ave_peer_action: float) -> float:
@@ -110,7 +110,7 @@ class Agent:
         Returns:
             float: The perceived severity of the environment.
         """
-        return self.env_perception_coeff * self.env_status
+        return self.env_perception_coeff * self.env_status * -1.0
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
         """Calculate the utility of taking a specific action.
