@@ -92,7 +92,7 @@ class Agent:
         """
         current_env_status = self.get_recent_env_status()
         current_env_status += 0.05 * action_decision
-        current_env_status = max(-1, min(1, current_env_status))
+        current_env_status = max(0.0, min(1, current_env_status))
         self.env_status.append(current_env_status)
         if len(self.env_status) > self.HISTORY_LENGTH:
             self.env_status.pop(0)
@@ -126,7 +126,7 @@ class Agent:
         Returns:
             float: The perceived severity of the environment.
         """
-        return self.env_perception_coeff[-1] * self.env_status[-1] * -1.0
+        return self.env_perception_coeff[-1] * (2 * self.env_status[-1] - 1) * -1.0
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
         """Calculate the utility of taking a specific action.

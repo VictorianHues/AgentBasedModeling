@@ -1,12 +1,23 @@
 """Plotting functions for agent-based model visualizations."""
 
+import os
+
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
 
-def plot_current_agent_env_status(model):
+def get_plot_directory(file_name):
+    """Get the directory for saving plots."""
+    plot_dir = os.path.join(os.path.dirname(__file__), "..", "..", "plots")
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+    plot_dir = os.path.join(plot_dir, file_name) if file_name else plot_dir
+    return plot_dir
+
+
+def plot_current_agent_env_status(model, file_name=None):
     """Plot the environment status of agents."""
     env_status_grid = np.zeros((model.width, model.height))
     for x in range(model.width):
@@ -16,10 +27,14 @@ def plot_current_agent_env_status(model):
     plt.imshow(env_status_grid, cmap="RdYlGn", origin="lower")
     plt.colorbar(label="Environment Status")
     plt.title("Agent Environment Status")
-    plt.show()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_current_agent_actions(model):
+def plot_current_agent_actions(model, file_name=None):
     """Plot the actions of agents."""
     action_grid = np.zeros((model.width, model.height))
     for x in range(model.width):
@@ -29,10 +44,14 @@ def plot_current_agent_actions(model):
     plt.imshow(action_grid, cmap=ListedColormap(["red", "green"]), origin="lower")
     plt.colorbar(label="Agent Action (-1 or 1)")
     plt.title("Agent Actions")
-    plt.show()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
 
 
-def animate_agent_actions(model):
+def animate_agent_actions(model, file_name=None):
     """Animate the environment status of agents over a number of steps."""
     agent_action_history = np.array(model.agent_action_history)
     num_steps = agent_action_history.shape[0]
@@ -52,12 +71,17 @@ def animate_agent_actions(model):
     )
 
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
-    plt.show()
+    plt.tight_layout()
+    if file_name:
+        ani.save(get_plot_directory(file_name))
+        plt.close()
+    else:
+        plt.show()
 
     return ani
 
 
-def animate_agent_env_status(model):
+def animate_agent_env_status(model, file_name=None):
     """Animate the environment status of agents over a number of steps."""
     env_status_history = np.array(model.agent_env_status_history)
     num_steps = env_status_history.shape[0]
@@ -75,12 +99,17 @@ def animate_agent_env_status(model):
     )
 
     plt.colorbar(im, ax=ax, label="Environment Status")
-    plt.show()
+    plt.tight_layout()
+    if file_name:
+        ani.save(get_plot_directory(file_name))
+        plt.close()
+    else:
+        plt.show()
 
     return ani
 
 
-def plot_overall_agent_actions_over_time(model):
+def plot_overall_agent_actions_over_time(model, file_name=None):
     """Plot the overall agent actions over time."""
     action_history = np.array(model.agent_action_history)
     avg_actions = np.mean(action_history, axis=(1, 2))
@@ -91,10 +120,15 @@ def plot_overall_agent_actions_over_time(model):
     plt.title("Overall Agent Actions Over Time")
     plt.axhline(0, color="gray", linestyle="--")
     plt.legend()
-    plt.show()
+    plt.tight_layout()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_overall_agent_env_status_over_time(model):
+def plot_overall_agent_env_status_over_time(model, file_name=None):
     """Plot the overall agent environment status over time."""
     env_status_history = np.array(model.agent_env_status_history)
     avg_env_status = np.mean(env_status_history, axis=(1, 2))
@@ -104,5 +138,11 @@ def plot_overall_agent_env_status_over_time(model):
     plt.ylabel("Average Environment Status")
     plt.title("Overall Agent Environment Status Over Time")
     plt.axhline(0, color="gray", linestyle="--")
+    plt.ylim(0, 1)
     plt.legend()
-    plt.show()
+    plt.tight_layout()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()

@@ -196,3 +196,7 @@ cython_debug/
 
 # Results/data files
 *.png
+*.mp4
+*.jpg
+*.jpeg
+*.gif

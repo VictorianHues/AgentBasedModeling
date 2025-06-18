@@ -15,25 +15,25 @@ from abm_project.plotting import (
 
 def main():
     """Main function to run the agent-based model simulation."""
-    num_agents = 400
-    width = 20
-    height = 20
+    num_agents = 2500
+    width = 50
+    height = 50
     radius = 1
-    num_steps = 1000
+    num_steps = 100
     memory_count = 10
     rng = None
 
     def env_status_fn():
         if rng:
-            return rng.uniform(-1.0, 1.0)
+            return rng.uniform(0.0, 1.0)
         else:
-            return np.random.uniform(-1.0, 1.0)
+            return np.random.uniform(0.0, 1.0)
 
     def peer_pressure_coeff_fn():
         if rng:
             return rng.uniform(0, 1)
         else:
-            return np.random.uniform(0.0, 1.0)
+            return np.random.uniform(0.5, 1.0)
 
     def env_perception_coeff_fn():
         if rng:
@@ -58,10 +58,14 @@ def main():
     plot_current_agent_env_status(model)
     plot_current_agent_actions(model)
 
-    animate_agent_env_status(model)
-    animate_agent_actions(model)
-    plot_overall_agent_actions_over_time(model)
-    plot_overall_agent_env_status_over_time(model)
+    animate_agent_env_status(model, file_name="agent_env_status.mp4")
+    animate_agent_actions(model, file_name="agent_actions.mp4")
+    plot_overall_agent_actions_over_time(
+        model, file_name="overall_agent_actions_over_time.png"
+    )
+    plot_overall_agent_env_status_over_time(
+        model, file_name="overall_agent_env_status_over_time.png"
+    )
 
 
 if __name__ == "__main__":
