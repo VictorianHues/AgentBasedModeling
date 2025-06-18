@@ -77,7 +77,6 @@ class KraanModel:
         current perception of the environment, and their social pressures.
         """
         mean_neighbor_action = self.adj @ self.action
-        print(mean_neighbor_action)
 
         # Calculate each agent's probability of being active
         v_active = self.u_active - self.c * (1 - mean_neighbor_action) ** 2
