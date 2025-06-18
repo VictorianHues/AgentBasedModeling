@@ -81,7 +81,7 @@ class BaseModel:
                 if env_status_fn is not None:
                     env_status = env_status_fn(x, y, i, self.rng)
                 else:
-                    env_status = self.rng.uniform(0.0, 1.0)
+                    env_status = self.rng.uniform(-1.0, 1.0)
                 if peer_pressure_coeff_fn is not None:
                     peer_pressure_coeff = peer_pressure_coeff_fn(x, y, i, self.rng)
                 else:

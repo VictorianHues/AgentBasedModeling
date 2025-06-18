@@ -81,7 +81,7 @@ class Agent:
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
         """
-        self.env_status += 0.1 * action_decision
+        self.env_status += 0.05 * action_decision
         self.env_status = max(-1, min(1, self.env_status))
 
     def calculate_deviation_cost(self, action: int, ave_peer_action: float) -> float:
