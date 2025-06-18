@@ -18,15 +18,16 @@ class Agent:
     """
 
     ACTIONS = [-1, 1]
-    HISTORY_LENGTH = 10
+    HISTORY_LENGTH = 1
 
     def __init__(
         self,
         id: int,
-        env_status: float,
-        peer_pressure_coeff: float,
-        env_perception_coeff: float,
+        memory_count: int = HISTORY_LENGTH,
         rng: np.random.Generator = None,
+        env_status_fn=None,
+        peer_pressure_coeff_fn=None,
+        env_perception_coeff_fn=None,
     ):
         """Initialize an agent.
 
@@ -37,23 +38,31 @@ class Agent:
         Args:
             id (int):
                 Unique identifier for the agent.
-            env_status (float):
-                Initial status of the environment, typically between -1 and 1.
-            peer_pressure_coeff (float):
-                Coefficient representing the influence of peer pressure.
-            env_perception_coeff (float):
-                Coefficient representing the agent's perception of the environment.
+            memory_count (int):
+                Number of past steps to remember (history length).
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
+            env_status_fn (callable):
+                Function that returns the initial status of the environment,
+                typically between -1 and 1.
+            peer_pressure_coeff_fn (callable):
+                Function that returns the peer pressure coefficient.
+            env_perception_coeff_fn (callable):
+                Function that returns the agent's perception coefficient
+                of the environment.
         """
         self.id = id
-        self.env_status = env_status
-        self.peer_pressure_coeff = peer_pressure_coeff
-        self.env_perception_coeff = env_perception_coeff
+        self.memory_count = memory_count
         self.rng = rng or np.random.default_rng()
-        self.action = self.rng.choice(self.ACTIONS)
         self.past_actions = [
-            self.rng.choice(self.ACTIONS) for _ in range(self.HISTORY_LENGTH)
+            self.rng.choice(self.ACTIONS) for _ in range(self.memory_count)
+        ]
+        self.env_status = [env_status_fn() for _ in range(self.memory_count)]
+        self.peer_pressure_coeff = [
+            peer_pressure_coeff_fn() for _ in range(self.memory_count)
+        ]
+        self.env_perception_coeff = [
+            env_perception_coeff_fn() for _ in range(self.memory_count)
         ]
 
     def update_env_perception_coeff(self) -> float:
@@ -62,7 +71,7 @@ class Agent:
         This coefficient is used to calculate the perceived
         severity of the environment.
         """
-        return self.env_perception_coeff
+        return self.env_perception_coeff[-1]
 
     def update_peer_pressure_coeff(self) -> float:
         """Update the agent's peer pressure coefficient.
@@ -70,19 +79,23 @@ class Agent:
         This coefficient is used to calculate the cost
         of deviating from the average peer action.
         """
-        return self.peer_pressure_coeff
+        return self.peer_pressure_coeff[-1]
 
     def update_environment_status(self, action_decision: int) -> None:
         """Update the agent's perception of the environment status.
 
         The environment status is updated based on the agent's action decision.
-        The status is limited to the range [-1, 1].
+        The status is limited to the range [0, 1].
 
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
         """
-        self.env_status += 0.1 * action_decision
-        self.env_status = max(-1, min(1, self.env_status))
+        current_env_status = self.get_recent_env_status()
+        current_env_status += 0.1 * action_decision
+        current_env_status = max(0, min(1, current_env_status))
+        self.env_status.append(current_env_status)
+        if len(self.env_status) > self.HISTORY_LENGTH:
+            self.env_status.pop(0)
 
     def calculate_deviation_cost(self, action: int, ave_peer_action: float) -> float:
         """Calculate the cost of deviating from the average peer action.
@@ -97,7 +110,7 @@ class Agent:
         Returns:
             float: The cost of deviation from your neighbors.
         """
-        return self.peer_pressure_coeff * (action - ave_peer_action) ** 2
+        return self.peer_pressure_coeff[-1] * (action - ave_peer_action) ** 2
 
     def calculate_perceived_severity(self) -> float:
         """Calculate the perceived severity of the environment.
@@ -105,12 +118,15 @@ class Agent:
         The perceived severity is a function of the environment
         status and the agent's perception coefficient.
         It is calculated as:
-        env_perception_coeff * env_status
+        env_perception_coeff * env_status * -1
+        The negative sign indicates that a higher environment status
+        leads to a lower perceived severity.
+        The perceived severity is used to determine the utility of actions.
 
         Returns:
             float: The perceived severity of the environment.
         """
-        return self.env_perception_coeff * self.env_status
+        return self.env_perception_coeff[-1] * self.env_status[-1] * -1
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
         """Calculate the utility of taking a specific action.
@@ -119,7 +135,7 @@ class Agent:
         of the environment multiplied by the action, minus
         the cost of deviating from the average peer action.
         The formula is:
-        V_i(a_i(t)) = U_i(t) - c * (a_i(t) - A_i(t))^2
+        V_i(a_i(t)) = a_i(t) * U_i(t) - c * (a_i(t) - A_i(t))^2
 
         Args:
             action (int): The action taken by the agent, either -1 or 1.
@@ -130,7 +146,7 @@ class Agent:
         """
         deviation_cost = self.calculate_deviation_cost(action, ave_peer_action)
         perceived_severity = self.calculate_perceived_severity()
-        env_action_utility = perceived_severity * action
+        env_action_utility = action * perceived_severity
         return env_action_utility - deviation_cost
 
     def calculate_action_probabilities(
@@ -159,7 +175,7 @@ class Agent:
         probabilities = exp_utilities / np.sum(exp_utilities)
         return self.ACTIONS, probabilities
 
-    def update_past_actions(self) -> None:
+    def update_past_actions(self, action) -> None:
         """Update the history of past actions.
 
         This method maintains a fixed-length history of past actions.
@@ -167,11 +183,27 @@ class Agent:
         """
         if len(self.past_actions) >= self.HISTORY_LENGTH:
             self.past_actions.pop(0)
-        self.past_actions.append(self.action)
+        self.past_actions.append(action)
 
     def decide_action(self, ave_peer_action: float) -> None:
         """Decide on a new action based on peer actions and environment."""
         action_set, probabilities = self.calculate_action_probabilities(ave_peer_action)
-        self.action = self.rng.choice(action_set, p=probabilities)
-        self.update_past_actions()
-        self.update_environment_status(self.action)
+        action = self.rng.choice(action_set, p=probabilities)
+        self.update_past_actions(action)
+        self.update_environment_status(action)
+
+    def get_recent_action(self) -> int:
+        """Get the most recent action taken by the agent."""
+        return self.past_actions[-1] if self.past_actions else None
+
+    def get_recent_env_status(self) -> float:
+        """Get the most recent environment status perceived by the agent."""
+        return self.env_status[-1] if self.env_status else None
+
+    def get_recent_peer_pressure_coeff(self) -> float:
+        """Get the most recent peer pressure coefficient perceived by the agent."""
+        return self.peer_pressure_coeff[-1] if self.peer_pressure_coeff else None
+
+    def get_recent_env_perception_coeff(self) -> float:
+        """Get the most recent environment perception coefficient of the the agent."""
+        return self.env_perception_coeff[-1] if self.env_perception_coeff else None

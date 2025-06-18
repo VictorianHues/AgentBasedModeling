@@ -39,6 +39,7 @@ class BaseModel:
     DEFAULT_WIDTH = 10
     DEFAULT_HEIGHT = 10
     DEFAULT_RADIUS = 1
+    DEFAULT_MEMORY_COUNT = 1
 
     def __init__(
         self,
@@ -46,6 +47,7 @@ class BaseModel:
         width: int = DEFAULT_WIDTH,
         height: int = DEFAULT_HEIGHT,
         radius: int = DEFAULT_RADIUS,
+        memory_count: int = DEFAULT_MEMORY_COUNT,
         rng: np.random.Generator = None,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
@@ -58,6 +60,7 @@ class BaseModel:
             width (int): Width of the grid.
             height (int): Height of the grid.
             radius (int): Radius for neighbor calculations.
+            memory_count (int): Number of past actions to remember for each agent.
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
             env_status_fn (callable, optional):
@@ -72,26 +75,20 @@ class BaseModel:
         self.radius = radius
         self.width = width
         self.height = height
+        self.memory_count = memory_count
         self.rng = rng or np.random.default_rng()
 
         self.agents = np.empty((width, height), dtype=object)
         i = 0
         for x in range(self.width):
             for y in range(self.height):
-                if env_status_fn is not None:
-                    env_status = env_status_fn(x, y, i, self.rng)
-                else:
-                    env_status = self.rng.uniform(0.0, 1.0)
-                if peer_pressure_coeff_fn is not None:
-                    peer_pressure_coeff = peer_pressure_coeff_fn(x, y, i, self.rng)
-                else:
-                    peer_pressure_coeff = self.rng.uniform(0.0, 1.0)
-                if env_perception_coeff_fn is not None:
-                    env_perception_coeff = env_perception_coeff_fn(x, y, i, self.rng)
-                else:
-                    env_perception_coeff = self.rng.uniform(0.0, 1.0)
                 self.agents[x, y] = Agent(
-                    i, env_status, peer_pressure_coeff, env_perception_coeff
+                    i,
+                    self.memory_count,
+                    self.rng,
+                    env_status_fn,
+                    peer_pressure_coeff_fn,
+                    env_perception_coeff_fn,
                 )
                 i += 1
 
@@ -190,7 +187,7 @@ class BaseModel:
         action_grid = np.zeros((self.width, self.height))
         for x in range(self.width):
             for y in range(self.height):
-                action_grid[x, y] = self.agents[x, y].action
+                action_grid[x, y] = self.agents[x, y].get_recent_action()
         return action_grid
 
     def get_agent_env_status(self) -> np.ndarray:
@@ -203,7 +200,7 @@ class BaseModel:
         env_status_grid = np.zeros((self.width, self.height))
         for x in range(self.width):
             for y in range(self.height):
-                env_status_grid[x, y] = self.agents[x, y].env_status
+                env_status_grid[x, y] = self.agents[x, y].env_status[-1]
         return env_status_grid
 
     def run(self, steps: int = 20) -> None:

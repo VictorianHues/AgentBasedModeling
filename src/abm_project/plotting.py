@@ -11,7 +11,7 @@ def plot_current_agent_env_status(model):
     env_status_grid = np.zeros((model.width, model.height))
     for x in range(model.width):
         for y in range(model.height):
-            env_status_grid[x, y] = model.agents[x, y].env_status
+            env_status_grid[x, y] = model.agents[x, y].get_recent_env_status()
 
     plt.imshow(env_status_grid, cmap="RdYlGn", origin="lower")
     plt.colorbar(label="Environment Status")
@@ -24,7 +24,7 @@ def plot_current_agent_actions(model):
     action_grid = np.zeros((model.width, model.height))
     for x in range(model.width):
         for y in range(model.height):
-            action_grid[x, y] = model.agents[x, y].action
+            action_grid[x, y] = model.agents[x, y].get_recent_action()
 
     plt.imshow(action_grid, cmap=ListedColormap(["red", "green"]), origin="lower")
     plt.colorbar(label="Agent Action (-1 or 1)")
@@ -78,3 +78,31 @@ def animate_agent_env_status(model):
     plt.show()
 
     return ani
+
+
+def plot_overall_agent_actions_over_time(model):
+    """Plot the overall agent actions over time."""
+    action_history = np.array(model.agent_action_history)
+    avg_actions = np.mean(action_history, axis=(1, 2))
+
+    plt.plot(avg_actions, label="Average Agent Action")
+    plt.xlabel("Time Step")
+    plt.ylabel("Average Action (-1 or 1)")
+    plt.title("Overall Agent Actions Over Time")
+    plt.axhline(0, color="gray", linestyle="--")
+    plt.legend()
+    plt.show()
+
+
+def plot_overall_agent_env_status_over_time(model):
+    """Plot the overall agent environment status over time."""
+    env_status_history = np.array(model.agent_env_status_history)
+    avg_env_status = np.mean(env_status_history, axis=(1, 2))
+
+    plt.plot(avg_env_status, label="Average Environment Status")
+    plt.xlabel("Time Step")
+    plt.ylabel("Average Environment Status")
+    plt.title("Overall Agent Environment Status Over Time")
+    plt.axhline(0, color="gray", linestyle="--")
+    plt.legend()
+    plt.show()
