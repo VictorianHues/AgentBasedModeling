@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abm_project.agent &#8212; ABM Project 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abm_project.agent</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Agent class for an agent-based model simulation.</span>
+
+<span class="sd">This class represents an agent that interacts with its environment and peers.</span>
+<span class="sd">It includes methods for decision-making based on peer actions and environmental status.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Agent">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Agent</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Agent class for an agent-based model simulation.</span>
+
+<span class="sd">    This class represents an agent that interacts</span>
+<span class="sd">    with its environment and peers.</span>
+<span class="sd">    It includes methods for decision-making based on</span>
+<span class="sd">    peer actions and environmental status.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ACTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">HISTORY_LENGTH</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">env_status</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">peer_pressure_coeff</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">env_perception_coeff</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an agent.</span>
+
+<span class="sd">        Initialize with an ID, environment status,</span>
+<span class="sd">        peer pressure coefficient, and environment</span>
+<span class="sd">        perception coefficient.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id (int):</span>
+<span class="sd">                Unique identifier for the agent.</span>
+<span class="sd">            env_status (float):</span>
+<span class="sd">                Initial status of the environment, typically between -1 and 1.</span>
+<span class="sd">            peer_pressure_coeff (float):</span>
+<span class="sd">                Coefficient representing the influence of peer pressure.</span>
+<span class="sd">            env_perception_coeff (float):</span>
+<span class="sd">                Coefficient representing the agent&#39;s perception of the environment.</span>
+<span class="sd">            rng (np.random.Generator, optional):</span>
+<span class="sd">                Random number generator. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">=</span> <span class="n">env_status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="o">=</span> <span class="n">peer_pressure_coeff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="o">=</span> <span class="n">env_perception_coeff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HISTORY_LENGTH</span><span class="p">)</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="Agent.update_env_perception_coeff">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_env_perception_coeff">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_env_perception_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s perception coefficient of the environment.</span>
+
+<span class="sd">        This coefficient is used to calculate the perceived</span>
+<span class="sd">        severity of the environment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span></div>
+
+
+<div class="viewcode-block" id="Agent.update_peer_pressure_coeff">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_peer_pressure_coeff">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_peer_pressure_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s peer pressure coefficient.</span>
+
+<span class="sd">        This coefficient is used to calculate the cost</span>
+<span class="sd">        of deviating from the average peer action.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span></div>
+
+
+<div class="viewcode-block" id="Agent.update_environment_status">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_environment_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_environment_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_decision</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s perception of the environment status.</span>
+
+<span class="sd">        The environment status is updated based on the agent&#39;s action decision.</span>
+<span class="sd">        The status is limited to the range [-1, 1].</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action_decision (int): The action taken by the agent, either -1 or 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">action_decision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Agent.calculate_deviation_cost">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.calculate_deviation_cost">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_deviation_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the cost of deviating from the average peer action.</span>
+
+<span class="sd">        The cost is calculated as:</span>
+<span class="sd">        c * (a_i(t) - A_i(t))^2</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action (int): The action taken by the agent, either -1 or 1.</span>
+<span class="sd">            ave_peer_action (float): The average action of peers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The cost of deviation from your neighbors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">action</span> <span class="o">-</span> <span class="n">ave_peer_action</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="Agent.calculate_perceived_severity">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.calculate_perceived_severity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_perceived_severity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the perceived severity of the environment.</span>
+
+<span class="sd">        The perceived severity is a function of the environment</span>
+<span class="sd">        status and the agent&#39;s perception coefficient.</span>
+<span class="sd">        It is calculated as:</span>
+<span class="sd">        env_perception_coeff * env_status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The perceived severity of the environment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span></div>
+
+
+<div class="viewcode-block" id="Agent.calculate_action_utility">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.calculate_action_utility">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_action_utility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the utility of taking a specific action.</span>
+
+<span class="sd">        The utility is calculated as the perceived severity</span>
+<span class="sd">        of the environment multiplied by the action, minus</span>
+<span class="sd">        the cost of deviating from the average peer action.</span>
+<span class="sd">        The formula is:</span>
+<span class="sd">        V_i(a_i(t)) = U_i(t) - c * (a_i(t) - A_i(t))^2</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action (int): The action taken by the agent, either -1 or 1.</span>
+<span class="sd">            ave_peer_action (float): The average action of peers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The utility of the action.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">deviation_cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_deviation_cost</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">)</span>
+        <span class="n">perceived_severity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_perceived_severity</span><span class="p">()</span>
+        <span class="n">env_action_utility</span> <span class="o">=</span> <span class="n">perceived_severity</span> <span class="o">*</span> <span class="n">action</span>
+        <span class="k">return</span> <span class="n">env_action_utility</span> <span class="o">-</span> <span class="n">deviation_cost</span></div>
+
+
+<div class="viewcode-block" id="Agent.calculate_action_probabilities">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.calculate_action_probabilities">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_action_probabilities</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the probability of each possible action.</span>
+
+<span class="sd">        The probabilities are calculated using a logit softmax</span>
+<span class="sd">        function over the utilities of each action.</span>
+<span class="sd">        The formula is:</span>
+<span class="sd">        P(a_i(t) = a) = exp(V_i(a)) / sum(exp(V_i(a&#39;)) for all a&#39;)</span>
+<span class="sd">        where V_i(a) is the utility of action a for agent i.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ave_peer_action (float): The average action of peers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[List[int], np.ndarray]:</span>
+<span class="sd">                A tuple containing the list of actions and</span>
+<span class="sd">                their corresponding probabilities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">utilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_utility</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">exp_utilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilities</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">utilities</span><span class="p">))</span>  <span class="c1"># for numerical stability</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="n">exp_utilities</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp_utilities</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">,</span> <span class="n">probabilities</span></div>
+
+
+<div class="viewcode-block" id="Agent.update_past_actions">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_past_actions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_past_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the history of past actions.</span>
+
+<span class="sd">        This method maintains a fixed-length history of past actions.</span>
+<span class="sd">        If the history exceeds the defined length, the oldest action is removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HISTORY_LENGTH</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Agent.decide_action">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.decide_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decide_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decide on a new action based on peer actions and environment.&quot;&quot;&quot;</span>
+        <span class="n">action_set</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_probabilities</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">action_set</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probabilities</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_past_actions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_environment_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">ABM Project</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../abm_project.html">abm_project</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Karolina Chlopicka, Victoria Peterson, Shania Sinha, Henry Zwart.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
