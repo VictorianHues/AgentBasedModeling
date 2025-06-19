@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 """Agent-based model base class for simulations.
 
 This module defines a base class for agent-based models, providing
@@ -7,7 +11,6 @@ and managing the simulation environment.
 """
 
 import numpy as np
-
 from abm_project.agent import Agent
 
 
@@ -50,6 +53,8 @@ class BaseModel:
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
+        risk_aversion_coeff_fn = None,
+        severity_type= "Arrow_Pratt"
     ):
         """Initialize the base model with a grid of agents.
 
@@ -66,6 +71,8 @@ class BaseModel:
                 Function to initialize peer_pressure_coeff.
             env_perception_coeff_fn (callable, optional):
                 Function to initialize env_perception_coeff.
+            risk_aversion_coeff_fn (callable, optional):
+                Function to initialize risk_aversion_coeff.
         """
         self.time = 0
         self.num_agents = num_agents
@@ -90,9 +97,16 @@ class BaseModel:
                     env_perception_coeff = env_perception_coeff_fn(x, y, i, self.rng)
                 else:
                     env_perception_coeff = self.rng.uniform(0.0, 1.0)
+                
+                if risk_aversion_coeff_fn is not None:
+                    risk_aversion_coeff = risk_aversion_coeff_fn(x, y, i, self.rng)
+                else:
+                    risk_aversion_coeff = self.rng.uniform(-0.5, 0.5)
+
                 self.agents[x, y] = Agent(
-                    i, env_status, peer_pressure_coeff, env_perception_coeff
+                    i, env_status, peer_pressure_coeff, env_perception_coeff, risk_aversion_coeff, severity_type, self.rng 
                 )
+
                 i += 1
 
         self.agent_action_history = [self.get_agent_actions()]

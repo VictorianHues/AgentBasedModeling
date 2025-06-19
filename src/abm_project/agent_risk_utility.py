@@ -10,8 +10,6 @@ import numpy as np
 
 class Agent:
     """Agent class for an agent-based model simulation.
-    
-    
     This class represents an agent that interacts
     with its environment and peers.
     It includes methods for decision-making based on
@@ -28,8 +26,7 @@ class Agent:
         peer_pressure_coeff: float,
         env_perception_coeff: float,
         risk_aversion_coeff: float,
-        severity_type: str,  
-        rng: np.random.Generator = None,  
+        rng: np.random.Generator = None,
     ):
         """Initialize an agent.
 
@@ -46,6 +43,8 @@ class Agent:
                 Coefficient representing the influence of peer pressure.
             env_perception_coeff (float):
                 Coefficient representing the agent's perception of the environment.
+            risk_aversion_coeff (float):
+                Coefficient representing the agent's risk aversion.
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
         """
@@ -53,7 +52,6 @@ class Agent:
         self.env_status = env_status
         self.peer_pressure_coeff = peer_pressure_coeff
         self.env_perception_coeff = env_perception_coeff
-        self.severity_type = severity_type
         self.risk_aversion_coeff = risk_aversion_coeff
         self.rng = rng or np.random.default_rng()
         self.action = self.rng.choice(self.ACTIONS)
@@ -63,7 +61,7 @@ class Agent:
 
     def update_env_perception_coeff(self) -> float:
         """Update the agent's perception coefficient of the environment.
-
+        
         This coefficient is used to calculate the perceived
         severity of the environment.
         """
@@ -104,23 +102,25 @@ class Agent:
         """
         return self.peer_pressure_coeff * (action - ave_peer_action) ** 2
 
-    def calculate_perceived_severity(self, type) -> float:
+    def calculate_perceived_severity(self, type = "coefficient") -> float:
         """Calculate the perceived severity of the environment.
 
         The perceived severity is a function of the environment
         status and the agent's perception coefficient.
-    
         Args: 
-            type: "Arrow_Pratt" or "Constant" 
+            type (str): determines how percived severity is calculated. If set to "coefficient" - it is calculated as:
+                        env_perception_coeff * env_status, if set to "function", it is calculated as Arrow-Pratt risk aversion function. 
 
         Returns:
             float: The perceived severity of the environment.
         """
-        if type == "Constant":
+        if type == "coefficient":
             perceived_severity = self.env_perception_coeff * self.env_status
-
-        elif type == "Arrow_Pratt": 
+        elif type == "function":
             perceived_severity = (self.env_status**(1-self.risk_aversion_coeff))/(1-self.risk_aversion_coeff)
+        else:
+            print("Unsupported type for percived severity")
+
         return perceived_severity
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
@@ -140,7 +140,7 @@ class Agent:
             float: The utility of the action.
         """
         deviation_cost = self.calculate_deviation_cost(action, ave_peer_action)
-        perceived_severity = self.calculate_perceived_severity(self.severity_type)
+        perceived_severity = self.calculate_perceived_severity()
         env_action_utility = perceived_severity * action
         return env_action_utility - deviation_cost
 

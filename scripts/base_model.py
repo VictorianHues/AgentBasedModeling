@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
 """Base model script for running an agent-based model simulation."""
 
 from abm_project.oop_model import BaseModel
@@ -17,7 +21,7 @@ def main():
     radius = 1
     num_steps = 25
 
-    model = BaseModel(num_agents=num_agents, width=width, height=height, radius=radius)
+    model = BaseModel(num_agents=num_agents, width=width, height=height, radius=radius,  severity_type="Arrow_Pratt")
 
     model.run(num_steps)
 
