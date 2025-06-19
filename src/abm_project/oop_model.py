@@ -6,6 +6,8 @@ and managing the simulation environment.
 
 """
 
+import os
+
 import numpy as np
 
 from abm_project.agent import Agent
@@ -42,25 +44,27 @@ class BaseModel:
     DEFAULT_MEMORY_COUNT = 1
     DEFAULT_ENV_UPDATE_OPTION = "linear"
     DEFAULT_ADAPTIVE_ATTR_OPTION = None
+    DEFAULT_LEARNING_RATE = 0.1
 
     def __init__(
         self,
-        num_agents: int = DEFAULT_NUM_AGENTS,
         width: int = DEFAULT_WIDTH,
         height: int = DEFAULT_HEIGHT,
         radius: int = DEFAULT_RADIUS,
         memory_count: int = DEFAULT_MEMORY_COUNT,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         adaptive_attr_option: str = DEFAULT_ADAPTIVE_ATTR_OPTION,
+        env_perception_learning_rate: float = DEFAULT_LEARNING_RATE,
+        peer_pressure_learning_rate: float = DEFAULT_LEARNING_RATE,
         rng: np.random.Generator = None,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
+        results_save_name: str = None,
     ):
         """Initialize the base model with a grid of agents.
 
         Args:
-            num_agents (int): Total number of agents in the grid.
             width (int): Width of the grid.
             height (int): Height of the grid.
             radius (int): Radius for neighbor calculations.
@@ -69,6 +73,12 @@ class BaseModel:
                 Method to update the environment status.
             adaptive_attr_option (str, optional):
                 Option for adaptive attributes. Defaults to None.
+            env_perception_learning_rate (float, optional):
+                Learning rate for environment perception updates.
+            peer_pressure_learning_rate (float, optional):
+                Learning rate for peer pressure updates.
+            results_save_name (str, optional):
+                Name for saving results. If None, results are not saved.
             rng (np.random.Generator, optional):
                 Random number generator. Defaults to None.
             env_status_fn (callable, optional):
@@ -79,14 +89,17 @@ class BaseModel:
                 Function to initialize env_perception_coeff.
         """
         self.time = 0
-        self.num_agents = num_agents
         self.radius = radius
         self.width = width
         self.height = height
         self.memory_count = memory_count
         self.env_update_option = env_update_option
         self.adaptive_attr_option = adaptive_attr_option
+        self.env_perception_learning_rate = env_perception_learning_rate
+        self.peer_pressure_learning_rate = peer_pressure_learning_rate
+
         self.rng = rng or np.random.default_rng()
+        self.results_save_name = results_save_name
 
         self.agents = np.empty((width, height), dtype=object)
         i = 0
@@ -98,16 +111,25 @@ class BaseModel:
                     self.rng,
                     self.env_update_option,
                     self.adaptive_attr_option,
+                    self.env_perception_learning_rate,
+                    self.peer_pressure_learning_rate,
                     env_status_fn,
                     peer_pressure_coeff_fn,
                     env_perception_coeff_fn,
                 )
                 i += 1
 
-        self.agent_action_history = [self.get_agent_actions()]
-        self.agent_env_status_history = [self.get_agent_env_status()]
-        self.agent_peer_pressure_coeff_history = [self.get_agent_peer_pressure_coeff()]
-        self.agent_env_utility_history = [self.get_agent_env_utility()]
+        self.agent_action_history = [self.get_agent_grid_attribute("past_actions")]
+        self.agent_env_status_history = [self.get_agent_grid_attribute("env_status")]
+        self.agent_peer_pressure_coeff_history = [
+            self.get_agent_grid_attribute("peer_pressure_coeff")
+        ]
+        self.agent_env_perception_coeff_history = [
+            self.get_agent_grid_attribute("env_perception_coeff")
+        ]
+        self.agent_env_utility_history = [
+            self.get_agent_grid_attribute("env_utility_history")
+        ]
 
     def step(self) -> None:
         """Perform a single step in the model.
@@ -120,12 +142,11 @@ class BaseModel:
         for x in range(self.width):
             for y in range(self.height):
                 agent = self.agents[x, y]
-                ave_peer_action = self.ave_neighb_action_single_memory(x, y)
-                all_peer_actions = self.get_neighbor_actions(x, y)
-                all_peer_env_utilities = self.get_neighbor_env_utilities(x, y)
-                agent.decide_action(
-                    ave_peer_action, all_peer_actions, all_peer_env_utilities
+                ave_peer_action = self.ave_neighb_action(x, y, memory=self.memory_count)
+                all_peer_actions = self.get_neighbor_attribute_values(
+                    x, y, "past_actions"
                 )
+                agent.decide_action(ave_peer_action, all_peer_actions)
 
     def run(self, steps: int = 20) -> None:
         """Run the model for a specified number of steps.
@@ -135,13 +156,25 @@ class BaseModel:
         """
         for _ in range(steps):
             self.step()
-            self.agent_action_history.append(self.get_agent_actions())
-            self.agent_env_status_history.append(self.get_agent_env_status())
-            self.agent_peer_pressure_coeff_history.append(
-                self.get_agent_peer_pressure_coeff()
+            self.agent_action_history.append(
+                self.get_agent_grid_attribute("past_actions")
             )
-            self.agent_env_utility_history.append(self.get_agent_env_utility())
+            self.agent_env_status_history.append(
+                self.get_agent_grid_attribute("env_status")
+            )
+            self.agent_peer_pressure_coeff_history.append(
+                self.get_agent_grid_attribute("peer_pressure_coeff")
+            )
+            self.agent_env_perception_coeff_history.append(
+                self.get_agent_grid_attribute("env_perception_coeff")
+            )
+            self.agent_env_utility_history.append(
+                self.get_agent_grid_attribute("env_utility_history")
+            )
 
+        self.save_results()
+
+    ###################################################################################################################
     def get_neighbors(self, x: int, y: int) -> list[Agent]:
         """Get the neighbors of an agent at position (x, y).
 
@@ -166,15 +199,18 @@ class BaseModel:
 
         return neighbors
 
-    def ave_neighb_action_single_memory(self, x: int, y: int) -> float:
-        """Calculate the average action of peers based on their most recent action.
+    def ave_neighb_action(self, x: int, y: int, memory: int = 1) -> float:
+        """Calculate the average action of peers based on their recent actions.
 
         This method computes the average action of neighboring agents,
-        considering only their most recent action.
+        considering the last `memory` actions (from the end). If memory=1,
+        only the most recent action is used. If memory > 1, the mean of the
+        last `memory` actions is used for each neighbor.
 
         Args:
             x (int): X-coordinate of the agent.
             y (int): Y-coordinate of the agent.
+            memory (int): Number of most recent actions to consider.
 
         Returns:
             float: Average action of neighbors.
@@ -184,169 +220,103 @@ class BaseModel:
         neighbors = self.get_neighbors(x, y)
         for neighbor in neighbors:
             if neighbor.past_actions:
-                total_action += neighbor.past_actions[-1]
+                if memory == 1:
+                    value = neighbor.past_actions[-1]
+                else:
+                    value = np.mean(neighbor.past_actions[-memory:])
+                total_action += value
                 count += 1
         return total_action / count if count > 0 else 0
 
-    def ave_neighb_action_full_memory(self, x: int, y: int) -> float:
-        """Calculate the average action of peers based on their full action history.
+    def get_neighbor_attribute_values(
+        self, x: int, y: int, attribute: str
+    ) -> np.ndarray:
+        """Get the values of a specific attribute from neighboring agents.
 
-        This method averages all past actions of neighbors,
-        not just the most recent one.
-
-        Args:
-            x (int): X-coordinate of the agent.
-            y (int): Y-coordinate of the agent.
-
-        Returns:
-            float: Average action of neighbors.
-        """
-        total_action = 0
-        count = 0
-        neighbors = self.get_neighbors(x, y)
-        for neighbor in neighbors:
-            if neighbor.past_actions:
-                total_action += np.mean(neighbor.past_actions)
-                count += 1
-        return total_action / count if count > 0 else 0
-
-    def get_neighbor_actions(self, x: int, y: int) -> np.ndarray:
-        """Get the actions of neighboring agents.
-
-        This method retrieves the most recent actions of all
-        neighbors of the agent at position (x, y).
+        This method retrieves the most recent values of a specified
+        attribute from all neighbors of the agent at position (x, y).
 
         Args:
             x (int): X-coordinate of the agent.
             y (int): Y-coordinate of the agent.
+            attribute (str): The attribute to retrieve from neighbors.
 
         Returns:
-            np.ndarray: Array of actions from neighboring agents.
+            np.ndarray: Array of attribute values from neighboring agents.
         """
-        neighbor_actions = []
+        neighbor_values = []
         neighbors = self.get_neighbors(x, y)
         for neighbor in neighbors:
-            if neighbor.past_actions:
-                neighbor_actions.append(neighbor.past_actions[-1])
+            value = getattr(neighbor, attribute, [])
+            if isinstance(value, list | np.ndarray):
+                neighbor_values.append(value[-1] if value else 0)
             else:
-                neighbor_actions.append(0)
-        return np.array(neighbor_actions)
+                neighbor_values.append(value if value is not None else 0)
+        return np.array(neighbor_values)
 
-    def get_neighbor_env_utilities(self, x: int, y: int) -> np.ndarray:
-        """Get the environment utilities of neighboring agents.
-
-        This method retrieves the most recent environment utilities
-        of all neighbors of the agent at position (x, y).
+    def get_agent_grid_attribute(self, attribute: str) -> np.ndarray:
+        """Get a 2D array of a specific agent attribute or method result.
 
         Args:
-            x (int): X-coordinate of the agent.
-            y (int): Y-coordinate of the agent.
+            attribute (str): The attribute or method name to retrieve from agents.
 
         Returns:
-            np.ndarray: Array of environment utilities from neighboring agents.
+            np.ndarray: A 2D array with values from the specified attribute or method.
         """
-        neighbor_env_utilities = []
-        neighbors = self.get_neighbors(x, y)
-        for neighbor in neighbors:
-            if neighbor.env_utility_history:
-                neighbor_env_utilities.append(neighbor.env_utility_history[-1])
-            else:
-                neighbor_env_utilities.append(0)
-        return np.array(neighbor_env_utilities)
-
-    def get_agent_actions(self) -> np.ndarray:
-        """Get the actions of all agents in a 2D array.
-
-        Returns:
-            np.ndarray: A 2D array where each cell contains the
-            action of the agent at that position.
-        """
-        action_grid = np.zeros((self.width, self.height))
+        grid = np.zeros((self.width, self.height))
         for x in range(self.width):
             for y in range(self.height):
-                action_grid[x, y] = self.agents[x, y].get_recent_action()
-        return action_grid
+                agent = self.agents[x, y]
+                value = getattr(agent, attribute)
+                grid[x, y] = value[-1] if len(value) > 0 else 0
+        return grid
 
-    def get_agent_env_status(self) -> np.ndarray:
-        """Get the environment status of all agents in a 2D array.
-
-        Returns:
-            np.ndarray: A 2D array where each cell contains the
-            environment status of the agent at that position.
-        """
-        env_status_grid = np.zeros((self.width, self.height))
-        for x in range(self.width):
-            for y in range(self.height):
-                env_status_grid[x, y] = self.agents[x, y].get_recent_env_status()
-        return env_status_grid
-
-    def get_agent_peer_pressure_coeff(self) -> np.ndarray:
-        """Get the peer pressure coefficients of all agents in a 2D array.
-
-        Returns:
-            np.ndarray: A 2D array where each cell contains the
-            peer pressure coefficient of the agent at that position.
-        """
-        peer_pressure_grid = np.zeros((self.width, self.height))
-        for x in range(self.width):
-            for y in range(self.height):
-                peer_pressure_grid[x, y] = self.agents[
-                    x, y
-                ].get_recent_peer_pressure_coeff()
-        return peer_pressure_grid
-
-    def get_agent_env_utility(self) -> np.ndarray:
-        """Get the environment utility of all agents in a 2D array.
-
-        Returns:
-            np.ndarray: A 2D array where each cell contains the
-            environment utility of the agent at that position.
-        """
-        env_utility_grid = np.zeros((self.width, self.height))
-        for x in range(self.width):
-            for y in range(self.height):
-                env_utility_grid[x, y] = self.agents[x, y].get_recent_env_utility()
-        return env_utility_grid
-
-    def get_agent_actions_at_time(self, time: int) -> np.ndarray:
-        """Get the actions of all agents at a specific time step.
+    def get_agent_attribute_at_time(self, attribute: str, time: int) -> np.ndarray:
+        """Get the values of a specific agent attribute at a given time step.
 
         Args:
-            time (int): The time step to retrieve actions for.
+            attribute (str):
+                The attribute history to retrieve (e.g., 'agent_action_history').
+            time (int):
+                The time step to retrieve values for.
 
         Returns:
-            np.ndarray: A 2D array of agent actions at the specified time.
+            np.ndarray: A 2D array of the attribute values at the specified time.
         """
-        if time < len(self.agent_action_history):
-            return self.agent_action_history[time]
+        history = getattr(self, attribute, None)
+        if history is None:
+            raise AttributeError(f"No such attribute history: {attribute}")
+        if time < len(history):
+            return history[time]
         else:
             raise IndexError("Time step exceeds the history length.")
 
-    def get_agent_env_status_at_time(self, time: int) -> np.ndarray:
-        """Get the environment status of all agents at a specific time step.
+    def save_results(self) -> None:
+        """Save the agent history to a file.
 
-        Args:
-            time (int): The time step to retrieve environment status for.
-
-        Returns:
-            np.ndarray: A 2D array of agent environment status at the specified time.
+        This method saves the actions, environment status,
+        peer pressure coefficients, and environment utilities
+        of agents to a .npz file for later analysis.
         """
-        if time < len(self.agent_env_status_history):
-            return self.agent_env_status_history[time]
+        if self.results_save_name is None:
+            return
+
+        file_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+
+        if self.results_save_name.endswith(".npz"):
+            file_path = os.path.join(file_dir, self.results_save_name)
         else:
-            raise IndexError("Time step exceeds the history length.")
+            # Ensure the file name ends with .npz
+            self.results_save_name += ".npz"
+            file_path = os.path.join(file_dir, self.results_save_name)
 
-    def get_agent_peer_pressure_coeff_at_time(self, time: int) -> np.ndarray:
-        """Get the peer pressure coefficients of all agents at a specific time step.
-
-        Args:
-            time (int): The time step to retrieve peer pressure coefficients for.
-
-        Returns:
-            np.ndarray: A 2D array of agent peer pressure
-                coefficients at the specified time.
-        """
-        if time < len(self.agent_peer_pressure_coeff_history):
-            return self.agent_peer_pressure_coeff_history[time]
-        else:
-            raise IndexError("Time step exceeds the history length.")
+        np.savez(
+            file_path,
+            actions=self.agent_action_history,
+            env_status=self.agent_env_status_history,
+            peer_pressure_coeff=self.agent_peer_pressure_coeff_history,
+            env_perception_coeff=self.agent_env_perception_coeff_history,
+            env_utility=self.agent_env_utility_history,
+        )
