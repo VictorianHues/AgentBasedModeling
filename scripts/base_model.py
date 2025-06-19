@@ -62,14 +62,14 @@ def main():
     model.run(num_steps)
 
     plot_current_grid_state(
-        model.get_agent_env_status(),
+        model.get_agent_env_status_at_time(-1),
         colormap="RdYlGn",
         title="Agent Environment Status",
         colorbar_label="Environment Status",
         clim=(0, 1),
     )
     plot_current_grid_state(
-        model.get_agent_actions(),
+        model.get_agent_actions_at_time(-1),
         colormap=ListedColormap(["red", "green"]),
         title="Agent Actions",
         colorbar_label="Agent Action (-1 or 1)",

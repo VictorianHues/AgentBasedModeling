@@ -307,3 +307,46 @@ class BaseModel:
             for y in range(self.height):
                 env_utility_grid[x, y] = self.agents[x, y].get_recent_env_utility()
         return env_utility_grid
+
+    def get_agent_actions_at_time(self, time: int) -> np.ndarray:
+        """Get the actions of all agents at a specific time step.
+
+        Args:
+            time (int): The time step to retrieve actions for.
+
+        Returns:
+            np.ndarray: A 2D array of agent actions at the specified time.
+        """
+        if time < len(self.agent_action_history):
+            return self.agent_action_history[time]
+        else:
+            raise IndexError("Time step exceeds the history length.")
+
+    def get_agent_env_status_at_time(self, time: int) -> np.ndarray:
+        """Get the environment status of all agents at a specific time step.
+
+        Args:
+            time (int): The time step to retrieve environment status for.
+
+        Returns:
+            np.ndarray: A 2D array of agent environment status at the specified time.
+        """
+        if time < len(self.agent_env_status_history):
+            return self.agent_env_status_history[time]
+        else:
+            raise IndexError("Time step exceeds the history length.")
+
+    def get_agent_peer_pressure_coeff_at_time(self, time: int) -> np.ndarray:
+        """Get the peer pressure coefficients of all agents at a specific time step.
+
+        Args:
+            time (int): The time step to retrieve peer pressure coefficients for.
+
+        Returns:
+            np.ndarray: A 2D array of agent peer pressure
+                coefficients at the specified time.
+        """
+        if time < len(self.agent_peer_pressure_coeff_history):
+            return self.agent_peer_pressure_coeff_history[time]
+        else:
+            raise IndexError("Time step exceeds the history length.")
