@@ -23,15 +23,15 @@ def main():
     # "linear", "sigmoid", "exponential", "bell", "sigmoid_asymmetric", "bimodal"
     env_update_option = "linear"
 
-    # "bayesian_niegh_utility", "bayesian"
-    adaptive_attr_option = None
+    # "bayesian_niegh_utility", "bayesian_niegh_action"
+    adaptive_attr_option = "bayesian_niegh_utility"
     rng = None
 
     def env_status_fn():
         if rng:
-            return rng.uniform(0.0, 1.0)
+            return rng.uniform(0.0, 0.5)
         else:
-            return np.random.uniform(0.0, 1.0)
+            return np.random.uniform(0.0, 0.5)
 
     def peer_pressure_coeff_fn():
         if rng:
@@ -66,12 +66,14 @@ def main():
         colormap="RdYlGn",
         title="Agent Environment Status",
         colorbar_label="Environment Status",
+        clim=(0, 1),
     )
     plot_current_grid_state(
         model.get_agent_actions(),
         colormap=ListedColormap(["red", "green"]),
         title="Agent Actions",
         colorbar_label="Agent Action (-1 or 1)",
+        clim=(-1, 1),
     )
 
     animate_grid_states(
@@ -80,6 +82,7 @@ def main():
         title="Agent Actions Over Time",
         colorbar_label="Agent Action (-1 or 1)",
         file_name="agent_actions.mp4",
+        clim=(-1, 1),
     )
     animate_grid_states(
         np.array(model.agent_env_status_history),
@@ -87,6 +90,7 @@ def main():
         title="Agent Environment Status Over Time",
         colorbar_label="Environment Status",
         file_name="agent_env_status.mp4",
+        clim=(0, 1),
     )
     animate_grid_states(
         np.array(model.agent_peer_pressure_coeff_history),
@@ -94,6 +98,7 @@ def main():
         title="Agent Peer Pressure Coeff Over Time",
         colorbar_label="Peer Pressure Coeff",
         file_name="agent_peer_pressure_coeff.mp4",
+        clim=(0, 1),
     )
 
     plot_grid_average_over_time(

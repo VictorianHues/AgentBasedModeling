@@ -24,7 +24,9 @@ def get_plot_directory(file_name):
     return plot_dir
 
 
-def plot_current_grid_state(grid, colormap, title, colorbar_label, file_name=None):
+def plot_current_grid_state(
+    grid, colormap, title, colorbar_label, file_name=None, clim=None
+):
     """Plot the current state of the grid.
 
     Args:
@@ -34,9 +36,12 @@ def plot_current_grid_state(grid, colormap, title, colorbar_label, file_name=Non
         colorbar_label (str): Label for the colorbar.
         file_name (str, optional): Name of the file to save the plot. If None
             will display the plot.
+        clim (tuple, optional): Tuple (vmin, vmax) to set colorbar limits.
     """
-    plt.imshow(grid, cmap=colormap, origin="lower")
-    plt.colorbar(label=colorbar_label)
+    im = plt.imshow(grid, cmap=colormap, origin="lower")
+    if clim is not None:
+        im.set_clim(*clim)
+    plt.colorbar(im, label=colorbar_label)
     plt.title(title)
     if file_name:
         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
@@ -45,7 +50,9 @@ def plot_current_grid_state(grid, colormap, title, colorbar_label, file_name=Non
         plt.show()
 
 
-def animate_grid_states(grid_history, colormap, title, colorbar_label, file_name=None):
+def animate_grid_states(
+    grid_history, colormap, title, colorbar_label, file_name=None, clim=None
+):
     """Animate the grid states over time.
 
     Args:
@@ -55,6 +62,7 @@ def animate_grid_states(grid_history, colormap, title, colorbar_label, file_name
         colorbar_label (str): Label for the colorbar.
         file_name (str, optional): Name of the file to save the animation.
             If None, will display the plot.
+        clim (tuple, optional): Tuple (vmin, vmax) to set colorbar limits.
 
     Returns:
         ani (FuncAnimation): The animation object.
@@ -63,6 +71,8 @@ def animate_grid_states(grid_history, colormap, title, colorbar_label, file_name
 
     fig, ax = plt.subplots()
     im = ax.imshow(grid_history[0], cmap=colormap, origin="lower")
+    if clim is not None:
+        im.set_clim(*clim)
     ax.set_title(title)
 
     def update(frame):
