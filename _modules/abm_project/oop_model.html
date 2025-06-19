@@ -74,6 +74,8 @@
     <span class="n">DEFAULT_WIDTH</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">DEFAULT_HEIGHT</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">DEFAULT_RADIUS</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">DEFAULT_MEMORY_COUNT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">DEFAULT_ENV_UPDATE_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -81,6 +83,8 @@
         <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_WIDTH</span><span class="p">,</span>
         <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_HEIGHT</span><span class="p">,</span>
         <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_RADIUS</span><span class="p">,</span>
+        <span class="n">memory_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MEMORY_COUNT</span><span class="p">,</span>
+        <span class="n">env_update_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ENV_UPDATE_OPTION</span><span class="p">,</span>
         <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">env_status_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">peer_pressure_coeff_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -93,8 +97,11 @@
 <span class="sd">            width (int): Width of the grid.</span>
 <span class="sd">            height (int): Height of the grid.</span>
 <span class="sd">            radius (int): Radius for neighbor calculations.</span>
+<span class="sd">            memory_count (int): Number of past actions to remember for each agent.</span>
 <span class="sd">            rng (np.random.Generator, optional):</span>
 <span class="sd">                Random number generator. Defaults to None.</span>
+<span class="sd">            env_update_option (str, optional):</span>
+<span class="sd">                Method to update the environment status.</span>
 <span class="sd">            env_status_fn (callable, optional):</span>
 <span class="sd">                Function to initialize env_status.</span>
 <span class="sd">            peer_pressure_coeff_fn (callable, optional):</span>
@@ -107,26 +114,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">=</span> <span class="n">memory_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">=</span> <span class="n">env_update_option</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">env_status_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">env_status</span> <span class="o">=</span> <span class="n">env_status_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">env_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">peer_pressure_coeff_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">peer_pressure_coeff</span> <span class="o">=</span> <span class="n">peer_pressure_coeff_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">peer_pressure_coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">env_perception_coeff_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">env_perception_coeff</span> <span class="o">=</span> <span class="n">env_perception_coeff_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">env_perception_coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span>
-                    <span class="n">i</span><span class="p">,</span> <span class="n">env_status</span><span class="p">,</span> <span class="n">peer_pressure_coeff</span><span class="p">,</span> <span class="n">env_perception_coeff</span>
+                    <span class="n">i</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span><span class="p">,</span>
+                    <span class="n">env_status_fn</span><span class="p">,</span>
+                    <span class="n">peer_pressure_coeff_fn</span><span class="p">,</span>
+                    <span class="n">env_perception_coeff_fn</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -239,7 +242,7 @@
         <span class="n">action_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
-                <span class="n">action_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">action</span>
+                <span class="n">action_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">get_recent_action</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">action_grid</span></div>
 
 
@@ -255,7 +258,7 @@
         <span class="n">env_status_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
-                <span class="n">env_status_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">env_status</span>
+                <span class="n">env_status_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">env_status</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">env_status_grid</span></div>
 
 

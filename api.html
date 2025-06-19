@@ -201,7 +201,7 @@ a framework for initializing agents, calculating neighbor actions,
 and managing the simulation environment.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.oop_model.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_agents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.oop_model.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_agents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel" title="Link to this definition">¶</a></dt>
 <dd><p>Base model for agent-based simulations.</p>
 <p>This model initializes a grid of agents and provides methods for
 neighbor calculations, agent actions, and environment status updates.
@@ -307,8 +307,18 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_ENV_UPDATE_OPTION">
+<span class="sig-name descname"><span class="pre">DEFAULT_ENV_UPDATE_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear'</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_ENV_UPDATE_OPTION" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_HEIGHT">
 <span class="sig-name descname"><span class="pre">DEFAULT_HEIGHT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_HEIGHT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_MEMORY_COUNT">
+<span class="sig-name descname"><span class="pre">DEFAULT_MEMORY_COUNT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_MEMORY_COUNT" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -451,7 +461,7 @@ agents to decide their actions.</p>
 It includes methods for decision-making based on peer actions and environmental status.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="abm_project.agent.Agent">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.agent.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/agent.html#Agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.agent.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/agent.html#Agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent" title="Link to this definition">¶</a></dt>
 <dd><p>Agent class for an agent-based model simulation.</p>
 <p>This class represents an agent that interacts
 with its environment and peers.
@@ -463,13 +473,18 @@ peer actions and environmental status.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.HISTORY_LENGTH">
-<span class="sig-name descname"><span class="pre">HISTORY_LENGTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#abm_project.agent.Agent.HISTORY_LENGTH" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_ENV_UPDATE_OPTION">
+<span class="sig-name descname"><span class="pre">DEFAULT_ENV_UPDATE_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear'</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_ENV_UPDATE_OPTION" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_MEMORY_COUNT">
+<span class="sig-name descname"><span class="pre">DEFAULT_MEMORY_COUNT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_MEMORY_COUNT" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.calculate_action_probabilities">
-<span class="sig-name descname"><span class="pre">calculate_action_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ave_peer_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.calculate_action_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.calculate_action_probabilities" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate_action_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ave_peer_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.calculate_action_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.calculate_action_probabilities" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the probability of each possible action.</p>
 <p>The probabilities are calculated using a logit softmax
 function over the utilities of each action.
@@ -481,11 +496,10 @@ where V_i(a) is the utility of action a for agent i.</p>
 <dd class="field-odd"><p><strong>ave_peer_action</strong> (<em>float</em>) – The average action of peers.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple containing the list of actions and
-their corresponding probabilities.</p>
+<dd class="field-even"><p>An array of probabilities for each action.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[List[int], np.ndarray]</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -498,7 +512,7 @@ their corresponding probabilities.</p>
 of the environment multiplied by the action, minus
 the cost of deviating from the average peer action.
 The formula is:
-V_i(a_i(t)) = U_i(t) - c * (a_i(t) - A_i(t))^2</p>
+V_i(a_i(t)) = a_i(t) * U_i(t) - c * (a_i(t) - A_i(t))^2</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -544,7 +558,10 @@ c * (a_i(t) - A_i(t))^2</p>
 <p>The perceived severity is a function of the environment
 status and the agent’s perception coefficient.
 It is calculated as:
-env_perception_coeff * env_status</p>
+env_perception_coeff * env_status * -1
+The negative sign indicates that a higher environment status
+leads to a lower perceived severity.
+The perceived severity is used to determine the utility of actions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The perceived severity of the environment.</p>
@@ -562,6 +579,30 @@ env_perception_coeff * env_status</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_action">
+<span class="sig-name descname"><span class="pre">get_recent_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_action" title="Link to this definition">¶</a></dt>
+<dd><p>Get the most recent action taken by the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_env_perception_coeff">
+<span class="sig-name descname"><span class="pre">get_recent_env_perception_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_env_perception_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_env_perception_coeff" title="Link to this definition">¶</a></dt>
+<dd><p>Get the most recent environment perception coefficient of the the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_env_status">
+<span class="sig-name descname"><span class="pre">get_recent_env_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_env_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_env_status" title="Link to this definition">¶</a></dt>
+<dd><p>Get the most recent environment status perceived by the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_peer_pressure_coeff">
+<span class="sig-name descname"><span class="pre">get_recent_peer_pressure_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_peer_pressure_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_peer_pressure_coeff" title="Link to this definition">¶</a></dt>
+<dd><p>Get the most recent peer pressure coefficient perceived by the agent.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.update_env_perception_coeff">
 <span class="sig-name descname"><span class="pre">update_env_perception_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_env_perception_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_env_perception_coeff" title="Link to this definition">¶</a></dt>
 <dd><p>Update the agent’s perception coefficient of the environment.</p>
@@ -572,22 +613,31 @@ severity of the environment.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.update_environment_status">
 <span class="sig-name descname"><span class="pre">update_environment_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_decision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_environment_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_environment_status" title="Link to this definition">¶</a></dt>
-<dd><p>Update the agent’s perception of the environment status.</p>
-<p>The environment status is updated based on the agent’s action decision.
-The status is limited to the range [-1, 1].</p>
+<dd><p>Update the environment status based on the agent’s action.</p>
+<p>The environment status is updated based on the agent’s action
+and the current environment status. The update is done using
+a sigmoid function, exponential decay, or linear update,
+depending on the <cite>env_update_option</cite> specified during initialization.
+The formula for the update is:
+env_status(t+1) = env_status(t) + delta
+where delta is calculated based on the action decision
+and the current environment status.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>action_decision</strong> (<em>int</em>) – The action taken by the agent, either -1 or 1.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the <cite>env_update_option</cite> is invalid.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.update_past_actions">
-<span class="sig-name descname"><span class="pre">update_past_actions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_past_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_past_actions" title="Link to this definition">¶</a></dt>
-<dd><p>Update the history of past actions.</p>
-<p>This method maintains a fixed-length history of past actions.
-If the history exceeds the defined length, the oldest action is removed.</p>
+<span class="sig-name descname"><span class="pre">update_past_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_past_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_past_actions" title="Link to this definition">¶</a></dt>
+<dd><p>Update the memory of past actions.</p>
+<p>This method maintains a fixed-length memory of past actions.
+If the memory exceeds the specified count, the oldest action is removed.</p>
 </dd></dl>
 
 <dl class="py method">

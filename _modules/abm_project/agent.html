@@ -53,15 +53,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ACTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">HISTORY_LENGTH</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">DEFAULT_MEMORY_COUNT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">DEFAULT_ENV_UPDATE_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">env_status</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">peer_pressure_coeff</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">env_perception_coeff</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">memory_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MEMORY_COUNT</span><span class="p">,</span>
         <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">env_update_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ENV_UPDATE_OPTION</span><span class="p">,</span>
+        <span class="n">env_status_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">peer_pressure_coeff_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">env_perception_coeff_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an agent.</span>
 
@@ -72,23 +75,34 @@
 <span class="sd">        Args:</span>
 <span class="sd">            id (int):</span>
 <span class="sd">                Unique identifier for the agent.</span>
-<span class="sd">            env_status (float):</span>
-<span class="sd">                Initial status of the environment, typically between -1 and 1.</span>
-<span class="sd">            peer_pressure_coeff (float):</span>
-<span class="sd">                Coefficient representing the influence of peer pressure.</span>
-<span class="sd">            env_perception_coeff (float):</span>
-<span class="sd">                Coefficient representing the agent&#39;s perception of the environment.</span>
+<span class="sd">            memory_count (int):</span>
+<span class="sd">                Number of past steps to remember.</span>
 <span class="sd">            rng (np.random.Generator, optional):</span>
 <span class="sd">                Random number generator. Defaults to None.</span>
+<span class="sd">            env_update_option (str):</span>
+<span class="sd">                Method to update the environment status.</span>
+<span class="sd">            env_status_fn (callable):</span>
+<span class="sd">                Function that returns the initial status of the environment,</span>
+<span class="sd">                typically between -1 and 1.</span>
+<span class="sd">            peer_pressure_coeff_fn (callable):</span>
+<span class="sd">                Function that returns the peer pressure coefficient.</span>
+<span class="sd">            env_perception_coeff_fn (callable):</span>
+<span class="sd">                Function that returns the agent&#39;s perception coefficient</span>
+<span class="sd">                of the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">=</span> <span class="n">env_status</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="o">=</span> <span class="n">peer_pressure_coeff</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="o">=</span> <span class="n">env_perception_coeff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">=</span> <span class="n">memory_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">=</span> <span class="n">env_update_option</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HISTORY_LENGTH</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">=</span> <span class="p">[</span><span class="n">env_status_fn</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">peer_pressure_coeff_fn</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">env_perception_coeff_fn</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
         <span class="p">]</span>
 
 <div class="viewcode-block" id="Agent.update_env_perception_coeff">
@@ -99,7 +113,7 @@
 <span class="sd">        This coefficient is used to calculate the perceived</span>
 <span class="sd">        severity of the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Agent.update_peer_pressure_coeff">
@@ -110,22 +124,45 @@
 <span class="sd">        This coefficient is used to calculate the cost</span>
 <span class="sd">        of deviating from the average peer action.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Agent.update_environment_status">
 <a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_environment_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_environment_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_decision</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s perception of the environment status.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the environment status based on the agent&#39;s action.</span>
 
-<span class="sd">        The environment status is updated based on the agent&#39;s action decision.</span>
-<span class="sd">        The status is limited to the range [-1, 1].</span>
+<span class="sd">        The environment status is updated based on the agent&#39;s action</span>
+<span class="sd">        and the current environment status. The update is done using</span>
+<span class="sd">        a sigmoid function, exponential decay, or linear update,</span>
+<span class="sd">        depending on the `env_update_option` specified during initialization.</span>
+<span class="sd">        The formula for the update is:</span>
+<span class="sd">        env_status(t+1) = env_status(t) + delta</span>
+<span class="sd">        where delta is calculated based on the action decision</span>
+<span class="sd">        and the current environment status.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            action_decision (int): The action taken by the agent, either -1 or 1.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the `env_update_option` is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">+=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">action_decision</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="p">))</span></div>
+        <span class="n">current_env_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_recent_env_status</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">==</span> <span class="s2">&quot;sigmoid&quot;</span><span class="p">:</span>
+            <span class="n">sensitivity</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">6</span> <span class="o">*</span> <span class="p">(</span><span class="n">current_env_status</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)))</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">sensitivity</span> <span class="o">*</span> <span class="n">action_decision</span> <span class="o">*</span> <span class="mf">0.05</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">==</span> <span class="s2">&quot;exponential&quot;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">action_decision</span> <span class="o">*</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">current_env_status</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">action_decision</span> <span class="o">*</span> <span class="mf">0.05</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid environment update option.&quot;</span><span class="p">)</span>
+
+        <span class="n">current_env_status</span> <span class="o">+=</span> <span class="n">delta</span>
+        <span class="n">current_env_status</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_env_status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_env_status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Agent.calculate_deviation_cost">
@@ -143,7 +180,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            float: The cost of deviation from your neighbors.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">action</span> <span class="o">-</span> <span class="n">ave_peer_action</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">action</span> <span class="o">-</span> <span class="n">ave_peer_action</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span></div>
 
 
 <div class="viewcode-block" id="Agent.calculate_perceived_severity">
@@ -154,12 +191,15 @@
 <span class="sd">        The perceived severity is a function of the environment</span>
 <span class="sd">        status and the agent&#39;s perception coefficient.</span>
 <span class="sd">        It is calculated as:</span>
-<span class="sd">        env_perception_coeff * env_status</span>
+<span class="sd">        env_perception_coeff * env_status * -1</span>
+<span class="sd">        The negative sign indicates that a higher environment status</span>
+<span class="sd">        leads to a lower perceived severity.</span>
+<span class="sd">        The perceived severity is used to determine the utility of actions.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: The perceived severity of the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1.0</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1.0</span></div>
 
 
 <div class="viewcode-block" id="Agent.calculate_action_utility">
@@ -171,7 +211,7 @@
 <span class="sd">        of the environment multiplied by the action, minus</span>
 <span class="sd">        the cost of deviating from the average peer action.</span>
 <span class="sd">        The formula is:</span>
-<span class="sd">        V_i(a_i(t)) = U_i(t) - c * (a_i(t) - A_i(t))^2</span>
+<span class="sd">        V_i(a_i(t)) = a_i(t) * U_i(t) - c * (a_i(t) - A_i(t))^2</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            action (int): The action taken by the agent, either -1 or 1.</span>
@@ -182,15 +222,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">deviation_cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_deviation_cost</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">)</span>
         <span class="n">perceived_severity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_perceived_severity</span><span class="p">()</span>
-        <span class="n">env_action_utility</span> <span class="o">=</span> <span class="n">perceived_severity</span> <span class="o">*</span> <span class="n">action</span>
+        <span class="n">env_action_utility</span> <span class="o">=</span> <span class="n">action</span> <span class="o">*</span> <span class="n">perceived_severity</span>
         <span class="k">return</span> <span class="n">env_action_utility</span> <span class="o">-</span> <span class="n">deviation_cost</span></div>
 
 
 <div class="viewcode-block" id="Agent.calculate_action_probabilities">
 <a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.calculate_action_probabilities">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_action_probabilities</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_action_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the probability of each possible action.</span>
 
 <span class="sd">        The probabilities are calculated using a logit softmax</span>
@@ -203,39 +241,65 @@
 <span class="sd">            ave_peer_action (float): The average action of peers.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple[List[int], np.ndarray]:</span>
-<span class="sd">                A tuple containing the list of actions and</span>
-<span class="sd">                their corresponding probabilities.</span>
+<span class="sd">            np.ndarray: An array of probabilities for each action.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">utilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
             <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_utility</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">exp_utilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilities</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">utilities</span><span class="p">))</span>  <span class="c1"># for numerical stability</span>
+        <span class="n">exp_utilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilities</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">utilities</span><span class="p">))</span>
         <span class="n">probabilities</span> <span class="o">=</span> <span class="n">exp_utilities</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exp_utilities</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">,</span> <span class="n">probabilities</span></div>
+        <span class="k">return</span> <span class="n">probabilities</span></div>
 
 
 <div class="viewcode-block" id="Agent.update_past_actions">
 <a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_past_actions">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">update_past_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the history of past actions.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_past_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the memory of past actions.</span>
 
-<span class="sd">        This method maintains a fixed-length history of past actions.</span>
-<span class="sd">        If the history exceeds the defined length, the oldest action is removed.</span>
+<span class="sd">        This method maintains a fixed-length memory of past actions.</span>
+<span class="sd">        If the memory exceeds the specified count, the oldest action is removed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HISTORY_LENGTH</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Agent.decide_action">
 <a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.decide_action">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decide_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave_peer_action</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decide on a new action based on peer actions and environment.&quot;&quot;&quot;</span>
-        <span class="n">action_set</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_probabilities</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">action_set</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probabilities</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_past_actions</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_environment_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">)</span></div>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_probabilities</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">)</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ACTIONS</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probabilities</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_past_actions</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_environment_status</span><span class="p">(</span><span class="n">action</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Agent.get_recent_action">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.get_recent_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_recent_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the most recent action taken by the agent.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">past_actions</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Agent.get_recent_env_status">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.get_recent_env_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_recent_env_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the most recent environment status perceived by the agent.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_status</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Agent.get_recent_peer_pressure_coeff">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.get_recent_peer_pressure_coeff">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_recent_peer_pressure_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the most recent peer pressure coefficient perceived by the agent.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Agent.get_recent_env_perception_coeff">
+<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.get_recent_env_perception_coeff">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_recent_env_perception_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the most recent environment perception coefficient of the the agent.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span> <span class="k">else</span> <span class="kc">None</span></div>
 </div>
 
 </pre></div>
