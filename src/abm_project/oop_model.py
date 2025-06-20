@@ -101,7 +101,7 @@ class BaseModel:
                 if risk_aversion_coeff_fn is not None:
                     risk_aversion_coeff = risk_aversion_coeff_fn(x, y, i, self.rng)
                 else:
-                    risk_aversion_coeff = self.rng.uniform(-0.5, 0.5)
+                    risk_aversion_coeff = self.rng.uniform(-1, 1)
 
                 self.agents[x, y] = Agent(
                     i, env_status, peer_pressure_coeff, env_perception_coeff, risk_aversion_coeff, severity_type, self.rng 

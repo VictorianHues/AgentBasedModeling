@@ -21,7 +21,7 @@ def main():
     radius = 1
     num_steps = 25
 
-    model = BaseModel(num_agents=num_agents, width=width, height=height, radius=radius,  severity_type="Arrow_Pratt")
+    model = BaseModel(num_agents=num_agents, width=width, height=height, radius=radius,  severity_type="Exponent")
 
     model.run(num_steps)
 

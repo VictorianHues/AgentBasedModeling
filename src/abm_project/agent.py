@@ -121,6 +121,11 @@ class Agent:
 
         elif type == "Arrow_Pratt": 
             perceived_severity = (self.env_status**(1-self.risk_aversion_coeff))/(1-self.risk_aversion_coeff)
+        elif type == "Exponent":
+            if self.risk_aversion_coeff != 0:
+                perceived_severity = (1-np.exp(-self.env_status*self.risk_aversion_coeff))/self.risk_aversion_coeff
+            else:
+                perceived_severity = self.env_status
         return perceived_severity
 
     def calculate_action_utility(self, action: int, ave_peer_action: float) -> float:
