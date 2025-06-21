@@ -21,6 +21,7 @@ class Agent:
     DEFAULT_MEMORY_COUNT = 1
     DEFAULT_ENV_UPDATE_OPTION = "linear"
     DEFAULT_ADAPTIVE_ATTR_OPTION = None
+    DEFAULT_RATIONALITY = 0.5
 
     def __init__(
         self,
@@ -29,8 +30,8 @@ class Agent:
         rng: np.random.Generator = None,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         adaptive_attr_option: str = DEFAULT_ADAPTIVE_ATTR_OPTION,
-        env_perception_learning_rate=0.1,
         peer_pressure_learning_rate=0.2,
+        rationality=DEFAULT_RATIONALITY,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
@@ -52,10 +53,10 @@ class Agent:
                 Method to update the environment status.
             adaptive_attr_option (str):
                 Method to adapt the agent's attributes.
-            env_perception_learning_rate (float):
-                Learning rate for the agent's perception of the environment.
             peer_pressure_learning_rate (float):
                 Learning rate for the agent's peer pressure coefficient.
+            rationality (float):
+                Rationality of the agent, affecting decision-making.
             env_status_fn (callable):
                 Function that returns the initial status of the environment,
                 typically between -1 and 1.
@@ -70,8 +71,8 @@ class Agent:
         self.rng = rng or np.random.default_rng()
         self.env_update_option = env_update_option
         self.adaptive_attr_option = adaptive_attr_option
-        self.env_perception_learning_rate = env_perception_learning_rate
         self.peer_pressure_learning_rate = peer_pressure_learning_rate
+        self.rationality = rationality
 
         self.past_actions = [
             self.rng.choice(self.ACTIONS) for _ in range(self.memory_count)
@@ -116,7 +117,7 @@ class Agent:
         utilities = np.array(
             [self.calculate_action_utility(a, ave_peer_action) for a in self.ACTIONS]
         )
-        exp_utilities = np.exp(utilities - np.max(utilities))
+        exp_utilities = np.exp(self.rationality * (utilities - np.max(utilities)))
         probabilities = exp_utilities / np.sum(exp_utilities)
         return probabilities
 
@@ -133,38 +134,10 @@ class Agent:
     def update_env_perception_coeff(self) -> float:
         """Update the agent's environment perception coefficient.
 
-        This coefficient is used to calculate the agent's perception
-        of the environment's status. The update is done using a sigmoid function
-        that considers the agent's last action and the current environment status.
-        The formula for the update is:
-        new_coeff = (1 - learning_rate) * old_coeff + learning_rate * sigmoid_s
-        ensitivity
-        where sigmoid_sensitivity is calculated based on the agent's last action
-        and the current environment status.
-        The sigmoid sensitivity is defined as:
-        sigmoid_sensitivity = 1 / (1 + exp(past_action * k * (env_status - 0.5)))
-        where k is a steepness parameter that can be adjusted.
+        This coefficient is used to calculate the cost
+        of deviating from the agent's perception of the environment.
         """
-        if self.adaptive_attr_option == "bayesian":
-            learning_rate = self.env_perception_learning_rate
-            k = 8
-            env_status = self.env_status[-1]
-
-            sigmoid_sensitivity = 1 / (
-                1 + np.exp(self.past_actions[-1] * k * (env_status - 0.5))
-            )
-
-            new_coeff = (
-                (1 - learning_rate) * self.env_perception_coeff[-1]
-                + learning_rate * sigmoid_sensitivity  # env_status
-            )
-            # print(f"Env Status: {env_status}, Action: {self.past_actions[-1]},
-            # Sigmoid Sense: {sigmoid_sensitivity}, New Coeff: {new_coeff},
-            # old Coeff: {self.env_perception_coeff[-1]}")
-        else:
-            new_coeff = self.env_perception_coeff[-1]
-
-        self.env_perception_coeff.append(new_coeff)
+        self.env_perception_coeff.append(self.env_perception_coeff[-1])
         if len(self.env_perception_coeff) > self.memory_count:
             self.env_perception_coeff.pop(0)
 
@@ -228,6 +201,21 @@ class Agent:
             # Proportion Neg: {proportion_action_neg}")
 
             new_coeff = np.clip(new_coeff, 0, 1)
+        elif self.adaptive_attr_option == "logistic_regression":
+            k = 10
+            learning_rate = self.peer_pressure_learning_rate
+            prop_pos = np.sum(all_peer_actions == 1) / len(all_peer_actions)
+            prop_neg = 1 - prop_pos
+            consensus = max(prop_pos, prop_neg)  # e.g. 0.5 to 1
+
+            norm_consensus = (consensus - 0.5) * 2  # [0, 1]
+            logit_confidence = 1 / (1 + np.exp(-k * (norm_consensus)))
+
+            majority_action = 1 if prop_pos >= prop_neg else -1
+            agreement = 1 if self.past_actions[-1] == majority_action else -1
+
+            delta = learning_rate * logit_confidence * agreement
+            new_coeff = np.clip(self.peer_pressure_coeff[-1] + delta, 0, 1)
         else:
             new_coeff = self.peer_pressure_coeff[-1]
 

@@ -6,6 +6,7 @@ and managing the simulation environment.
 
 """
 
+import concurrent.futures
 import os
 
 import numpy as np
@@ -45,6 +46,7 @@ class BaseModel:
     DEFAULT_ENV_UPDATE_OPTION = "linear"
     DEFAULT_ADAPTIVE_ATTR_OPTION = None
     DEFAULT_LEARNING_RATE = 0.1
+    DEFAULT_RATIONALITY = 1.0
 
     def __init__(
         self,
@@ -54,8 +56,8 @@ class BaseModel:
         memory_count: int = DEFAULT_MEMORY_COUNT,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         adaptive_attr_option: str = DEFAULT_ADAPTIVE_ATTR_OPTION,
-        env_perception_learning_rate: float = DEFAULT_LEARNING_RATE,
         peer_pressure_learning_rate: float = DEFAULT_LEARNING_RATE,
+        rationality: float = DEFAULT_RATIONALITY,
         rng: np.random.Generator = None,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
@@ -73,10 +75,10 @@ class BaseModel:
                 Method to update the environment status.
             adaptive_attr_option (str, optional):
                 Option for adaptive attributes. Defaults to None.
-            env_perception_learning_rate (float, optional):
-                Learning rate for environment perception updates.
             peer_pressure_learning_rate (float, optional):
                 Learning rate for peer pressure updates.
+            rationality (float, optional):
+                Rationality factor for agent decisions.
             results_save_name (str, optional):
                 Name for saving results. If None, results are not saved.
             rng (np.random.Generator, optional):
@@ -95,8 +97,8 @@ class BaseModel:
         self.memory_count = memory_count
         self.env_update_option = env_update_option
         self.adaptive_attr_option = adaptive_attr_option
-        self.env_perception_learning_rate = env_perception_learning_rate
         self.peer_pressure_learning_rate = peer_pressure_learning_rate
+        self.rationality = rationality
 
         self.rng = rng or np.random.default_rng()
         self.results_save_name = results_save_name
@@ -111,8 +113,8 @@ class BaseModel:
                     self.rng,
                     self.env_update_option,
                     self.adaptive_attr_option,
-                    self.env_perception_learning_rate,
                     self.peer_pressure_learning_rate,
+                    self.rationality,
                     env_status_fn,
                     peer_pressure_coeff_fn,
                     env_perception_coeff_fn,
@@ -139,14 +141,15 @@ class BaseModel:
         """
         self.time += 1
 
-        for x in range(self.width):
-            for y in range(self.height):
-                agent = self.agents[x, y]
-                ave_peer_action = self.ave_neighb_action(x, y, memory=self.memory_count)
-                all_peer_actions = self.get_neighbor_attribute_values(
-                    x, y, "past_actions"
-                )
-                agent.decide_action(ave_peer_action, all_peer_actions)
+        def agent_step(x, y):
+            agent = self.agents[x, y]
+            ave_peer_action = self.ave_neighb_action(x, y, memory=self.memory_count)
+            all_peer_actions = self.get_neighbor_attribute_values(x, y, "past_actions")
+            agent.decide_action(ave_peer_action, all_peer_actions)
+
+        coords = [(x, y) for x in range(self.width) for y in range(self.height)]
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            executor.map(lambda xy: agent_step(*xy), coords)
 
     def run(self, steps: int = 20) -> None:
         """Run the model for a specified number of steps.

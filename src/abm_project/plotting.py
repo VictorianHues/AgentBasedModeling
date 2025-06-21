@@ -120,3 +120,68 @@ def plot_grid_average_over_time(grid_values, title, xlabel, ylabel, file_name=No
         plt.close()
     else:
         plt.show()
+
+
+def plot_list_over_time(
+    data, title, xlabel, ylabel, file_name=None, legend_labels=None
+):
+    """Plot a list of data over time.
+
+    Args:
+        data (list[np.ndarray]): List of 1D arrays to plot.
+        title (str): Title of the plot.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        file_name (str, optional): Name of the file to save the plot. If None,
+            will display the plot.
+        legend_labels (list[str], optional): Labels for each line in the legend.
+    """
+    plt.plot(data)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.axhline(0, color="gray", linestyle="--")
+    plt.legend()
+    plt.tight_layout()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
+
+def plot_mean_with_variance(
+    data, title, xlabel, ylabel, file_name=None, legend_labels=None
+):
+    """Plot mean with variance over time.
+
+    Args:
+        data (list[np.ndarray]): List of 1D arrays to plot.
+        title (str): Title of the plot.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        file_name (str, optional): Name of the file to save the plot. If None,
+            will display the plot.
+        legend_labels (list[str], optional): Labels for each line in the legend.
+    """
+    means = np.mean(data, axis=0)
+    stds = np.std(data, axis=0)
+
+    plt.plot(means, label="Mean")
+    plt.fill_between(
+        range(len(means)), means - stds, means + stds, alpha=0.2, label="Variance"
+    )
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.axhline(0, color="gray", linestyle="--")
+    if legend_labels:
+        plt.legend(legend_labels)
+    plt.tight_layout()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
