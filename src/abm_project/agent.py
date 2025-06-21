@@ -70,22 +70,6 @@ class Agent:
             env_perception_coeff_fn() for _ in range(self.memory_count)
         ]
 
-    # def update_env_perception_coeff(self) -> float:
-    #     """Update the agent's perception coefficient of the environment.
-
-    #     This coefficient is used to calculate the perceived
-    #     severity of the environment.
-    #     """
-    #     return self.env_perception_coeff[-1]
-
-    # def update_peer_pressure_coeff(self) -> float:
-    #     """Update the agent's peer pressure coefficient.
-
-    #     This coefficient is used to calculate the cost
-    #     of deviating from the average peer action.
-    #     """
-    #     return self.peer_pressure_coeff[-1]
-
     def update_environment_status(self, action_decision: int) -> None:
         """Update the environment status based on the agent's action.
 

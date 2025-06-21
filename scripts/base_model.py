@@ -20,7 +20,7 @@ def main():
     height = 50
     radius = 1
     num_steps = 500
-    memory_count = num_steps
+    memory_count = 10
     env_update_option = "linear"
     rng = None
 
@@ -62,14 +62,19 @@ def main():
     plot_current_agent_actions(model)
 
     animate_agent_env_status(
-        model, file_name="full_memory_steps_500/agent_env_status.mp4"
+        model, file_name="pred_peerpres_mem_10_steps_500/agent_env_status.mp4"
     )
-    animate_agent_actions(model, file_name="full_memory_steps_500/agent_actions.mp4")
+    animate_agent_actions(
+        model, file_name="pred_peerpres_mem_10_steps_500/agent_actions.mp4"
+    )
     plot_overall_agent_actions_over_time(
-        model, file_name="full_memory_steps_500/overall_agent_actions_over_time.png"
+        model,
+        file_name="pred_peerpres_mem_10_steps_500/overall_agent_actions_over_time.png",
     )
     plot_overall_agent_env_status_over_time(
-        model, file_name="full_memory_steps_500/overall_agent_env_status_over_time.png"
+        model,
+        file_name="pred_peerpres_mem_10_steps_500/"
+        "overall_agent_env_status_over_time.png",
     )
 
 
