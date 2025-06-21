@@ -7,6 +7,7 @@ and managing the simulation environment.
 """
 
 import numpy as np
+from tqdm import tqdm
 
 from abm_project.agent import Agent
 
@@ -169,6 +170,52 @@ class BaseModel:
                 count += 1
         return total_action / count if count > 0 else 0
 
+    def pred_neighb_action(self, x: int, y: int) -> float:
+        """Predict the average action of peers based on their recent actions.
+
+        This method predicts the average action of neighboring agents
+        based on their most recent actions, using linear regression.
+
+        Args:
+            x (int): X-coordinate of the agent.
+            y (int): Y-coordinate of the agent.
+
+        Returns:
+            float: Predicted average action of neighbors.
+        """
+        neighbors = self.get_neighbors(x, y)
+        predicted_actions = []
+        total_predicted_action = 0
+
+        # Use linear regression to predict the average action
+        for neighbor in neighbors:
+            if len(neighbor.past_actions) < 2:
+                return self.ave_neighb_action_single_memory(x, y)
+            else:
+                # Fit a linear regression model to the past actions
+                actions = np.array(neighbor.past_actions)
+                time_steps = np.arange(len(actions))
+                coeffs = np.polyfit(time_steps, actions, 1)
+                # Predict the next action based on the last time step
+                predicted_action = np.polyval(coeffs, len(actions))
+                predicted_actions.append(predicted_action)
+
+        # Return the mean of the predicted actions
+        if predicted_actions:
+            mean_predicted_action = np.mean(predicted_actions)
+            if mean_predicted_action >= 0:
+                total_predicted_action = 1
+            elif mean_predicted_action < 0:
+                total_predicted_action = -1
+        else:
+            print(
+                "No predicted actions available, "
+                "using average of neighbors' last actions."
+            )
+            total_predicted_action = self.ave_neighb_action_single_memory(x, y)
+
+        return total_predicted_action
+
     def step(self) -> None:
         """Perform a single step in the model.
 
@@ -180,7 +227,16 @@ class BaseModel:
         for x in range(self.width):
             for y in range(self.height):
                 agent = self.agents[x, y]
-                ave_peer_action = self.ave_neighb_action_single_memory(x, y)
+                if self.memory_count > 1:
+                    # Use partial or full memory if memory_count > 1
+                    # ave_peer_action = self.ave_neighb_action_full_memory(x, y)
+                    ave_peer_action = self.pred_neighb_action(x, y)
+                elif self.memory_count == 1:
+                    # Use single memory for agents with memory_count = 1
+                    ave_peer_action = self.ave_neighb_action_single_memory(x, y)
+                else:
+                    raise ValueError("memory_count must be at least 1")
+
                 agent.decide_action(ave_peer_action)
 
     def get_agent_actions(self) -> np.ndarray:
@@ -215,7 +271,7 @@ class BaseModel:
         Args:
             steps (int): Number of steps to run the model.
         """
-        for _ in range(steps):
+        for _ in tqdm(range(steps)):
             self.step()
             self.agent_action_history.append(self.get_agent_actions())
             self.agent_env_status_history.append(self.get_agent_env_status())

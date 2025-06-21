@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
+from tqdm import tqdm
 
 
 def get_plot_directory(file_name):
@@ -73,7 +74,19 @@ def animate_agent_actions(model, file_name=None):
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
     plt.tight_layout()
     if file_name:
-        ani.save(get_plot_directory(file_name))
+        # ani.save(get_plot_directory(file_name))
+        def update_func(_i, _n):
+            progress_bar.update(1)
+
+        # update_func = lambda _i, _n: progress_bar.update(1)
+        with tqdm(
+            total=num_steps, desc="Saving video: Agent Actions Over Time"
+        ) as progress_bar:
+            ani.save(
+                get_plot_directory(file_name), dpi=300, progress_callback=update_func
+            )
+        print("Video saved successfully.\n")
+        plt.close()
         plt.close()
     else:
         plt.show()
@@ -101,7 +114,18 @@ def animate_agent_env_status(model, file_name=None):
     plt.colorbar(im, ax=ax, label="Environment Status")
     plt.tight_layout()
     if file_name:
-        ani.save(get_plot_directory(file_name))
+        # ani.save(get_plot_directory(file_name))
+        def update_func(_i, _n):
+            progress_bar.update(1)
+
+        # update_func = lambda _i, _n: progress_bar.update(1)
+        with tqdm(
+            total=num_steps, desc="Saving video: Agent Environment Status Over Time"
+        ) as progress_bar:
+            ani.save(
+                get_plot_directory(file_name), dpi=300, progress_callback=update_func
+            )
+        print("Video saved successfully.\n")
         plt.close()
     else:
         plt.show()
