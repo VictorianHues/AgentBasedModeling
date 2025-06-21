@@ -433,6 +433,28 @@ neighborhood depending on the radius.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.pred_neighb_action">
+<span class="sig-name descname"><span class="pre">pred_neighb_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.pred_neighb_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.pred_neighb_action" title="Link to this definition">¶</a></dt>
+<dd><p>Predict the average action of peers based on their recent actions.</p>
+<p>This method predicts the average action of neighboring agents
+based on their most recent actions, using linear regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X-coordinate of the agent.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y-coordinate of the agent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predicted average action of neighbors.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.run" title="Link to this definition">¶</a></dt>
 <dd><p>Run the model for a specified number of steps.</p>
@@ -603,14 +625,6 @@ The perceived severity is used to determine the utility of actions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.update_env_perception_coeff">
-<span class="sig-name descname"><span class="pre">update_env_perception_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_env_perception_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_env_perception_coeff" title="Link to this definition">¶</a></dt>
-<dd><p>Update the agent’s perception coefficient of the environment.</p>
-<p>This coefficient is used to calculate the perceived
-severity of the environment.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.update_environment_status">
 <span class="sig-name descname"><span class="pre">update_environment_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_decision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_environment_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_environment_status" title="Link to this definition">¶</a></dt>
 <dd><p>Update the environment status based on the agent’s action.</p>
@@ -638,14 +652,6 @@ and the current environment status.</p>
 <dd><p>Update the memory of past actions.</p>
 <p>This method maintains a fixed-length memory of past actions.
 If the memory exceeds the specified count, the oldest action is removed.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.update_peer_pressure_coeff">
-<span class="sig-name descname"><span class="pre">update_peer_pressure_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_peer_pressure_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_peer_pressure_coeff" title="Link to this definition">¶</a></dt>
-<dd><p>Update the agent’s peer pressure coefficient.</p>
-<p>This coefficient is used to calculate the cost
-of deviating from the average peer action.</p>
 </dd></dl>
 
 </dd></dl>

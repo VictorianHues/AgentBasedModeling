@@ -40,6 +40,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">abm_project.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
 
@@ -213,6 +214,55 @@
         <span class="k">return</span> <span class="n">total_action</span> <span class="o">/</span> <span class="n">count</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span></div>
 
 
+<div class="viewcode-block" id="BaseModel.pred_neighb_action">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.pred_neighb_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pred_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the average action of peers based on their recent actions.</span>
+
+<span class="sd">        This method predicts the average action of neighboring agents</span>
+<span class="sd">        based on their most recent actions, using linear regression.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (int): X-coordinate of the agent.</span>
+<span class="sd">            y (int): Y-coordinate of the agent.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Predicted average action of neighbors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">predicted_actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Use linear regression to predict the average action</span>
+        <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Fit a linear regression model to the past actions</span>
+                <span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span>
+                <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+                <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># Predict the next action based on the last time step</span>
+                <span class="n">predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+                <span class="n">predicted_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predicted_action</span><span class="p">)</span>
+
+        <span class="c1"># Return the mean of the predicted actions</span>
+        <span class="k">if</span> <span class="n">predicted_actions</span><span class="p">:</span>
+            <span class="n">mean_predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predicted_actions</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mean_predicted_action</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">mean_predicted_action</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;No predicted actions available, &quot;</span>
+                <span class="s2">&quot;using average of neighbors&#39; last actions.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_predicted_action</span></div>
+
+
 <div class="viewcode-block" id="BaseModel.step">
 <a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -226,7 +276,16 @@
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
                 <span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
-                <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Use partial or full memory if memory_count &gt; 1</span>
+                    <span class="c1"># ave_peer_action = self.ave_neighb_action_full_memory(x, y)</span>
+                    <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Use single memory for agents with memory_count = 1</span>
+                    <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;memory_count must be at least 1&quot;</span><span class="p">)</span>
+
                 <span class="n">agent</span><span class="o">.</span><span class="n">decide_action</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">)</span></div>
 
 
@@ -270,7 +329,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            steps (int): Number of steps to run the model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_actions</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_env_status</span><span class="p">())</span></div>

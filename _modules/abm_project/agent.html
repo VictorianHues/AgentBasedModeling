@@ -105,28 +105,6 @@
             <span class="n">env_perception_coeff_fn</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
         <span class="p">]</span>
 
-<div class="viewcode-block" id="Agent.update_env_perception_coeff">
-<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_env_perception_coeff">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">update_env_perception_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s perception coefficient of the environment.</span>
-
-<span class="sd">        This coefficient is used to calculate the perceived</span>
-<span class="sd">        severity of the environment.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_perception_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="Agent.update_peer_pressure_coeff">
-<a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_peer_pressure_coeff">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">update_peer_pressure_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the agent&#39;s peer pressure coefficient.</span>
-
-<span class="sd">        This coefficient is used to calculate the cost</span>
-<span class="sd">        of deviating from the average peer action.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_coeff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
-
-
 <div class="viewcode-block" id="Agent.update_environment_status">
 <a class="viewcode-back" href="../../api.html#abm_project.agent.Agent.update_environment_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_environment_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_decision</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
