@@ -15,13 +15,12 @@ from abm_project.plotting import (
 
 def main():
     """Main function to run the agent-based model simulation."""
-    num_agents = 25
-    width = 5
-    height = 5
+    num_agents = 2500
+    width = 50
+    height = 50
     radius = 1
-    # num_steps = 200
-    memory_count = 20
-    forecast_threshold = 0.6
+    num_steps = 500
+    memory_count = num_steps
     env_update_option = "linear"
     rng = None
 
@@ -50,34 +49,28 @@ def main():
         radius=radius,
         memory_count=memory_count,
         rng=rng,
-        forecast_threshold=forecast_threshold,
         env_update_option=env_update_option,
         env_status_fn=env_status_fn,
         peer_pressure_coeff_fn=peer_pressure_coeff_fn,
         env_perception_coeff_fn=env_perception_coeff_fn,
     )
 
+    model.run(num_steps)
+    print(f"Simulation completed with {num_steps} steps.\n")
+
     plot_current_agent_env_status(model)
     plot_current_agent_actions(model)
 
-    animate_agent_env_status(model, file_name="agent_env_status.mp4")
-    animate_agent_actions(model, file_name="agent_actions.mp4")
+    animate_agent_env_status(
+        model, file_name="full_memory_steps_500/agent_env_status.mp4"
+    )
+    animate_agent_actions(model, file_name="full_memory_steps_500/agent_actions.mp4")
     plot_overall_agent_actions_over_time(
-        model, file_name="overall_agent_actions_over_time.png"
+        model, file_name="full_memory_steps_500/overall_agent_actions_over_time.png"
     )
     plot_overall_agent_env_status_over_time(
-        model, file_name="overall_agent_env_status_over_time.png"
+        model, file_name="full_memory_steps_500/overall_agent_env_status_over_time.png"
     )
-
-    # plot_agent_action_distribution(
-    #     model, file_name="agent_action_distribution.png"
-    # )
-    # plot_cooperator_phase_plot(
-    #     model, file_name="cooperator_phase_plot.png"
-    # )
-    # plot_environment_variance_over_time(
-    #     model, file_name="env_variance_over_time.png"
-    # )
 
 
 if __name__ == "__main__":

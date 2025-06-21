@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
+from tqdm import tqdm
 
 
 def get_plot_directory(file_name):
@@ -73,7 +74,19 @@ def animate_agent_actions(model, file_name=None):
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
     plt.tight_layout()
     if file_name:
-        ani.save(get_plot_directory(file_name))
+        # ani.save(get_plot_directory(file_name))
+        def update_func(_i, _n):
+            progress_bar.update(1)
+
+        # update_func = lambda _i, _n: progress_bar.update(1)
+        with tqdm(
+            total=num_steps, desc="Saving video: Agent Actions Over Time"
+        ) as progress_bar:
+            ani.save(
+                get_plot_directory(file_name), dpi=300, progress_callback=update_func
+            )
+        print("Video saved successfully.\n")
+        plt.close()
         plt.close()
     else:
         plt.show()
@@ -101,7 +114,18 @@ def animate_agent_env_status(model, file_name=None):
     plt.colorbar(im, ax=ax, label="Environment Status")
     plt.tight_layout()
     if file_name:
-        ani.save(get_plot_directory(file_name))
+        # ani.save(get_plot_directory(file_name))
+        def update_func(_i, _n):
+            progress_bar.update(1)
+
+        # update_func = lambda _i, _n: progress_bar.update(1)
+        with tqdm(
+            total=num_steps, desc="Saving video: Agent Environment Status Over Time"
+        ) as progress_bar:
+            ani.save(
+                get_plot_directory(file_name), dpi=300, progress_callback=update_func
+            )
+        print("Video saved successfully.\n")
         plt.close()
     else:
         plt.show()
@@ -146,45 +170,3 @@ def plot_overall_agent_env_status_over_time(model, file_name=None):
         plt.close()
     else:
         plt.show()
-
-
-def plot_cooperator_phase_plot(model, file_name=None):
-    """Plot a phase plot of environment status vs average action."""
-    env_status_history = np.array(model.agent_env_status_history)
-    action_history = np.array(model.agent_action_history)
-
-    avg_actions = [np.mean(action_history, axis=(1, 2)) > 0]
-    avg_env_status = np.mean(env_status_history, axis=(1, 2))
-
-    plt.scatter(avg_actions, avg_env_status, alpha=0.7)
-    plt.xlabel("Average Action (Cooperating)")
-    plt.ylabel("Average Environment Status")
-    plt.title("Phase Plot: Env Status vs Average Action")
-    plt.axhline(0, color="gray", linestyle="--")
-    plt.axvline(0, color="gray", linestyle="--")
-    plt.xlim(-1, 1)
-    plt.ylim(0, 1)
-    plt.tight_layout()
-    if file_name:
-        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
-        plt.close()
-    else:
-        plt.show()
-
-    # def plot_environment_variance_over_time(model, file_name=None):
-    #     """Plot the variance of environment status over time."""
-    #     env_status_history = np.array(model.agent_env_status_history)
-    #     env_variance = np.var(env_status_history, axis=(1, 2))
-
-    #     plt.plot(env_variance, label="Variance of Environment Status")
-    #     plt.xlabel("Time Step")
-    #     plt.ylabel("Variance")
-    #     plt.title("Variance of Environment Status Over Time")
-    #     plt.axhline(0, color="gray", linestyle="--")
-    #     plt.legend()
-    #     plt.tight_layout()
-    #     if file_name:
-    #         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
-    #         plt.close()
-    #     else:
-    #         plt.show()

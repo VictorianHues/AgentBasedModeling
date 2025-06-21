@@ -30,7 +30,6 @@ class Agent:
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
-        forecast_threshold: float = 0.6,  # comfort level
     ):
         """Initialize an agent.
 
@@ -55,48 +54,14 @@ class Agent:
             env_perception_coeff_fn (callable):
                 Function that returns the agent's perception coefficient
                 of the environment.
-            forecast_threshold (float):
-                Threshold for deciding the action based on forecasts.
-                If the forecast is below this threshold, the agent will take action 1,
-                otherwise it will take action -1.
         """
         self.id = id
         self.memory_count = memory_count
         self.rng = rng or np.random.default_rng()
         self.env_update_option = env_update_option
-        self.forecast_threshold = forecast_threshold
-
-        # define predictors
-        # TODO: move to function outsode init())
-        def last(history):
-            return history[-1] if len(history) > 0 else 0.5
-
-        def linear(history):
-            """Predict the next value using linear regression."""
-            if not history:
-                return 0.5
-            # If history is too short, return the last value
-            if len(history) < 2:
-                return last(history)
-            x = np.arange(len(history))
-            y = np.array(history)
-            # fit y = a*x + b
-            a, b = np.polyfit(x, y, 1)
-            return a * len(history) + b
-
-        self.predictors = {
-            "last": last,
-            "linear": linear,
-        }
-
-        # storage for the last round of forecasts
-        # TODO: move to function outsode init())
-        self._last_forecasts = {}
-
         self.past_actions = [
             self.rng.choice(self.ACTIONS) for _ in range(self.memory_count)
         ]
-        # Only have a randomly generated strting action...(why randomly generated?)\
         self.env_status = [env_status_fn() for _ in range(self.memory_count)]
         self.peer_pressure_coeff = [
             peer_pressure_coeff_fn() for _ in range(self.memory_count)
@@ -104,6 +69,22 @@ class Agent:
         self.env_perception_coeff = [
             env_perception_coeff_fn() for _ in range(self.memory_count)
         ]
+
+    # def update_env_perception_coeff(self) -> float:
+    #     """Update the agent's perception coefficient of the environment.
+
+    #     This coefficient is used to calculate the perceived
+    #     severity of the environment.
+    #     """
+    #     return self.env_perception_coeff[-1]
+
+    # def update_peer_pressure_coeff(self) -> float:
+    #     """Update the agent's peer pressure coefficient.
+
+    #     This coefficient is used to calculate the cost
+    #     of deviating from the average peer action.
+    #     """
+    #     return self.peer_pressure_coeff[-1]
 
     def update_environment_status(self, action_decision: int) -> None:
         """Update the environment status based on the agent's action.
@@ -224,27 +205,12 @@ class Agent:
             self.past_actions.pop(0)
         self.past_actions.append(action)
 
-    def decide_action(
-        self, ave_peer_action: float, global_coop_history: list[float]
-    ) -> None:
+    def decide_action(self, ave_peer_action: float) -> None:
         """Decide on a new action based on peer actions and environment."""
-        forecasts = {
-            name: fn(global_coop_history) for name, fn in self.predictors.items()
-        }
-        best = max(self.predictor_scores, key=lambda name: self.predictor_scores[name])
-        forecast = forecasts[best]
-        action = 1 if forecast < self.forecast_threshold else -1
-
-        self.update_past_actions(action=action)
-        self.update_environment_status(action_decision=action)
-
-        # Store the last forecast for potential future use
-        self._last_forecasts[self.id] = forecast
-
-        # probabilities = self.calculate_action_probabilities(ave_peer_action)
-        # action = self.rng.choice(self.ACTIONS, p=probabilities)
-        # self.update_past_actions(action)
-        # self.update_environment_status(action)
+        probabilities = self.calculate_action_probabilities(ave_peer_action)
+        action = self.rng.choice(self.ACTIONS, p=probabilities)
+        self.update_past_actions(action)
+        self.update_environment_status(action)
 
     def get_recent_action(self) -> int:
         """Get the most recent action taken by the agent."""
@@ -261,19 +227,3 @@ class Agent:
     def get_recent_env_perception_coeff(self) -> float:
         """Get the most recent environment perception coefficient of the the agent."""
         return self.env_perception_coeff[-1] if self.env_perception_coeff else None
-
-    def get_last_forecast(self) -> float:
-        """Get the last forecast made by the agent."""
-        return self._last_forecasts.get(self.id, None)
-
-    def update_predictor_scores(self, actual_coop_frac: float) -> None:
-        """Update the scores of the predictors based on their performance.
-
-        After actual cooperation fraction is known, penalize by abs error.
-        """
-        for name, pred in self._last_forecasts.items():
-            error = abs(actual_coop_frac - pred)
-            # you can also do self.predictor_scores[name] += (1 - error)
-            self.predictor_scores[name] -= error
-
-        return self.predictor_scores

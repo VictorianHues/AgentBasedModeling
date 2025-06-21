@@ -7,6 +7,7 @@ and managing the simulation environment.
 """
 
 import numpy as np
+from tqdm import tqdm
 
 from abm_project.agent import Agent
 
@@ -33,8 +34,6 @@ class BaseModel:
             History of agent actions at each time step.
         agent_env_status_history (list):
             History of agent environment status at each time step.
-        forecast_threshold (float):
-            Threshold for forecasting agent actions.
     """
 
     DEFAULT_NUM_AGENTS = 100
@@ -43,7 +42,6 @@ class BaseModel:
     DEFAULT_RADIUS = 1
     DEFAULT_MEMORY_COUNT = 1
     DEFAULT_ENV_UPDATE_OPTION = "linear"
-    DEFAULT_FORECAST_THRESHOLD = 0.6
 
     def __init__(
         self,
@@ -52,7 +50,6 @@ class BaseModel:
         height: int = DEFAULT_HEIGHT,
         radius: int = DEFAULT_RADIUS,
         memory_count: int = DEFAULT_MEMORY_COUNT,
-        forecast_threshold: float = DEFAULT_FORECAST_THRESHOLD,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         rng: np.random.Generator = None,
         env_status_fn=None,
@@ -77,8 +74,6 @@ class BaseModel:
                 Function to initialize peer_pressure_coeff.
             env_perception_coeff_fn (callable, optional):
                 Function to initialize env_perception_coeff.
-            forecast_threshold (float, optional):
-                Threshold for forecasting agent actions. Defaults to 0.6.
         """
         self.time = 0
         self.num_agents = num_agents
@@ -88,7 +83,6 @@ class BaseModel:
         self.memory_count = memory_count
         self.env_update_option = env_update_option.lower()
         self.rng = rng or np.random.default_rng()
-        self.forecast_threshold = forecast_threshold
 
         self.agents = np.empty((width, height), dtype=object)
         i = 0
@@ -172,7 +166,7 @@ class BaseModel:
         neighbors = self.get_neighbors(x, y)
         for neighbor in neighbors:
             if neighbor.past_actions:
-                total_action += np.mean(neighbor.pdast_actions)
+                total_action += np.mean(neighbor.past_actions)
                 count += 1
         return total_action / count if count > 0 else 0
 
@@ -187,7 +181,15 @@ class BaseModel:
         for x in range(self.width):
             for y in range(self.height):
                 agent = self.agents[x, y]
-                ave_peer_action = self.ave_neighb_action_single_memory(x, y)
+                if self.memory_count > 1:
+                    # Use partial or full memory if memory_count > 1
+                    ave_peer_action = self.ave_neighb_action_full_memory(x, y)
+                elif self.memory_count == 1:
+                    # Use single memory for agents with memory_count = 1
+                    ave_peer_action = self.ave_neighb_action_single_memory(x, y)
+                else:
+                    raise ValueError("memory_count must be at least 1")
+
                 agent.decide_action(ave_peer_action)
 
     def get_agent_actions(self) -> np.ndarray:
@@ -222,36 +224,7 @@ class BaseModel:
         Args:
             steps (int): Number of steps to run the model.
         """
-        for _ in range(steps):
+        for _ in tqdm(range(steps)):
             self.step()
             self.agent_action_history.append(self.get_agent_actions())
             self.agent_env_status_history.append(self.get_agent_env_status())
-
-    # def step(self):
-    #     # increment time
-    #     self.time += 1
-
-    #     # compute last-step coop fraction for score updates
-    #     if len(self.agent_action_history) > 0:
-    #         last_actions = self.agent_action_history[-1]
-    #         prev_coop_frac = (last_actions == +1).sum() / last_actions.size
-    #     else:
-    #         prev_coop_frac = 0.5  # or whatever your default is
-
-    #     # have each agent decide (pass history of coop fractions)
-    #     coop_history = [(h == +1).sum() / h.size for h in self.agent_action_history]
-    #     for x in range(self.width):
-    #         for y in range(self.height):
-    #             agent = self.agents[x, y]
-    #             neighb_avg = self.ave_neighb_action_single_memory(x, y)
-    #             agent.decide_action(neighb_avg, coop_history)
-
-    #     # now update predictor scores using the previous actual
-    #     for x in range(self.width):
-    #         for y in range(self.height):
-    #             agent = self.agents[x, y]
-    #             agent.update_predictor_scores(prev_coop_frac)
-
-    #     # finally record histories as usual
-    #     self.agent_action_history.append(self.get_agent_actions())
-    #     self.agent_env_status_history.append(self.get_agent_env_status())
