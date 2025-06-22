@@ -5,6 +5,7 @@ import os
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 
 def get_plot_directory(file_name):
@@ -43,8 +44,10 @@ def plot_current_grid_state(
         im.set_clim(*clim)
     plt.colorbar(im, label=colorbar_label)
     plt.title(title)
+    plt.tight_layout()
     if file_name:
         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        print(f"Plot saved to {get_plot_directory(file_name)}")
         plt.close()
     else:
         plt.show()
@@ -86,7 +89,21 @@ def animate_grid_states(
     plt.colorbar(im, ax=ax, label=colorbar_label)
     plt.tight_layout()
     if file_name:
-        ani.save(get_plot_directory(file_name))
+
+        def update_func(_i, _n):
+            progress_bar.update(1)
+
+        # update_func = lambda _i, _n: progress_bar.update(1)
+        desc = f"Saving video: {title}" if title else "Saving video"
+        with tqdm(
+            total=num_steps,
+            desc=desc,
+        ) as progress_bar:
+            ani.save(
+                get_plot_directory(file_name), dpi=300, progress_callback=update_func
+            )
+        print("Video saved successfully.\n")
+        plt.close()
         plt.close()
     else:
         plt.show()
@@ -117,6 +134,7 @@ def plot_grid_average_over_time(grid_values, title, xlabel, ylabel, file_name=No
     plt.tight_layout()
     if file_name:
         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        print(f"Plot saved to {get_plot_directory(file_name)}")
         plt.close()
     else:
         plt.show()
@@ -146,12 +164,13 @@ def plot_list_over_time(
     plt.tight_layout()
     if file_name:
         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        print(f"Plot saved to {get_plot_directory(file_name)}")
         plt.close()
     else:
         plt.show()
 
 
-def plot_mean_with_variance(
+def plot_mean_with_variability(
     data, title, xlabel, ylabel, file_name=None, legend_labels=None
 ):
     """Plot mean with variance over time.
@@ -182,6 +201,7 @@ def plot_mean_with_variance(
     plt.tight_layout()
     if file_name:
         plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        print(f"Plot saved to {get_plot_directory(file_name)}")
         plt.close()
     else:
         plt.show()

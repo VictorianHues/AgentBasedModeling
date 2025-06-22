@@ -16,16 +16,19 @@ def main():
     width = 50
     height = 50
     radius = 1
-    num_steps = 1000
+    num_steps = 500
     memory_count = 1
-    peer_pressure_learning_rate = 0.1
+    peer_pressure_learning_rate = 0.0
     rationality = 1.0
 
     # "linear", "sigmoid", "exponential", "bell", "sigmoid_asymmetric", "bimodal"
     env_update_option = "linear"
 
     # "bayesian", "logistic_regression"
-    adaptive_attr_option = "bayesian"
+    adaptive_attr_option = None
+
+    # "linear", "logistic"
+    neighb_prediction_option = "logistic"
     rng = None
 
     def env_status_fn():
@@ -42,9 +45,9 @@ def main():
 
     def env_perception_coeff_fn():
         if rng:
-            return rng.uniform(1.0, 1.0)
+            return rng.uniform(0.0, 1.0)
         else:
-            return np.random.uniform(0.1, 0.1)
+            return np.random.uniform(0.0, 1.0)
 
     model = BaseModel(
         width=width,
@@ -53,6 +56,7 @@ def main():
         memory_count=memory_count,
         env_update_option=env_update_option,
         adaptive_attr_option=adaptive_attr_option,
+        neighb_prediction_option=neighb_prediction_option,
         peer_pressure_learning_rate=peer_pressure_learning_rate,
         rationality=rationality,
         rng=rng,

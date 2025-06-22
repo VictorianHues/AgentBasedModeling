@@ -10,6 +10,8 @@ import concurrent.futures
 import os
 
 import numpy as np
+from scipy.optimize import curve_fit
+from tqdm import tqdm
 
 from abm_project.agent import Agent
 
@@ -43,6 +45,7 @@ class BaseModel:
     DEFAULT_HEIGHT = 10
     DEFAULT_RADIUS = 1
     DEFAULT_MEMORY_COUNT = 1
+    DEFAULT_PREDICTION_OPTION = "linear"
     DEFAULT_ENV_UPDATE_OPTION = "linear"
     DEFAULT_ADAPTIVE_ATTR_OPTION = None
     DEFAULT_LEARNING_RATE = 0.1
@@ -56,6 +59,7 @@ class BaseModel:
         memory_count: int = DEFAULT_MEMORY_COUNT,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
         adaptive_attr_option: str = DEFAULT_ADAPTIVE_ATTR_OPTION,
+        neighb_prediction_option: str = DEFAULT_PREDICTION_OPTION,
         peer_pressure_learning_rate: float = DEFAULT_LEARNING_RATE,
         rationality: float = DEFAULT_RATIONALITY,
         rng: np.random.Generator = None,
@@ -75,6 +79,8 @@ class BaseModel:
                 Method to update the environment status.
             adaptive_attr_option (str, optional):
                 Option for adaptive attributes. Defaults to None.
+            neighb_prediction_option (str, optional):
+                Method for neighbor action prediction.
             peer_pressure_learning_rate (float, optional):
                 Learning rate for peer pressure updates.
             rationality (float, optional):
@@ -97,6 +103,7 @@ class BaseModel:
         self.memory_count = memory_count
         self.env_update_option = env_update_option
         self.adaptive_attr_option = adaptive_attr_option
+        self.neighb_prediction_option = neighb_prediction_option
         self.peer_pressure_learning_rate = peer_pressure_learning_rate
         self.rationality = rationality
 
@@ -137,19 +144,21 @@ class BaseModel:
         """Perform a single step in the model.
 
         This method updates the environment status and allows
-        agents to decide their actions.
+        agents to decide their actions in parallel.
         """
         self.time += 1
 
-        def agent_step(x, y):
+        def process_agent(args):
+            x, y = args
             agent = self.agents[x, y]
-            ave_peer_action = self.ave_neighb_action(x, y, memory=self.memory_count)
+            ave_peer_action = self.pred_neighb_action(x, y)
             all_peer_actions = self.get_neighbor_attribute_values(x, y, "past_actions")
             agent.decide_action(ave_peer_action, all_peer_actions)
 
-        coords = [(x, y) for x in range(self.width) for y in range(self.height)]
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            executor.map(lambda xy: agent_step(*xy), coords)
+        positions = [(x, y) for x in range(self.width) for y in range(self.height)]
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            list(executor.map(process_agent, positions))
 
     def run(self, steps: int = 20) -> None:
         """Run the model for a specified number of steps.
@@ -157,7 +166,7 @@ class BaseModel:
         Args:
             steps (int): Number of steps to run the model.
         """
-        for _ in range(steps):
+        for _ in tqdm(range(steps)):
             self.step()
             self.agent_action_history.append(
                 self.get_agent_grid_attribute("past_actions")
@@ -176,6 +185,98 @@ class BaseModel:
             )
 
         self.save_results()
+
+    @staticmethod
+    def sigmoid(x, a, b):
+        """Sigmoid function for logistic regression.
+
+        This function defines a sigmoid curve for logistic regression
+        fitting, which maps any real-valued number into the range [0, 1].
+
+        Args:
+            x (float or np.ndarray): Input value(s) to the sigmoid function.
+            a (float): Slope of the sigmoid curve.
+            b (float): Offset of the sigmoid curve.
+
+        Returns:
+            float or np.ndarray: Sigmoid-transformed value(s).
+        """
+        return 1 / (1 + np.exp(-(a * x + b)))
+
+    def pred_neighb_action(self, x: int, y: int) -> float:
+        """Predict the average action of peers based on their recent actions.
+
+        This method predicts the average action of neighboring agents
+        based on their most recent actions, using linear regression.
+
+        Args:
+            x (int): X-coordinate of the agent.
+            y (int): Y-coordinate of the agent.
+
+        Returns:
+            float: Predicted average action of neighbors.
+        """
+        neighbors = self.get_neighbors(x, y)
+        predicted_actions = []
+        total_predicted_action = 0
+
+        if self.neighb_prediction_option == "linear":
+            for neighbor in neighbors:
+                if len(neighbor.past_actions) < 2:
+                    return self.ave_neighb_action(x, y, self.memory_count)
+                else:
+                    # Fit a linear regression model to the past actions
+                    actions = np.array(neighbor.past_actions)
+                    time_steps = np.arange(len(actions))
+                    coeffs = np.polyfit(time_steps, actions, 1)
+                    # Predict the next action based on the last time step
+                    predicted_action = np.polyval(coeffs, len(actions))
+                    predicted_actions.append(predicted_action)
+            # Return the mean of the predicted actions
+            if predicted_actions:
+                mean_predicted_action = np.mean(predicted_actions)
+                if mean_predicted_action >= 0:
+                    total_predicted_action = 1
+                elif mean_predicted_action < 0:
+                    total_predicted_action = -1
+        elif self.neighb_prediction_option == "logistic":
+            neighbors = self.get_neighbors(x, y)
+            predicted_probs = []
+            total_predicted_action = 0
+
+            for neighbor in neighbors:
+                if len(neighbor.past_actions) < 2:
+                    return self.ave_neighb_action(x, y, self.memory_count)
+                else:
+                    actions = np.array(neighbor.past_actions)
+
+                    # If actions are -1/1, map to 0/1 for logistic regression
+                    if set(actions) <= {-1, 1}:
+                        actions = (actions + 1) // 2
+                    time_steps = np.arange(len(actions))
+                    log_time = np.log(time_steps + 1)
+                    try:
+                        popt, _ = curve_fit(
+                            self.sigmoid, log_time, actions, maxfev=10000
+                        )
+
+                        pred_prob = self.sigmoid(np.log(len(actions) + 1), *popt)
+                    except Exception:
+                        pred_prob = np.mean(actions)
+                    predicted_probs.append(pred_prob)
+            if predicted_probs:
+                mean_prob = np.mean(predicted_probs)
+                total_predicted_action = 1 if mean_prob >= 0.5 else -1
+            else:
+                total_predicted_action = self.ave_neighb_action(x, y, self.memory_count)
+        else:
+            print(
+                "No predicted actions available, "
+                "using average of neighbors' last actions."
+            )
+            total_predicted_action = self.ave_neighb_action(x, y, self.memory_count)
+
+        return total_predicted_action
 
     ###################################################################################################################
     def get_neighbors(self, x: int, y: int) -> list[Agent]:
@@ -258,13 +359,17 @@ class BaseModel:
         return np.array(neighbor_values)
 
     def get_agent_grid_attribute(self, attribute: str) -> np.ndarray:
-        """Get a 2D array of a specific agent attribute or method result.
+        """Get a 2D grid of a specific agent attribute.
+
+        This method retrieves the most recent values of a specified
+        attribute from all agents in the grid and returns it as a 2D array.
 
         Args:
-            attribute (str): The attribute or method name to retrieve from agents.
+            attribute (str): The attribute to
+            retrieve from agents (e.g., 'past_actions').
 
         Returns:
-            np.ndarray: A 2D array with values from the specified attribute or method.
+            np.ndarray: A 2D array of the specified attribute values across the grid.
         """
         grid = np.zeros((self.width, self.height))
         for x in range(self.width):

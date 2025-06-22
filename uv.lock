@@ -14,6 +14,7 @@ dependencies = [
     { name = "pytest" },
     { name = "salib" },
     { name = "scipy" },
+    { name = "tqdm" },
 ]
 
 [package.dev-dependencies]
@@ -30,6 +31,7 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.4.0" },
     { name = "salib", specifier = ">=1.5.1" },
     { name = "scipy", specifier = ">=1.15.3" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
 [package.metadata.requires-dev]
