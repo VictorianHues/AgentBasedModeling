@@ -54,6 +54,7 @@ convention = "google"
 # Ignore incorrect docstrings in the CLI
 "tests/*" = ["D"]
 "docs/*" = ["D"]
+"scripts/*" = ["D"]
 
 [dependency-groups]
 docs = [
