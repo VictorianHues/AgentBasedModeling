@@ -217,6 +217,8 @@ class VectorisedModel:
         max_storage: int = DEFAULT_MAX_STORAGE,
         moore: bool = True,
         simmer_time: int = DEFAULT_SIMMER_TIME,
+        prop_pessimistic: float = 0,
+        pessimism_level: float = 1,
     ):
         """Construct new vectorised model.
 
@@ -234,6 +236,10 @@ class VectorisedModel:
                 against runaway memory.
             moore: Include diagonal neighbors.
             simmer_time: Number of agent adaptation steps between environment updates.
+            prop_pessimistic: Proportion of agents to set as pessimistic.
+            pessimism_level: How much pessimistic agents overestimate environmental
+                degradation. Higher is more pessimistic. The default (1) is no
+                pessimism.
         """
         self.time = 0
         self.num_agents = num_agents
@@ -242,18 +248,31 @@ class VectorisedModel:
         self.memory_count = memory_count
         self.env_update_fn = env_update_fn or linear_update(0.05)
         self.rng = rng or np.random.default_rng()
-        self.max_storage = max_storage + 1 + self.memory_count
+        self.max_storage = max_storage + 1
         self.simmer_time = simmer_time
 
         # Set up agents' connections and attributes
         self.adj = lattice2d(width, height, periodic=True, diagonals=moore)
         self.rationality = rationality
         self.b = self.rng.random((self.N_WEIGHTS, self.num_agents))
-        self.b = np.full_like(self.b, fill_value=1)
-        self.b = self.b / self.b.sum(axis=1, keepdims=True)  # Normalise
+        self.b = self.b / self.b.sum(axis=0, keepdims=True)  # Normalise
+
+        # Set strategy change params
+        # alpha: rate of increasing support when support is low
+        # beta: rate of decreasing support when support is high
+        # w: Scale factor to ensure consistent scale with Kraan,
+        #       derived by solving for w which makes steady-state
+        #       support == 4 when n == 0.5
+        self.alpha = 1
+        self.beta = 1
+        self.w = (self.alpha * 4) / ((self.alpha - self.beta) * 4 + self.beta)
+
+        pessimistic = self.rng.random(self.num_agents) < prop_pessimistic
+        self.pessimism = np.ones(self.num_agents)
+        self.pessimism[pessimistic] = pessimism_level
 
         # Initialise agents and environment
-        self.initialise()
+        self.initialise(zero=True)
         self.initial_action = self.action[: self.memory_count].copy()
         self.initial_environment = self.environment[: self.memory_count].copy()
 
@@ -324,7 +343,6 @@ class VectorisedModel:
         self.update_env()
         self.simmer()
         self.s[self.time] = self.curr_s.copy()
-        # self.decide()
 
     def update_env(self):
         """Update each agents' environment based on their last action."""
@@ -387,9 +405,15 @@ class VectorisedModel:
         Args:
             n: Current state of the environment, with shape (agent,)
         """
-        logistic = 4 * n * (1 - n)  # Scale derivative so it is zero at the boundaries
-        ds_dt = 1 * logistic * (1 - self.curr_s) - 1 * (1 - logistic) * self.curr_s
-        self.curr_s += 0.01 * ds_dt
+        n = n**self.pessimism
+        logistic = (
+            4 * self.w * n * (1 - n)
+        )  # Scale derivative so it is zero at the boundaries
+        ds_dt = (
+            self.alpha * logistic * (4 - self.curr_s)
+            - self.beta * (4 - logistic) * self.curr_s
+        )
+        self.curr_s += 0.001 * ds_dt
 
     def action_probabilities(self) -> npt.NDArray[np.float64]:
         r"""Calculate the probability of each possible action.
@@ -430,9 +454,10 @@ class VectorisedModel:
         :math:`\{0,1\}`.
         """
         # severity_benefit = -(2 * self.environment[self.time - 1] - 1) * action
-        a = (action + 1) / 2
-        severity_benefit = (a) * self.curr_s + (1 - a) * (1 - self.curr_s)
-        deviation_cost = ((action - self.mean_local_action()) / 2) ** 2
+        a = int((action + 1) / 2)
+        severity_benefit = (a) * self.curr_s + (1 - a) * (4 - self.curr_s)
+        deviation_cost = (action - self.mean_local_action()) ** 2
+
         return self.b[0] * severity_benefit - self.b[1] * deviation_cost
 
     def mean_local_action(self, memory: int = 1) -> npt.NDArray[np.float64]:
