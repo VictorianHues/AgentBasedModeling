@@ -7,15 +7,28 @@ from SALib.sample import saltelli
 
 from abm_project.batch_run_tools import (
     attribute_variance_over_time,
-    run_batch,
+    run_parameter_batch,
     spatial_clustering_over_time,
 )
 from abm_project.oop_model import BaseModel
-from abm_project.plotting import plot_list_over_time, plot_mean_with_variability
+from abm_project.plotting import (
+    plot_list_over_time,
+    plot_mean_with_variability,
+)
 
 
 def run_model_output(radius, memory_count, peer_pressure_learning_rate, rationality):
     """Run the agent-based model simulation with given parameters."""
+    width = 50
+    height = 50
+    steps = 1000  # number of simulation steps
+    # "linear", "sigmoid", "exponential", "bell", "sigmoid_asymmetric", "bimodal"
+    env_update_option = "linear"
+    # "bayesian", "logistic_regression"
+    adaptive_attr_option = None
+    # "linear", "logistic"
+    neighb_prediction_option = "logistic"
+
     rng = None
 
     def env_status_fn():
@@ -37,21 +50,21 @@ def run_model_output(radius, memory_count, peer_pressure_learning_rate, rational
             return np.random.uniform(0.0, 1.0)
 
     model = BaseModel(
-        width=50,
-        height=50,
+        width=width,
+        height=height,
         radius=radius,
         memory_count=memory_count,
-        env_update_option="linear",
-        adaptive_attr_option=None,
-        neighb_prediction_option="logistic",
+        env_update_option=env_update_option,
+        adaptive_attr_option=adaptive_attr_option,
+        neighb_prediction_option=neighb_prediction_option,
         peer_pressure_learning_rate=peer_pressure_learning_rate,
         rationality=rationality,
-        rng=None,
+        rng=rng,
         env_status_fn=env_status_fn,
         peer_pressure_coeff_fn=peer_pressure_coeff_fn,
         env_perception_coeff_fn=env_perception_coeff_fn,
     )
-    model.run(steps=1000)
+    model.run(steps=steps)
     final_action_grid = model.agent_action_history[-1]
     print(
         f"Simulation completed with radius={radius}, "
@@ -65,6 +78,8 @@ def run_model_output(radius, memory_count, peer_pressure_learning_rate, rational
 
 def run_full_sobol():
     """Main function to run the agent-based model simulation."""
+    base_samples = 128  # number of base samples for Sobol sampling
+
     problem = {
         "num_vars": 4,
         "names": [
@@ -76,11 +91,11 @@ def run_full_sobol():
         "bounds": [[1, 24], [1, 10], [0.05, 0.3], [0.0, 1.0]],
     }
 
-    param_values = saltelli.sample(problem, 128)  # number of base samples
+    param_values = saltelli.sample(problem, base_samples)  # number of base samples
 
     Y = np.zeros(len(param_values))
     for i, (rad, mem, lr_peer, rationality) in enumerate(param_values):
-        Y[i] = run_model_output(int(rad), int(mem), lr_peer, int(rationality))
+        Y[i] = run_model_output(int(rad), int(mem), lr_peer, rationality)
 
     np.save("sobol_output.npy", Y)
 
@@ -100,6 +115,9 @@ def run_full_sobol():
 
 def run_single_parameter_set():
     """Run a single parameter set for the agent-based model simulation."""
+    num_runs = 100  # number of runs for the batch simulation
+    steps = 1000  # number of simulation steps
+
     kwargs = {
         "width": 50,
         "height": 50,
@@ -115,7 +133,9 @@ def run_single_parameter_set():
         "env_perception_coeff_fn": lambda: np.random.uniform(1.0, 1.0),
     }
 
-    models = run_batch(num_runs=100, model_class=BaseModel, steps=1000, **kwargs)
+    models = run_parameter_batch(
+        num_runs=num_runs, model_class=BaseModel, steps=steps, **kwargs
+    )
 
     # peer_pressure_variance = attribute_variance_over_time(
     #     models,

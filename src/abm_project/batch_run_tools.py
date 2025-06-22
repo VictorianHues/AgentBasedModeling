@@ -7,7 +7,7 @@ from scipy.ndimage import uniform_filter
 from abm_project.oop_model import BaseModel
 
 
-def run_batch(
+def run_parameter_batch(
     num_runs: int, model_class, steps: int = 100, **kwargs
 ) -> list[BaseModel]:
     """Run a batch of agent-based model simulations.
