@@ -92,6 +92,38 @@ def linear_update(rate: float):
     return inner
 
 
+def piecewise_exponential_update(alpha: float, beta: float, rate: float):
+    r"""Construct piecewise exponential environment update function.
+
+    Args:
+        alpha: Rate of improvement due to good actions
+        beta: Rate of degradation due to bad actions
+        rate: Step size for environmental change
+
+    Returns:
+        Piecewise exponential update function.
+    """
+
+    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
+        """Update environment according to piecewise exponential rule.
+
+        Args:
+            n: Each agents' current environment, shape: (agents,)
+            a: Each agents' current action, shape: (agents,)
+
+        Returns:
+            Numpy array of new environment values for each agent, with same shape
+            as `n`.
+        """
+        a = (a + 1) / 2
+        improvement = alpha * (1 - n) * a
+        degradation = beta * n * (1 - a)
+        dn_dt = improvement - degradation
+        return n + rate * dn_dt
+
+    return inner
+
+
 def lattice2d(width: int, height: int, periodic: bool = True, diagonals: bool = False):
     """Construct normalised adjacency matrix for a 2D lattice.
 
