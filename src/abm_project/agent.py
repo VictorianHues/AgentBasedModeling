@@ -20,6 +20,8 @@ class Agent:
     ACTIONS = [-1, 1]
     DEFAULT_MEMORY_COUNT = 1
     DEFAULT_ENV_UPDATE_OPTION = "linear"
+    DEFAULT_ADAPTIVE_ATTR_OPTION = None
+    DEFAULT_RATIONALITY = 0.5
 
     def __init__(
         self,
@@ -27,6 +29,9 @@ class Agent:
         memory_count: int = DEFAULT_MEMORY_COUNT,
         rng: np.random.Generator = None,
         env_update_option: str = DEFAULT_ENV_UPDATE_OPTION,
+        adaptive_attr_option: str = DEFAULT_ADAPTIVE_ATTR_OPTION,
+        peer_pressure_learning_rate=0.2,
+        rationality=DEFAULT_RATIONALITY,
         env_status_fn=None,
         peer_pressure_coeff_fn=None,
         env_perception_coeff_fn=None,
@@ -46,6 +51,12 @@ class Agent:
                 Random number generator. Defaults to None.
             env_update_option (str):
                 Method to update the environment status.
+            adaptive_attr_option (str):
+                Method to adapt the agent's attributes.
+            peer_pressure_learning_rate (float):
+                Learning rate for the agent's peer pressure coefficient.
+            rationality (float):
+                Rationality of the agent, affecting decision-making.
             env_status_fn (callable):
                 Function that returns the initial status of the environment,
                 typically between -1 and 1.
@@ -59,6 +70,10 @@ class Agent:
         self.memory_count = memory_count
         self.rng = rng or np.random.default_rng()
         self.env_update_option = env_update_option
+        self.adaptive_attr_option = adaptive_attr_option
+        self.peer_pressure_learning_rate = peer_pressure_learning_rate
+        self.rationality = rationality
+
         self.past_actions = [
             self.rng.choice(self.ACTIONS) for _ in range(self.memory_count)
         ]
@@ -69,6 +84,144 @@ class Agent:
         self.env_perception_coeff = [
             env_perception_coeff_fn() for _ in range(self.memory_count)
         ]
+
+        self.env_utility_history = []
+        self.deviation_pressure_cost = []
+
+    def decide_action(
+        self, ave_peer_action: float, all_peer_actions: np.ndarray
+    ) -> None:
+        """Decide on a new action based on peer actions and environment."""
+        probabilities = self.calculate_action_probabilities(ave_peer_action)
+        action = self.rng.choice(self.ACTIONS, p=probabilities)
+        self.update_past_actions(action)
+        self.update_environment_status(action)
+        self.update_peer_pressure_coeff(all_peer_actions)
+        self.update_env_perception_coeff()
+
+    def calculate_action_probabilities(self, ave_peer_action: float) -> np.ndarray:
+        """Calculate the probability of each possible action.
+
+        The probabilities are calculated using a logit softmax
+        function over the utilities of each action.
+        The formula is:
+        P(a_i(t) = a) = exp(V_i(a)) / sum(exp(V_i(a')) for all a')
+        where V_i(a) is the utility of action a for agent i.
+
+        Args:
+            ave_peer_action (float): The average action of peers.
+
+        Returns:
+            np.ndarray: An array of probabilities for each action.
+        """
+        utilities = np.array(
+            [self.calculate_action_utility(a, ave_peer_action) for a in self.ACTIONS]
+        )
+        exp_utilities = np.exp(self.rationality * (utilities - np.max(utilities)))
+        probabilities = exp_utilities / np.sum(exp_utilities)
+        return probabilities
+
+    def update_past_actions(self, action: int) -> None:
+        """Update the memory of past actions.
+
+        This method maintains a fixed-length memory of past actions.
+        If the memory exceeds the specified count, the oldest action is removed.
+        """
+        if len(self.past_actions) >= self.memory_count:
+            self.past_actions.pop(0)
+        self.past_actions.append(action)
+
+    def update_env_perception_coeff(self) -> float:
+        """Update the agent's environment perception coefficient.
+
+        This coefficient is used to calculate the cost
+        of deviating from the agent's perception of the environment.
+        """
+        self.env_perception_coeff.append(self.env_perception_coeff[-1])
+        if len(self.env_perception_coeff) > self.memory_count:
+            self.env_perception_coeff.pop(0)
+
+    def update_peer_pressure_coeff(self, all_peer_actions: np.ndarray) -> float:
+        """Update the agent's peer pressure coefficient.
+
+        This coefficient is used to calculate the cost
+        of deviating from the average peer action.
+        """
+        if self.adaptive_attr_option == "bayesian":
+            learning_rate = self.peer_pressure_learning_rate
+            # k = 10  # steepness of sigmoid curve
+
+            proportion_action_pos = np.sum(all_peer_actions == 1) / len(
+                all_peer_actions
+            )
+            proportion_action_neg = np.sum(all_peer_actions == -1) / len(
+                all_peer_actions
+            )
+
+            consensus = max(proportion_action_pos, proportion_action_neg)
+            majority_action = (
+                1 if proportion_action_pos >= proportion_action_neg else -1
+            )
+
+            norm_consensus = (consensus - 0.5) * 2  # -1 to 1
+            confidence = norm_consensus  # 1 / (1 + np.exp(-k * norm_consensus))
+
+            confidence = 2 * (confidence - 0.5)  # [-1, 1]
+
+            # Add slight noise to prevent perfect convergence
+            # confidence += np.random.normal(0, 0.05)
+
+            # Flip update if recently agreed but majority flipped (or vice versa)
+            past_action = self.past_actions[-1]
+            agreed_with_majority = past_action == majority_action
+            previous_majority = (
+                self.previous_majority
+                if hasattr(self, "previous_majority")
+                else majority_action
+            )
+
+            majority_flipped = majority_action != previous_majority
+            if majority_flipped:
+                confidence *= -1
+
+            if agreed_with_majority:
+                new_coeff = self.peer_pressure_coeff[-1] + learning_rate * confidence
+            else:
+                new_coeff = self.peer_pressure_coeff[-1] - learning_rate * confidence
+
+            new_coeff = np.clip(new_coeff, 0, 1)
+
+            self.previous_majority = majority_action
+
+            # print(f"Peer Pressure Coeff Update: {self.peer_pressure_coeff[-1]} ->
+            # {new_coeff}, Action: {self.past_actions[-1]},
+            # Majority Action: {majority_action},
+            # Confidence: {confidence},
+            # Proportion Pos: {proportion_action_pos},
+            # Proportion Neg: {proportion_action_neg}")
+
+            new_coeff = np.clip(new_coeff, 0, 1)
+        elif self.adaptive_attr_option == "logistic_regression":
+            k = 10
+            learning_rate = self.peer_pressure_learning_rate
+            prop_pos = np.sum(all_peer_actions == 1) / len(all_peer_actions)
+            prop_neg = 1 - prop_pos
+            consensus = max(prop_pos, prop_neg)  # e.g. 0.5 to 1
+
+            norm_consensus = (consensus - 0.5) * 2  # [0, 1]
+            logit_confidence = 1 / (1 + np.exp(-k * (norm_consensus)))
+
+            majority_action = 1 if prop_pos >= prop_neg else -1
+            agreement = 1 if self.past_actions[-1] == majority_action else -1
+
+            delta = learning_rate * logit_confidence * agreement
+            new_coeff = np.clip(self.peer_pressure_coeff[-1] + delta, 0, 1)
+        else:
+            new_coeff = self.peer_pressure_coeff[-1]
+
+        self.peer_pressure_coeff.append(new_coeff)
+        if len(self.peer_pressure_coeff) > self.memory_count:
+            self.peer_pressure_coeff.pop(0)
 
     def update_environment_status(self, action_decision: int) -> None:
         """Update the environment status based on the agent's action.
@@ -82,25 +235,55 @@ class Agent:
         where delta is calculated based on the action decision
         and the current environment status.
 
+        Sigmoid: Rate of change is higher when the environment status is around 0.5.
+            Lowest delta is at 1, highest delta is at 0.0.
+        Sigmoid Asymmetric: Delta is asymmetric based on the action decision.
+            Positive delta is lower when the environment status is low,
+            and negative delta is higher when the environment status is low.
+        Exponential: Rate of change decreases as the environment status increases.
+            Lowest delta is at 1, highest delta is at 0.0.
+        Linear: Delta is a constant value based on the action decision.
+        Bell: Lowest delta at 0 and 1, highest delta at 0.5.
+        Bimodal: Highest delta at two peaks, around 0.25 and 0.75,
+        and lowest delta at 0, 0.5, and 1.
+
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
 
         Raises:
             ValueError: If the `env_update_option` is invalid.
         """
-        current_env_status = self.get_recent_env_status()
+        current_env_status = self.env_status[-1]
         if self.env_update_option == "sigmoid":
-            sensitivity = 1 / (1 + np.exp(6 * (current_env_status - 0.5)))
+            sensitivity = 1 / (1 + np.exp(8 * (current_env_status - 0.5)))
+            delta = sensitivity * action_decision * 0.05
+        elif self.env_update_option == "sigmoid_asymmetric":
+            exponent = -action_decision * 8 * (current_env_status - 0.5)
+            denominator = 1 + np.exp(exponent)
+            sensitivity = 1 / denominator
             delta = sensitivity * action_decision * 0.05
         elif self.env_update_option == "exponential":
             delta = action_decision * 0.05 * np.exp(-current_env_status)
         elif self.env_update_option == "linear":
             delta = action_decision * 0.05
+        elif self.env_update_option == "bell":
+            delta = (
+                action_decision * 0.2 * current_env_status * (1 - current_env_status)
+            )
+        elif self.env_update_option == "bimodal":
+            min_update = 0.01
+            max_update = 0.05
+            delta = (
+                action_decision
+                * (max_update - min_update)
+                * np.sin(2 * np.pi * current_env_status)
+                + min_update
+            )
         else:
             raise ValueError("Invalid environment update option.")
 
         current_env_status += delta
-        current_env_status = max(0.0, min(1, current_env_status))
+        current_env_status = max(0.01, min(0.99, current_env_status))
         self.env_status.append(current_env_status)
         if len(self.env_status) > self.memory_count:
             self.env_status.pop(0)
@@ -155,59 +338,12 @@ class Agent:
         deviation_cost = self.calculate_deviation_cost(action, ave_peer_action)
         perceived_severity = self.calculate_perceived_severity()
         env_action_utility = action * perceived_severity
+
+        self.env_utility_history.append(env_action_utility)
+        if len(self.env_utility_history) > self.memory_count:
+            self.env_utility_history.pop(0)
+        self.deviation_pressure_cost.append(deviation_cost)
+        if len(self.deviation_pressure_cost) > self.memory_count:
+            self.deviation_pressure_cost.pop(0)
+
         return env_action_utility - deviation_cost
-
-    def calculate_action_probabilities(self, ave_peer_action: float) -> np.ndarray:
-        """Calculate the probability of each possible action.
-
-        The probabilities are calculated using a logit softmax
-        function over the utilities of each action.
-        The formula is:
-        P(a_i(t) = a) = exp(V_i(a)) / sum(exp(V_i(a')) for all a')
-        where V_i(a) is the utility of action a for agent i.
-
-        Args:
-            ave_peer_action (float): The average action of peers.
-
-        Returns:
-            np.ndarray: An array of probabilities for each action.
-        """
-        utilities = np.array(
-            [self.calculate_action_utility(a, ave_peer_action) for a in self.ACTIONS]
-        )
-        exp_utilities = np.exp(utilities - np.max(utilities))
-        probabilities = exp_utilities / np.sum(exp_utilities)
-        return probabilities
-
-    def update_past_actions(self, action) -> None:
-        """Update the memory of past actions.
-
-        This method maintains a fixed-length memory of past actions.
-        If the memory exceeds the specified count, the oldest action is removed.
-        """
-        if len(self.past_actions) >= self.memory_count:
-            self.past_actions.pop(0)
-        self.past_actions.append(action)
-
-    def decide_action(self, ave_peer_action: float) -> None:
-        """Decide on a new action based on peer actions and environment."""
-        probabilities = self.calculate_action_probabilities(ave_peer_action)
-        action = self.rng.choice(self.ACTIONS, p=probabilities)
-        self.update_past_actions(action)
-        self.update_environment_status(action)
-
-    def get_recent_action(self) -> int:
-        """Get the most recent action taken by the agent."""
-        return self.past_actions[-1] if self.past_actions else None
-
-    def get_recent_env_status(self) -> float:
-        """Get the most recent environment status perceived by the agent."""
-        return self.env_status[-1] if self.env_status else None
-
-    def get_recent_peer_pressure_coeff(self) -> float:
-        """Get the most recent peer pressure coefficient perceived by the agent."""
-        return self.peer_pressure_coeff[-1] if self.peer_pressure_coeff else None
-
-    def get_recent_env_perception_coeff(self) -> float:
-        """Get the most recent environment perception coefficient of the the agent."""
-        return self.env_perception_coeff[-1] if self.env_perception_coeff else None
