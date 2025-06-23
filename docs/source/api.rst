@@ -36,3 +36,7 @@ Basic OOP Agent
    :members:
    :undoc-members:
 
+Vectorised Model
+-----------------
+.. automodule:: abm_project.vectorised_model
+   :members:
