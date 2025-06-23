@@ -21,7 +21,7 @@ class Agent:
     DEFAULT_MEMORY_COUNT = 1
     DEFAULT_ENV_UPDATE_OPTION = "linear"
     DEFAULT_ADAPTIVE_ATTR_OPTION = None
-    DEFAULT_RATIONALITY = 0.5
+    DEFAULT_RATIONALITY = 1.0
 
     def __init__(
         self,
@@ -193,14 +193,6 @@ class Agent:
 
             self.previous_majority = majority_action
 
-            # print(f"Peer Pressure Coeff Update: {self.peer_pressure_coeff[-1]} ->
-            # {new_coeff}, Action: {self.past_actions[-1]},
-            # Majority Action: {majority_action},
-            # Confidence: {confidence},
-            # Proportion Pos: {proportion_action_pos},
-            # Proportion Neg: {proportion_action_neg}")
-
-            new_coeff = np.clip(new_coeff, 0, 1)
         elif self.adaptive_attr_option == "logistic_regression":
             k = 10
             learning_rate = self.peer_pressure_learning_rate
