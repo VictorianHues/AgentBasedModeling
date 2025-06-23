@@ -39,7 +39,11 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">curve_fit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">abm_project.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
@@ -50,25 +54,25 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base model for agent-based simulations.</span>
 
-<span class="sd">    This model initializes a grid of agents and provides methods for</span>
-<span class="sd">    neighbor calculations, agent actions, and environment status updates.</span>
-<span class="sd">    Agents can decide their actions based on the average actions of their neighbors.</span>
-<span class="sd">    The model supports a Moore neighborhood for neighbor calculations.</span>
+<span class="sd">    This class initializes a grid of agents and provides methods</span>
+<span class="sd">    for running the simulation, updating the environment, and</span>
+<span class="sd">    calculating neighbor actions.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        time (int): Current time step in the simulation.</span>
 <span class="sd">        num_agents (int): Total number of agents in the grid.</span>
-<span class="sd">        radius (int): Radius for neighbor calculations.</span>
 <span class="sd">        width (int): Width of the grid.</span>
 <span class="sd">        height (int): Height of the grid.</span>
-<span class="sd">        rng (np.random.Generator):</span>
-<span class="sd">            Random number generator for stochastic processes.</span>
-<span class="sd">        agents (np.ndarray):</span>
-<span class="sd">            2D array of Agent objects representing the grid.</span>
-<span class="sd">        agent_action_history (list):</span>
-<span class="sd">            History of agent actions at each time step.</span>
-<span class="sd">        agent_env_status_history (list):</span>
-<span class="sd">            History of agent environment status at each time step.</span>
+<span class="sd">        radius (int): Radius for neighbor calculations.</span>
+<span class="sd">        memory_count (int): Number of past actions to remember for each agent.</span>
+<span class="sd">        env_update_option (str): Method to update the environment status.</span>
+<span class="sd">        adaptive_attr_option (str): Option for adaptive attributes.</span>
+<span class="sd">        rng (np.random.Generator): Random number generator.</span>
+<span class="sd">        agents (np.ndarray): 2D array of Agent objects representing the grid.</span>
+<span class="sd">        agent_action_history (list): History of agent actions.</span>
+<span class="sd">        agent_env_status_history (list): History of environment status.</span>
+<span class="sd">        agent_peer_pressure_coeff_history (list): History of peer pressure coefficients.</span>
+<span class="sd">        agent_env_utility_history (list): History of environment utilities.</span>
+<span class="sd">        time (int): Current time step in the simulation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">DEFAULT_NUM_AGENTS</span> <span class="o">=</span> <span class="mi">100</span>
@@ -76,33 +80,50 @@
     <span class="n">DEFAULT_HEIGHT</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">DEFAULT_RADIUS</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">DEFAULT_MEMORY_COUNT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">DEFAULT_PREDICTION_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
     <span class="n">DEFAULT_ENV_UPDATE_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
+    <span class="n">DEFAULT_ADAPTIVE_ATTR_OPTION</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">DEFAULT_LEARNING_RATE</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">DEFAULT_RATIONALITY</span> <span class="o">=</span> <span class="mf">1.0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">num_agents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_NUM_AGENTS</span><span class="p">,</span>
         <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_WIDTH</span><span class="p">,</span>
         <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_HEIGHT</span><span class="p">,</span>
         <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_RADIUS</span><span class="p">,</span>
         <span class="n">memory_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MEMORY_COUNT</span><span class="p">,</span>
         <span class="n">env_update_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ENV_UPDATE_OPTION</span><span class="p">,</span>
+        <span class="n">adaptive_attr_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_ADAPTIVE_ATTR_OPTION</span><span class="p">,</span>
+        <span class="n">neighb_prediction_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_PREDICTION_OPTION</span><span class="p">,</span>
+        <span class="n">peer_pressure_learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEFAULT_LEARNING_RATE</span><span class="p">,</span>
+        <span class="n">rationality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEFAULT_RATIONALITY</span><span class="p">,</span>
         <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">env_status_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">peer_pressure_coeff_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">env_perception_coeff_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">results_save_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the base model with a grid of agents.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            num_agents (int): Total number of agents in the grid.</span>
 <span class="sd">            width (int): Width of the grid.</span>
 <span class="sd">            height (int): Height of the grid.</span>
 <span class="sd">            radius (int): Radius for neighbor calculations.</span>
 <span class="sd">            memory_count (int): Number of past actions to remember for each agent.</span>
-<span class="sd">            rng (np.random.Generator, optional):</span>
-<span class="sd">                Random number generator. Defaults to None.</span>
 <span class="sd">            env_update_option (str, optional):</span>
 <span class="sd">                Method to update the environment status.</span>
+<span class="sd">            adaptive_attr_option (str, optional):</span>
+<span class="sd">                Option for adaptive attributes. Defaults to None.</span>
+<span class="sd">            neighb_prediction_option (str, optional):</span>
+<span class="sd">                Method for neighbor action prediction.</span>
+<span class="sd">            peer_pressure_learning_rate (float, optional):</span>
+<span class="sd">                Learning rate for peer pressure updates.</span>
+<span class="sd">            rationality (float, optional):</span>
+<span class="sd">                Rationality factor for agent decisions.</span>
+<span class="sd">            results_save_name (str, optional):</span>
+<span class="sd">                Name for saving results. If None, results are not saved.</span>
+<span class="sd">            rng (np.random.Generator, optional):</span>
+<span class="sd">                Random number generator. Defaults to None.</span>
 <span class="sd">            env_status_fn (callable, optional):</span>
 <span class="sd">                Function to initialize env_status.</span>
 <span class="sd">            peer_pressure_coeff_fn (callable, optional):</span>
@@ -111,13 +132,18 @@
 <span class="sd">                Function to initialize env_perception_coeff.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span> <span class="o">=</span> <span class="n">num_agents</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">=</span> <span class="n">memory_count</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">=</span> <span class="n">env_update_option</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span> <span class="o">=</span> <span class="n">env_update_option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_attr_option</span> <span class="o">=</span> <span class="n">adaptive_attr_option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">=</span> <span class="n">neighb_prediction_option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_learning_rate</span> <span class="o">=</span> <span class="n">peer_pressure_learning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rationality</span> <span class="o">=</span> <span class="n">rationality</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span> <span class="o">=</span> <span class="n">results_save_name</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
@@ -128,15 +154,178 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">env_update_option</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_attr_option</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">peer_pressure_learning_rate</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rationality</span><span class="p">,</span>
                     <span class="n">env_status_fn</span><span class="p">,</span>
                     <span class="n">peer_pressure_coeff_fn</span><span class="p">,</span>
                     <span class="n">env_perception_coeff_fn</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_actions</span><span class="p">()]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_env_status</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;past_actions&quot;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_status&quot;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_peer_pressure_coeff_history</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;peer_pressure_coeff&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_perception_coeff_history</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_perception_coeff&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_utility_history</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_utility_history&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
 
+<div class="viewcode-block" id="BaseModel.step">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a single step in the model.</span>
+
+<span class="sd">        This method updates the environment status and allows</span>
+<span class="sd">        agents to decide their actions in parallel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">process_agent</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
+            <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">all_peer_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbor_attribute_values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s2">&quot;past_actions&quot;</span><span class="p">)</span>
+            <span class="n">agent</span><span class="o">.</span><span class="n">decide_action</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">,</span> <span class="n">all_peer_actions</span><span class="p">)</span>
+
+        <span class="n">positions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)]</span>
+
+        <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">process_agent</span><span class="p">,</span> <span class="n">positions</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.run">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the model for a specified number of steps.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            steps (int): Number of steps to run the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;past_actions&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_status&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_peer_pressure_coeff_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;peer_pressure_coeff&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_perception_coeff_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_perception_coeff&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_utility_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_grid_attribute</span><span class="p">(</span><span class="s2">&quot;env_utility_history&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_results</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.sigmoid">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.sigmoid">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sigmoid function for logistic regression.</span>
+
+<span class="sd">        This function defines a sigmoid curve for logistic regression</span>
+<span class="sd">        fitting, which maps any real-valued number into the range [0, 1].</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (float or np.ndarray): Input value(s) to the sigmoid function.</span>
+<span class="sd">            a (float): Slope of the sigmoid curve.</span>
+<span class="sd">            b (float): Offset of the sigmoid curve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float or np.ndarray: Sigmoid-transformed value(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.pred_neighb_action">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.pred_neighb_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pred_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the average action of peers based on their recent actions.</span>
+
+<span class="sd">        This method predicts the average action of neighboring agents</span>
+<span class="sd">        based on their most recent actions, using linear regression.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (int): X-coordinate of the agent.</span>
+<span class="sd">            y (int): Y-coordinate of the agent.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Predicted average action of neighbors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">predicted_actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Fit a linear regression model to the past actions</span>
+                    <span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span>
+                    <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+                    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="c1"># Predict the next action based on the last time step</span>
+                    <span class="n">predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+                    <span class="n">predicted_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predicted_action</span><span class="p">)</span>
+            <span class="c1"># Return the mean of the predicted actions</span>
+            <span class="k">if</span> <span class="n">predicted_actions</span><span class="p">:</span>
+                <span class="n">mean_predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predicted_actions</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mean_predicted_action</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">mean_predicted_action</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+            <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">predicted_probs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span>
+
+                    <span class="c1"># If actions are -1/1, map to 0/1 for logistic regression</span>
+                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">}:</span>
+                        <span class="n">actions</span> <span class="o">=</span> <span class="p">(</span><span class="n">actions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+                    <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+                    <span class="n">log_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">time_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">popt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">,</span> <span class="n">log_time</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">maxfev</span><span class="o">=</span><span class="mi">10000</span>
+                        <span class="p">)</span>
+
+                        <span class="n">pred_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">pred_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+                    <span class="n">predicted_probs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred_prob</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">predicted_probs</span><span class="p">:</span>
+                <span class="n">mean_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predicted_probs</span><span class="p">)</span>
+                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">mean_prob</span> <span class="o">&gt;=</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;No predicted actions available, &quot;</span>
+                <span class="s2">&quot;using average of neighbors&#39; last actions.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_predicted_action</span></div>
+
+
+    <span class="c1">###################################################################################################################</span>
 <div class="viewcode-block" id="BaseModel.get_neighbors">
 <a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_neighbors">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Agent</span><span class="p">]:</span>
@@ -164,17 +353,20 @@
         <span class="k">return</span> <span class="n">neighbors</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.ave_neighb_action_single_memory">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.ave_neighb_action_single_memory">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">ave_neighb_action_single_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average action of peers based on their most recent action.</span>
+<div class="viewcode-block" id="BaseModel.ave_neighb_action">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.ave_neighb_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ave_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average action of peers based on their recent actions.</span>
 
 <span class="sd">        This method computes the average action of neighboring agents,</span>
-<span class="sd">        considering only their most recent action.</span>
+<span class="sd">        considering the last `memory` actions (from the end). If memory=1,</span>
+<span class="sd">        only the most recent action is used. If memory &gt; 1, the mean of the</span>
+<span class="sd">        last `memory` actions is used for each neighbor.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x (int): X-coordinate of the agent.</span>
 <span class="sd">            y (int): Y-coordinate of the agent.</span>
+<span class="sd">            memory (int): Number of most recent actions to consider.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Average action of neighbors.</span>
@@ -184,155 +376,122 @@
         <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">:</span>
-                <span class="n">total_action</span> <span class="o">+=</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">memory</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">[</span><span class="o">-</span><span class="n">memory</span><span class="p">:])</span>
+                <span class="n">total_action</span> <span class="o">+=</span> <span class="n">value</span>
                 <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">total_action</span> <span class="o">/</span> <span class="n">count</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.ave_neighb_action_full_memory">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.ave_neighb_action_full_memory">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">ave_neighb_action_full_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average action of peers based on their full action history.</span>
+<div class="viewcode-block" id="BaseModel.get_neighbor_attribute_values">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_neighbor_attribute_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_neighbor_attribute_values</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the values of a specific attribute from neighboring agents.</span>
 
-<span class="sd">        This method averages all past actions of neighbors,</span>
-<span class="sd">        not just the most recent one.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            x (int): X-coordinate of the agent.</span>
-<span class="sd">            y (int): Y-coordinate of the agent.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            float: Average action of neighbors.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">total_action</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">:</span>
-                <span class="n">total_action</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span>
-                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">total_action</span> <span class="o">/</span> <span class="n">count</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span></div>
-
-
-<div class="viewcode-block" id="BaseModel.pred_neighb_action">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.pred_neighb_action">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">pred_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the average action of peers based on their recent actions.</span>
-
-<span class="sd">        This method predicts the average action of neighboring agents</span>
-<span class="sd">        based on their most recent actions, using linear regression.</span>
+<span class="sd">        This method retrieves the most recent values of a specified</span>
+<span class="sd">        attribute from all neighbors of the agent at position (x, y).</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x (int): X-coordinate of the agent.</span>
 <span class="sd">            y (int): Y-coordinate of the agent.</span>
+<span class="sd">            attribute (str): The attribute to retrieve from neighbors.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            float: Predicted average action of neighbors.</span>
+<span class="sd">            np.ndarray: Array of attribute values from neighboring agents.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">neighbor_values</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="n">predicted_actions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="c1"># Use linear regression to predict the average action</span>
         <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">neighbor_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Fit a linear regression model to the past actions</span>
-                <span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">past_actions</span><span class="p">)</span>
-                <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
-                <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="c1"># Predict the next action based on the last time step</span>
-                <span class="n">predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
-                <span class="n">predicted_actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predicted_action</span><span class="p">)</span>
-
-        <span class="c1"># Return the mean of the predicted actions</span>
-        <span class="k">if</span> <span class="n">predicted_actions</span><span class="p">:</span>
-            <span class="n">mean_predicted_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predicted_actions</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">mean_predicted_action</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">mean_predicted_action</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s2">&quot;No predicted actions available, &quot;</span>
-                <span class="s2">&quot;using average of neighbors&#39; last actions.&quot;</span>
-            <span class="p">)</span>
-            <span class="n">total_predicted_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">total_predicted_action</span></div>
+                <span class="n">neighbor_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">neighbor_values</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.step">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a single step in the model.</span>
+<div class="viewcode-block" id="BaseModel.get_agent_grid_attribute">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_agent_grid_attribute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_agent_grid_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a 2D grid of a specific agent attribute.</span>
 
-<span class="sd">        This method updates the environment status and allows</span>
-<span class="sd">        agents to decide their actions.</span>
+<span class="sd">        This method retrieves the most recent values of a specified</span>
+<span class="sd">        attribute from all agents in the grid and returns it as a 2D array.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            attribute (str): The attribute to</span>
+<span class="sd">            retrieve from agents (e.g., &#39;past_actions&#39;).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: A 2D array of the specified attribute values across the grid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">+=</span> <span class="mi">1</span>
-
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
                 <span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="c1"># Use partial or full memory if memory_count &gt; 1</span>
-                    <span class="c1"># ave_peer_action = self.ave_neighb_action_full_memory(x, y)</span>
-                    <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_neighb_action</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="c1"># Use single memory for agents with memory_count = 1</span>
-                    <span class="n">ave_peer_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ave_neighb_action_single_memory</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;memory_count must be at least 1&quot;</span><span class="p">)</span>
-
-                <span class="n">agent</span><span class="o">.</span><span class="n">decide_action</span><span class="p">(</span><span class="n">ave_peer_action</span><span class="p">)</span></div>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+                <span class="n">grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">grid</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.get_agent_actions">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_agent_actions">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_agent_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the actions of all agents in a 2D array.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            np.ndarray: A 2D array where each cell contains the</span>
-<span class="sd">            action of the agent at that position.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">action_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
-                <span class="n">action_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">get_recent_action</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">action_grid</span></div>
-
-
-<div class="viewcode-block" id="BaseModel.get_agent_env_status">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_agent_env_status">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_agent_env_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the environment status of all agents in a 2D array.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            np.ndarray: A 2D array where each cell contains the</span>
-<span class="sd">            environment status of the agent at that position.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">env_status_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
-                <span class="n">env_status_grid</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">env_status</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">env_status_grid</span></div>
-
-
-<div class="viewcode-block" id="BaseModel.run">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.run">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the model for a specified number of steps.</span>
+<div class="viewcode-block" id="BaseModel.get_agent_attribute_at_time">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.get_agent_attribute_at_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_agent_attribute_at_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the values of a specific agent attribute at a given time step.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            steps (int): Number of steps to run the model.</span>
+<span class="sd">            attribute (str):</span>
+<span class="sd">                The attribute history to retrieve (e.g., &#39;agent_action_history&#39;).</span>
+<span class="sd">            time (int):</span>
+<span class="sd">                The time step to retrieve values for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: A 2D array of the attribute values at the specified time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_actions</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_agent_env_status</span><span class="p">())</span></div>
+        <span class="n">history</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">history</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such attribute history: </span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">history</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Time step exceeds the history length.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.save_results">
+<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.save_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the agent history to a file.</span>
+
+<span class="sd">        This method saves the actions, environment status,</span>
+<span class="sd">        peer pressure coefficients, and environment utilities</span>
+<span class="sd">        of agents to a .npz file for later analysis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">file_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">file_dir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Ensure the file name ends with .npz</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span> <span class="o">+=</span> <span class="s2">&quot;.npz&quot;</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_save_name</span><span class="p">)</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span>
+            <span class="n">file_path</span><span class="p">,</span>
+            <span class="n">actions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_action_history</span><span class="p">,</span>
+            <span class="n">env_status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_env_status_history</span><span class="p">,</span>
+            <span class="n">peer_pressure_coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_peer_pressure_coeff_history</span><span class="p">,</span>
+            <span class="n">env_perception_coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_env_perception_coeff_history</span><span class="p">,</span>
+            <span class="n">env_utility</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_env_utility_history</span><span class="p">,</span>
+        <span class="p">)</span></div>
 </div>
 
 </pre></div>

@@ -202,38 +202,15 @@ a framework for initializing agents, calculating neighbor actions,
 and managing the simulation environment.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.oop_model.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_agents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.oop_model.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_attr_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighb_prediction_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rationality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results_save_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel" title="Link to this definition">¶</a></dt>
 <dd><p>Base model for agent-based simulations.</p>
-<p>This model initializes a grid of agents and provides methods for
-neighbor calculations, agent actions, and environment status updates.
-Agents can decide their actions based on the average actions of their neighbors.
-The model supports a Moore neighborhood for neighbor calculations.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.time">
-<span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.time" title="Link to this definition">¶</a></dt>
-<dd><p>Current time step in the simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>This class initializes a grid of agents and provides methods
+for running the simulation, updating the environment, and
+calculating neighbor actions.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.num_agents">
 <span class="sig-name descname"><span class="pre">num_agents</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.num_agents" title="Link to this definition">¶</a></dt>
 <dd><p>Total number of agents in the grid.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.radius">
-<span class="sig-name descname"><span class="pre">radius</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.radius" title="Link to this definition">¶</a></dt>
-<dd><p>Radius for neighbor calculations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -264,9 +241,53 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.radius">
+<span class="sig-name descname"><span class="pre">radius</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.radius" title="Link to this definition">¶</a></dt>
+<dd><p>Radius for neighbor calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.memory_count">
+<span class="sig-name descname"><span class="pre">memory_count</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.memory_count" title="Link to this definition">¶</a></dt>
+<dd><p>Number of past actions to remember for each agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.env_update_option">
+<span class="sig-name descname"><span class="pre">env_update_option</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.env_update_option" title="Link to this definition">¶</a></dt>
+<dd><p>Method to update the environment status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.adaptive_attr_option">
+<span class="sig-name descname"><span class="pre">adaptive_attr_option</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.adaptive_attr_option" title="Link to this definition">¶</a></dt>
+<dd><p>Option for adaptive attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.rng">
 <span class="sig-name descname"><span class="pre">rng</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.rng" title="Link to this definition">¶</a></dt>
-<dd><p>Random number generator for stochastic processes.</p>
+<dd><p>Random number generator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.random.Generator</p>
@@ -288,7 +309,7 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.agent_action_history">
 <span class="sig-name descname"><span class="pre">agent_action_history</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.agent_action_history" title="Link to this definition">¶</a></dt>
-<dd><p>History of agent actions at each time step.</p>
+<dd><p>History of agent actions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
@@ -299,13 +320,51 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.agent_env_status_history">
 <span class="sig-name descname"><span class="pre">agent_env_status_history</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.agent_env_status_history" title="Link to this definition">¶</a></dt>
-<dd><p>History of agent environment status at each time step.</p>
+<dd><p>History of environment status.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.agent_peer_pressure_coeff_history">
+<span class="sig-name descname"><span class="pre">agent_peer_pressure_coeff_history</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.agent_peer_pressure_coeff_history" title="Link to this definition">¶</a></dt>
+<dd><p>History of peer pressure coefficients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.agent_env_utility_history">
+<span class="sig-name descname"><span class="pre">agent_env_utility_history</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.agent_env_utility_history" title="Link to this definition">¶</a></dt>
+<dd><p>History of environment utilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.time">
+<span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#abm_project.oop_model.BaseModel.time" title="Link to this definition">¶</a></dt>
+<dd><p>Current time step in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_ADAPTIVE_ATTR_OPTION">
+<span class="sig-name descname"><span class="pre">DEFAULT_ADAPTIVE_ATTR_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_ADAPTIVE_ATTR_OPTION" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_ENV_UPDATE_OPTION">
@@ -315,6 +374,11 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_HEIGHT">
 <span class="sig-name descname"><span class="pre">DEFAULT_HEIGHT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_HEIGHT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_LEARNING_RATE">
+<span class="sig-name descname"><span class="pre">DEFAULT_LEARNING_RATE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_LEARNING_RATE" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -328,8 +392,18 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_PREDICTION_OPTION">
+<span class="sig-name descname"><span class="pre">DEFAULT_PREDICTION_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear'</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_PREDICTION_OPTION" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_RADIUS">
 <span class="sig-name descname"><span class="pre">DEFAULT_RADIUS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_RADIUS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.DEFAULT_RATIONALITY">
+<span class="sig-name descname"><span class="pre">DEFAULT_RATIONALITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#abm_project.oop_model.BaseModel.DEFAULT_RATIONALITY" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -338,38 +412,19 @@ The model supports a Moore neighborhood for neighbor calculations.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.ave_neighb_action_full_memory">
-<span class="sig-name descname"><span class="pre">ave_neighb_action_full_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.ave_neighb_action_full_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.ave_neighb_action_full_memory" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate the average action of peers based on their full action history.</p>
-<p>This method averages all past actions of neighbors,
-not just the most recent one.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>int</em>) – X-coordinate of the agent.</p></li>
-<li><p><strong>y</strong> (<em>int</em>) – Y-coordinate of the agent.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Average action of neighbors.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.ave_neighb_action_single_memory">
-<span class="sig-name descname"><span class="pre">ave_neighb_action_single_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.ave_neighb_action_single_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.ave_neighb_action_single_memory" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate the average action of peers based on their most recent action.</p>
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.ave_neighb_action">
+<span class="sig-name descname"><span class="pre">ave_neighb_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.ave_neighb_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.ave_neighb_action" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the average action of peers based on their recent actions.</p>
 <p>This method computes the average action of neighboring agents,
-considering only their most recent action.</p>
+considering the last <cite>memory</cite> actions (from the end). If memory=1,
+only the most recent action is used. If memory &gt; 1, the mean of the
+last <cite>memory</cite> actions is used for each neighbor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>int</em>) – X-coordinate of the agent.</p></li>
 <li><p><strong>y</strong> (<em>int</em>) – Y-coordinate of the agent.</p></li>
+<li><p><strong>memory</strong> (<em>int</em>) – Number of most recent actions to consider.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -382,31 +437,66 @@ considering only their most recent action.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.get_agent_actions">
-<span class="sig-name descname"><span class="pre">get_agent_actions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.get_agent_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.get_agent_actions" title="Link to this definition">¶</a></dt>
-<dd><p>Get the actions of all agents in a 2D array.</p>
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.get_agent_attribute_at_time">
+<span class="sig-name descname"><span class="pre">get_agent_attribute_at_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.get_agent_attribute_at_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.get_agent_attribute_at_time" title="Link to this definition">¶</a></dt>
+<dd><p>Get the values of a specific agent attribute at a given time step.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A 2D array where each cell contains the
-action of the agent at that position.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute</strong> (<em>str</em>) – The attribute history to retrieve (e.g., ‘agent_action_history’).</p></li>
+<li><p><strong>time</strong> (<em>int</em>) – The time step to retrieve values for.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.ndarray</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 2D array of the attribute values at the specified time.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.get_agent_env_status">
-<span class="sig-name descname"><span class="pre">get_agent_env_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.get_agent_env_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.get_agent_env_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get the environment status of all agents in a 2D array.</p>
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.get_agent_grid_attribute">
+<span class="sig-name descname"><span class="pre">get_agent_grid_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.get_agent_grid_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.get_agent_grid_attribute" title="Link to this definition">¶</a></dt>
+<dd><p>Get a 2D grid of a specific agent attribute.</p>
+<p>This method retrieves the most recent values of a specified
+attribute from all agents in the grid and returns it as a 2D array.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A 2D array where each cell contains the
-environment status of the agent at that position.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute</strong> (<em>str</em>) – The attribute to</p></li>
+<li><p><strong>agents</strong> (<em>retrieve from</em>)</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.ndarray</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 2D array of the specified attribute values across the grid.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.get_neighbor_attribute_values">
+<span class="sig-name descname"><span class="pre">get_neighbor_attribute_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.get_neighbor_attribute_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.get_neighbor_attribute_values" title="Link to this definition">¶</a></dt>
+<dd><p>Get the values of a specific attribute from neighboring agents.</p>
+<p>This method retrieves the most recent values of a specified
+attribute from all neighbors of the agent at position (x, y).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X-coordinate of the agent.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y-coordinate of the agent.</p></li>
+<li><p><strong>attribute</strong> (<em>str</em>) – The attribute to retrieve from neighbors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of attribute values from neighboring agents.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -467,11 +557,43 @@ based on their most recent actions, using linear regression.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.save_results">
+<span class="sig-name descname"><span class="pre">save_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.save_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.save_results" title="Link to this definition">¶</a></dt>
+<dd><p>Save the agent history to a file.</p>
+<p>This method saves the actions, environment status,
+peer pressure coefficients, and environment utilities
+of agents to a .npz file for later analysis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.sigmoid">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sigmoid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.sigmoid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.sigmoid" title="Link to this definition">¶</a></dt>
+<dd><p>Sigmoid function for logistic regression.</p>
+<p>This function defines a sigmoid curve for logistic regression
+fitting, which maps any real-valued number into the range [0, 1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Input value(s) to the sigmoid function.</p></li>
+<li><p><strong>a</strong> (<em>float</em>) – Slope of the sigmoid curve.</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Offset of the sigmoid curve.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sigmoid-transformed value(s).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="abm_project.oop_model.BaseModel.step">
 <span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/oop_model.html#BaseModel.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.oop_model.BaseModel.step" title="Link to this definition">¶</a></dt>
 <dd><p>Perform a single step in the model.</p>
 <p>This method updates the environment status and allows
-agents to decide their actions.</p>
+agents to decide their actions in parallel.</p>
 </dd></dl>
 
 </dd></dl>
@@ -484,7 +606,7 @@ agents to decide their actions.</p>
 It includes methods for decision-making based on peer actions and environmental status.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="abm_project.agent.Agent">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.agent.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/agent.html#Agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.agent.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_attr_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rationality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_status_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peer_pressure_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_perception_coeff_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/agent.html#Agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent" title="Link to this definition">¶</a></dt>
 <dd><p>Agent class for an agent-based model simulation.</p>
 <p>This class represents an agent that interacts
 with its environment and peers.
@@ -496,6 +618,11 @@ peer actions and environmental status.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_ADAPTIVE_ATTR_OPTION">
+<span class="sig-name descname"><span class="pre">DEFAULT_ADAPTIVE_ATTR_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_ADAPTIVE_ATTR_OPTION" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_ENV_UPDATE_OPTION">
 <span class="sig-name descname"><span class="pre">DEFAULT_ENV_UPDATE_OPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear'</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_ENV_UPDATE_OPTION" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -503,6 +630,11 @@ peer actions and environmental status.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_MEMORY_COUNT">
 <span class="sig-name descname"><span class="pre">DEFAULT_MEMORY_COUNT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_MEMORY_COUNT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.DEFAULT_RATIONALITY">
+<span class="sig-name descname"><span class="pre">DEFAULT_RATIONALITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#abm_project.agent.Agent.DEFAULT_RATIONALITY" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -597,32 +729,16 @@ The perceived severity is used to determine the utility of actions.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.decide_action">
-<span class="sig-name descname"><span class="pre">decide_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ave_peer_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.decide_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.decide_action" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">decide_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ave_peer_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_peer_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.decide_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.decide_action" title="Link to this definition">¶</a></dt>
 <dd><p>Decide on a new action based on peer actions and environment.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_action">
-<span class="sig-name descname"><span class="pre">get_recent_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_action" title="Link to this definition">¶</a></dt>
-<dd><p>Get the most recent action taken by the agent.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_env_perception_coeff">
-<span class="sig-name descname"><span class="pre">get_recent_env_perception_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_env_perception_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_env_perception_coeff" title="Link to this definition">¶</a></dt>
-<dd><p>Get the most recent environment perception coefficient of the the agent.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_env_status">
-<span class="sig-name descname"><span class="pre">get_recent_env_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_env_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_env_status" title="Link to this definition">¶</a></dt>
-<dd><p>Get the most recent environment status perceived by the agent.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="abm_project.agent.Agent.get_recent_peer_pressure_coeff">
-<span class="sig-name descname"><span class="pre">get_recent_peer_pressure_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.get_recent_peer_pressure_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.get_recent_peer_pressure_coeff" title="Link to this definition">¶</a></dt>
-<dd><p>Get the most recent peer pressure coefficient perceived by the agent.</p>
+<dt class="sig sig-object py" id="abm_project.agent.Agent.update_env_perception_coeff">
+<span class="sig-name descname"><span class="pre">update_env_perception_coeff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_env_perception_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_env_perception_coeff" title="Link to this definition">¶</a></dt>
+<dd><p>Update the agent’s environment perception coefficient.</p>
+<p>This coefficient is used to calculate the cost
+of deviating from the agent’s perception of the environment.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -637,6 +753,19 @@ The formula for the update is:
 env_status(t+1) = env_status(t) + delta
 where delta is calculated based on the action decision
 and the current environment status.</p>
+<dl class="simple">
+<dt>Sigmoid: Rate of change is higher when the environment status is around 0.5.</dt><dd><p>Lowest delta is at 1, highest delta is at 0.0.</p>
+</dd>
+<dt>Sigmoid Asymmetric: Delta is asymmetric based on the action decision.</dt><dd><p>Positive delta is lower when the environment status is low,
+and negative delta is higher when the environment status is low.</p>
+</dd>
+<dt>Exponential: Rate of change decreases as the environment status increases.</dt><dd><p>Lowest delta is at 1, highest delta is at 0.0.</p>
+</dd>
+</dl>
+<p>Linear: Delta is a constant value based on the action decision.
+Bell: Lowest delta at 0 and 1, highest delta at 0.5.
+Bimodal: Highest delta at two peaks, around 0.25 and 0.75,
+and lowest delta at 0, 0.5, and 1.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>action_decision</strong> (<em>int</em>) – The action taken by the agent, either -1 or 1.</p>
@@ -649,10 +778,18 @@ and the current environment status.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abm_project.agent.Agent.update_past_actions">
-<span class="sig-name descname"><span class="pre">update_past_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_past_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_past_actions" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update_past_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_past_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_past_actions" title="Link to this definition">¶</a></dt>
 <dd><p>Update the memory of past actions.</p>
 <p>This method maintains a fixed-length memory of past actions.
 If the memory exceeds the specified count, the oldest action is removed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.agent.Agent.update_peer_pressure_coeff">
+<span class="sig-name descname"><span class="pre">update_peer_pressure_coeff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_peer_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/agent.html#Agent.update_peer_pressure_coeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.agent.Agent.update_peer_pressure_coeff" title="Link to this definition">¶</a></dt>
+<dd><p>Update the agent’s peer pressure coefficient.</p>
+<p>This coefficient is used to calculate the cost
+of deviating from the average peer action.</p>
 </dd></dl>
 
 </dd></dl>
