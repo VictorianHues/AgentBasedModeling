@@ -13,7 +13,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
-from abm_project.agent import Agent
+from .agent import Agent
+from .utils import sigmoid
 
 
 class BaseModel:
@@ -186,23 +187,6 @@ class BaseModel:
 
         self.save_results()
 
-    @staticmethod
-    def sigmoid(x, a, b):
-        """Sigmoid function for logistic regression.
-
-        This function defines a sigmoid curve for logistic regression
-        fitting, which maps any real-valued number into the range [0, 1].
-
-        Args:
-            x (float or np.ndarray): Input value(s) to the sigmoid function.
-            a (float): Slope of the sigmoid curve.
-            b (float): Offset of the sigmoid curve.
-
-        Returns:
-            float or np.ndarray: Sigmoid-transformed value(s).
-        """
-        return 1 / (1 + np.exp(-(a * x + b)))
-
     def pred_neighb_action(self, x: int, y: int) -> float:
         """Predict the average action of peers based on their recent actions.
 
@@ -256,9 +240,7 @@ class BaseModel:
                     time_steps = np.arange(len(actions))
                     log_time = np.log(time_steps + 1)
                     try:
-                        popt, _ = curve_fit(
-                            self.sigmoid, log_time, actions, maxfev=10000
-                        )
+                        popt, _ = curve_fit(sigmoid, log_time, actions, maxfev=10000)
 
                         pred_prob = self.sigmoid(np.log(len(actions) + 1), *popt)
                     except Exception:

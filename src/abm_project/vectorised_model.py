@@ -1,164 +1,15 @@
 """Vectorised implementation of the OOP model."""
 
-import itertools
 from collections.abc import Callable
 
-import networkx as nx
 import numpy as np
 import numpy.typing as npt
 import scipy
 
 from .oop_model import BaseModel
+from .utils import lattice2d, linear_update
 
 type EnvUpdateFn = Callable[(npt.NDArray[float], npt.NDArray[int]), npt.NDArray[float]]
-
-
-def sigmoid_update(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
-    """Update environment according to sigmoid rule.
-
-    Args:
-        n: Each agents' current environment, shape: (agents,)
-        a: Each agents' current action, shape: (agents,)
-
-    Returns:
-        Numpy array of new environment values for each agent, with same shape as `n`.
-    """
-    sensitivity = 1 / (1 + np.exp(6 * (n - 0.5)))
-    delta = sensitivity * a * 0.05
-    return n + delta
-
-
-def exponential_update(rate: float):
-    r"""Construct exponential environment update function.
-
-    .. math::
-
-        n(t+1) = n(t) + a\cdot r \cdot \exp(-n(t))
-
-    Args:
-        rate: Multiplicative coefficient for exponential function.
-
-    Returns:
-        Exponential update function.
-    """
-
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
-        """Update environment according to exponential rule.
-
-        Args:
-            n: Each agents' current environment, shape: (agents,)
-            a: Each agents' current action, shape: (agents,)
-
-        Returns:
-            Numpy array of new environment values for each agent, with same shape
-            as `n`.
-        """
-        delta = a * rate * np.exp(-n)
-        return n + delta
-
-    return inner
-
-
-def linear_update(rate: float):
-    r"""Construct linear environment update function.
-
-    .. math::
-
-        n(t+1) = n(t) + a\cdot r
-
-    The returned value is clipped to the interval [0,1].
-
-    Args:
-        rate: Linear step size.
-
-    Returns:
-        Linear update function.
-    """
-
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
-        """Update environment according to linear rule.
-
-        Args:
-            n: Each agents' current environment, shape: (agents,)
-            a: Each agents' current action, shape: (agents,)
-
-        Returns:
-            Numpy array of new environment values for each agent, with same shape
-            as `n`.
-        """
-        delta = a * rate
-        return np.clip(n + delta, a_min=0.0, a_max=1.0)
-
-    return inner
-
-
-def piecewise_exponential_update(alpha: float, beta: float, rate: float):
-    r"""Construct piecewise exponential environment update function.
-
-    Args:
-        alpha: Rate of improvement due to good actions
-        beta: Rate of degradation due to bad actions
-        rate: Step size for environmental change
-
-    Returns:
-        Piecewise exponential update function.
-    """
-
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
-        """Update environment according to piecewise exponential rule.
-
-        Args:
-            n: Each agents' current environment, shape: (agents,)
-            a: Each agents' current action, shape: (agents,)
-
-        Returns:
-            Numpy array of new environment values for each agent, with same shape
-            as `n`.
-        """
-        a = (a + 1) / 2
-        improvement = alpha * (1 - n) * a
-        degradation = beta * n * (1 - a)
-        dn_dt = improvement - degradation
-        return n + rate * dn_dt
-
-    return inner
-
-
-def lattice2d(width: int, height: int, periodic: bool = True, diagonals: bool = False):
-    """Construct normalised adjacency matrix for a 2D lattice.
-
-    Uses networkx to create a 2D lattice with optional periodic boundaries and
-    Moore neighborhoods (diagonals). Converts this to a sparse adjacency matrix
-    with normalised rows, to simplify computing averages over neighborhoods.
-
-    Args:
-        width: Number of nodes along the horizontal span of the lattice.
-        height: Number of nodes along the vertical span of the lattice.
-        periodic: Connect nodes at the edges of the lattice with periodic boundary
-            conditions.
-        diagonals: Connect nodes to their diagonal neighbors, also known as the Moore
-            neighborhood. Default is the von Neumann neighborhood (cartesian neighbors).
-
-    Returns:
-        Sparse CSR adjacency matrix with shape (width x height, width x height),
-        normalised per row.
-    """
-    network = nx.grid_2d_graph(width, height, periodic=periodic)
-
-    if diagonals:
-        for y, x in itertools.product(range(height), range(width)):
-            for dy, dx in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
-                ty, tx = y + dy, x + dx
-                if periodic:
-                    ty = ty % height
-                    tx = tx % width
-                if 0 <= ty < height and 0 <= tx < width:
-                    network.add_edge((y, x), (ty, tx))
-
-    # Extract normalised adjacency matrix
-    adj = nx.adjacency_matrix(network)
-    adj = adj / adj.sum(axis=1)[:, None]
-    return scipy.sparse.csr_array(adj)
 
 
 class VectorisedModel:
@@ -201,6 +52,8 @@ class VectorisedModel:
     DEFAULT_MEMORY_COUNT = BaseModel.DEFAULT_MEMORY_COUNT
     DEFAULT_MAX_STORAGE = 1000
     DEFAULT_SIMMER_TIME = 0
+    DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"
+    DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"
 
     ACTIONS = [-1, 1]
     N_WEIGHTS = 2
@@ -217,6 +70,8 @@ class VectorisedModel:
         max_storage: int = DEFAULT_MAX_STORAGE,
         moore: bool = True,
         simmer_time: int = DEFAULT_SIMMER_TIME,
+        neighb_prediction_option: str = DEFAULT_NEIGHB_PREDICTION_OPTION,
+        severity_benefit_option: str = DEFAULT_SEVERITY_BENEFIT_OPTION,
         prop_pessimistic: float = 0,
         pessimism_level: float = 1,
     ):
@@ -236,6 +91,9 @@ class VectorisedModel:
                 against runaway memory.
             moore: Include diagonal neighbors.
             simmer_time: Number of agent adaptation steps between environment updates.
+            neighb_prediction_option: Method for predicting neighbors' actions.
+            severity_benefit_option: Method for calculating the benefit of
+                cooperating in a healthy environment.
             prop_pessimistic: Proportion of agents to set as pessimistic.
             pessimism_level: How much pessimistic agents overestimate environmental
                 degradation. Higher is more pessimistic. The default (1) is no
@@ -250,6 +108,8 @@ class VectorisedModel:
         self.rng = rng or np.random.default_rng()
         self.max_storage = max_storage + 1
         self.simmer_time = simmer_time
+        self.neighb_prediction_option = neighb_prediction_option
+        self.severity_benefit_option = severity_benefit_option
 
         # Set up agents' connections and attributes
         self.adj = lattice2d(width, height, periodic=True, diagonals=moore)
@@ -272,7 +132,7 @@ class VectorisedModel:
         self.pessimism[pessimistic] = pessimism_level
 
         # Initialise agents and environment
-        self.initialise(zero=True)
+        self.initialise(zero=False)
         self.initial_action = self.action[: self.memory_count].copy()
         self.initial_environment = self.environment[: self.memory_count].copy()
 
@@ -415,6 +275,61 @@ class VectorisedModel:
         )
         self.curr_s += 0.001 * ds_dt
 
+    def pred_neighb_action(self) -> npt.NDArray[np.float64]:
+        """Predict the average action of peers based on their recent actions.
+
+        Args:
+            memory (int): Number of previous steps to use for prediction.
+            method (str): Prediction method, "linear" or "logistic".
+
+        Returns:
+            npt.NDArray[np.float64]: Predicted average action of
+            neighbors for each agent.
+        """
+        # Get the recent actions for each agent (shape: memory, num_agents)
+        start = max(0, self.time - self.memory_count)
+        stop = self.time
+        actions = self.action[start:stop]  # shape: (memory, num_agents)
+
+        if actions.shape[0] < 2:
+            return self.mean_local_action(memory=self.memory_count)
+
+        if self.neighb_prediction_option == "linear":
+            time_steps = np.arange(actions.shape[0])
+
+            coeffs = np.polyfit(time_steps, actions, 1)
+
+            predicted = np.polyval(coeffs, actions.shape[0])
+
+            neighb_pred = self.adj @ predicted
+
+            return np.where(neighb_pred >= 0, 1, -1)
+        elif self.neighb_prediction_option == "logistic":
+            # For logistic regression, map actions from -1/1 to 0/1
+            act_bin = (actions + 1) // 2
+            time_steps = np.arange(actions.shape[0])
+            log_time = np.log(time_steps + 1)
+            predicted_probs = np.zeros(self.num_agents)
+            for i in range(self.num_agents):
+                try:
+                    popt, _ = scipy.optimize.curve_fit(
+                        lambda t, a, b, c: a / (1 + np.exp(-b * (t - c))),
+                        log_time,
+                        act_bin[:, i],
+                        maxfev=10000,
+                        bounds=([0, -np.inf, -np.inf], [1, np.inf, np.inf]),
+                    )
+                    pred_prob = popt[0] / (
+                        1 + np.exp(-popt[1] * (np.log(actions.shape[0] + 1) - popt[2]))
+                    )
+                except Exception:
+                    pred_prob = np.mean(act_bin[:, i])
+                predicted_probs[i] = pred_prob
+            neighb_pred = self.adj @ predicted_probs
+            return np.where(neighb_pred >= 0.5, 1, -1)
+        else:
+            return self.mean_local_action(memory=self.memory_count)
+
     def action_probabilities(self) -> npt.NDArray[np.float64]:
         r"""Calculate the probability of each possible action.
 
@@ -453,10 +368,13 @@ class VectorisedModel:
         Where :math:`a^* = (a + 1)/2` is a transformation of the action to the set 
         :math:`\{0,1\}`.
         """
-        # severity_benefit = -(2 * self.environment[self.time - 1] - 1) * action
-        a = int((action + 1) / 2)
-        severity_benefit = (a) * self.curr_s + (1 - a) * (4 - self.curr_s)
-        deviation_cost = (action - self.mean_local_action()) ** 2
+        if self.severity_benefit_option == "adaptive":
+            a = int((action + 1) / 2)
+            severity_benefit = (a) * self.curr_s + (1 - a) * (4 - self.curr_s)
+        else:
+            severity_benefit = -(2 * self.environment[self.time - 1] - 1) * action
+
+        deviation_cost = (action - self.pred_neighb_action()) ** 2
 
         return self.b[0] * severity_benefit - self.b[1] * deviation_cost
 

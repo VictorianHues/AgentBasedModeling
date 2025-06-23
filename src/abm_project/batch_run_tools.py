@@ -1,8 +1,7 @@
 """Batch run tools for ABM project."""
 
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import uniform_filter
+from scipy.ndimage import convolve
 
 from abm_project.oop_model import BaseModel
 
@@ -23,8 +22,7 @@ def run_parameter_batch(
     """
     models = []
     for _ in range(num_runs):
-        rng = np.random.default_rng()
-        model = model_class(rng=rng, **kwargs)
+        model = model_class(**kwargs)
         model.run(steps)
         models.append(model)
     return models
@@ -116,106 +114,58 @@ def attribute_variance_over_time(models, attr):
     ]
 
 
-def spatial_clustering_over_time(models, radius=1):
-    """Calculate the spatial clustering score over time for a batch of models.
+def local_action_agreement_score(
+    flat_grid: np.ndarray, width: int, height: int, radius: int = 1
+) -> float:
+    """Compute a spatial clustering score based on local action agreement.
 
     Args:
-        models (list[BaseModel]): List of BaseModel instances.
-        radius (int): Radius for local averaging in the spatial clustering score.
+        flat_grid (np.ndarray): 1D array of agent actions.
+        width (int): Width of the agent grid.
+        height (int): Height of the agent grid.
+        radius (int): Neighborhood radius.
 
     Returns:
-        list: Spatial clustering scores for each time step.
+        float: Clustering score (0 to 1).
     """
+    if flat_grid.size != width * height:
+        raise ValueError("flat_grid size does not match width × height")
+
+    grid = flat_grid.reshape((height, width))
+
+    kernel = np.ones((2 * radius + 1, 2 * radius + 1), dtype=int)
+    kernel[radius, radius] = 0  # Exclude center
+
+    score = 0.0
+    for val in np.unique(grid):
+        match = (grid == val).astype(int)
+        same_neighbors = convolve(match, kernel, mode="constant", cval=0)
+        total_neighbors = convolve(np.ones_like(grid), kernel, mode="constant", cval=0)
+        local_agreement = same_neighbors / total_neighbors
+        score += np.sum(local_agreement * match)
+
+    return score / grid.size
+
+
+def clustering_score_over_time(
+    model, attribute: str = "action", width: int = 50, height: int = 50, radius: int = 1
+) -> list[float]:
+    """Compute a clustering score at each time step for a 1D action vector per step.
+
+    Args:
+        model: The model instance.
+        attribute (str): Attribute name for the per-timestep 1D agent data.
+        width (int): Grid width.
+        height (int): Grid height.
+        radius (int): Neighborhood radius.
+
+    Returns:
+        list[float]: Clustering scores per time step.
+    """
+    time_series = getattr(model, attribute)
     return [
-        np.mean(
-            [
-                spatial_clustering_score(m.agent_action_history[t], radius)
-                for m in models
-            ]
+        local_action_agreement_score(
+            flat_grid, width=width, height=height, radius=radius
         )
-        for t in range(len(models[0].agent_action_history))
+        for flat_grid in time_series
     ]
-
-
-def spatial_clustering_score(grid, radius=1):
-    """Calculate the spatial clustering score of a grid.
-
-    The score is based on the local average of binary values in the grid.
-
-    Args:
-        grid (np.ndarray): 2D array representing the grid.
-        radius (int): Radius for local averaging.
-
-    Returns:
-        float: Spatial clustering score.
-    """
-    binary = (grid + 1) / 2  # map [-1,1] to [0,1]
-    local_avg = uniform_filter(binary, size=2 * radius + 1, mode="wrap")
-    return np.mean(np.abs(binary - local_avg))
-
-
-def plot_spatial_clustering_score_heatmap(
-    clustering_scores, title="Spatial Clustering Score Heatmap"
-):
-    """Plot a heatmap of spatial clustering scores.
-
-    Args:
-        clustering_scores (list): List of spatial clustering scores for each time step.
-        title (str): Title of the heatmap.
-    """
-    plt.figure(figsize=(10, 6))
-    plt.imshow(clustering_scores, cmap="viridis", aspect="auto")
-    plt.colorbar(label="Clustering Score")
-    plt.title(title)
-    plt.xlabel("Time Step")
-    plt.ylabel("Model Runs")
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_mean_with_variability(
-    models, attribute: str, title: str, ylabel: str, kind: str = "std"
-):
-    """Plot mean line with shaded variability from a batch of models.
-
-    Args:
-        models (list): List of BaseModel instances.
-        attribute (str): e.g., "agent_action_history"
-        title (str): Plot title
-        ylabel (str): Y-axis label
-        kind (str): "std" for ±1 SD, "percentile" for 10–90% range
-    """
-    num_steps = len(models[0].__getattribute__(attribute))
-    data_per_step = []
-
-    for t in range(num_steps):
-        grids = np.array([model.__getattribute__(attribute)[t] for model in models])
-        step_means = np.array([np.mean(grid) for grid in grids])
-        data_per_step.append(step_means)
-
-    data_array = np.array(data_per_step)  # shape: (time, runs)
-    time = np.arange(num_steps)
-    mean = np.mean(data_array, axis=1)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(time, mean, label="Mean", color="blue")
-
-    if kind == "std":
-        std = np.std(data_array, axis=1)
-        plt.fill_between(
-            time, mean - std, mean + std, color="blue", alpha=0.3, label="±1 Std Dev"
-        )
-    elif kind == "percentile":
-        lower = np.percentile(data_array, 10, axis=1)
-        upper = np.percentile(data_array, 90, axis=1)
-        plt.fill_between(
-            time, lower, upper, color="blue", alpha=0.3, label="10–90% Range"
-        )
-
-    plt.title(title)
-    plt.xlabel("Time Step")
-    plt.ylabel(ylabel)
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()

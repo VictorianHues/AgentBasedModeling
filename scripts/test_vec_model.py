@@ -4,51 +4,10 @@ from pathlib import Path
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
-from matplotlib.axes import Axes
 from matplotlib.colors import ListedColormap
 
-from abm_project.vectorised_model import VectorisedModel, piecewise_exponential_update
-
-
-def plot_support_derivative(a: float = 1, b: float = 1, savedir: Path | None = None):
-    savedir = savedir or Path(".")
-
-    fig, axes = plt.subplots(
-        ncols=3, figsize=(10, 4), constrained_layout=True, sharey=True
-    )
-
-    support = np.array([0, 0.25, 0.5, 0.75, 1.0])
-    pessimism = np.array([0.5, 1.0, 2.0])
-    n = np.linspace(0, 1, 101)
-
-    def draw(s: float, n_perceived: npt.NDArray[np.float64], ax: Axes):
-        logistic = 4 * n_perceived * (1 - n_perceived)
-        growth = a * logistic * (1 - s)
-        decay = b * (1 - logistic) * s
-        ax.plot(n, growth - decay, label=f"$s(t) = {s:.2f}$")
-
-    for ax, pes in zip(axes, pessimism, strict=True):
-        for s in support:
-            draw(s, n**pes, ax)
-        ax.set_xlabel(r"Environment state ($n$)")
-
-    axes[0].set_title(f"Optimistic ($n^* = n^{{{pessimism[0]}}}$)")
-    axes[1].set_title(f"Realistic ($n^* = n^{{{pessimism[1]}}}$)")
-    axes[2].set_title(f"Pessimistic ($n^* = n^{{{pessimism[2]}}}$)")
-
-    for ax in axes:
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.legend()
-        ax.set_xlim(0, 1)
-        ax.set_ylim(-1.01, 1.01)
-        ax.axhline(y=0, linestyle="dashed", color="grey", linewidth=1)
-
-    fig.suptitle("Change in support for cooperation, varying environment and pessimism")
-    fig.supylabel(r"$\frac{ds}{dn}$", rotation=0)
-    fig.savefig(savedir / "support_derivative.png", dpi=300, bbox_inches="tight")
-    plt.show()
+from abm_project.utils import piecewise_exponential_update
+from abm_project.vectorised_model import VectorisedModel
 
 
 def plot_environment_for_varying_simmer_time(savedir: Path | None = None):
@@ -88,6 +47,8 @@ def plot_environment_for_varying_simmer_time(savedir: Path | None = None):
                 env_update_fn=env_update_fn,
                 rationality=rationality,
                 simmer_time=st,
+                neighb_prediction_option=None,
+                severity_benefit_option=None,
                 max_storage=num_steps,
             )
             model.run(num_steps)
@@ -189,6 +150,8 @@ def plot_environment_for_varying_rationality(savedir: Path | None = None):
                 env_update_fn=env_update_fn,
                 rationality=lmbda,
                 simmer_time=1,
+                neighb_prediction_option=None,
+                severity_benefit_option=None,
                 max_storage=num_steps,
             )
             model.run(num_steps)
@@ -280,6 +243,8 @@ def plot_steady_state_environment_for_varying_rationality(savedir: Path | None =
                 env_update_fn=env_update_fn,
                 rationality=lmbda,
                 simmer_time=1,
+                neighb_prediction_option=None,
+                severity_benefit_option=None,
                 max_storage=num_steps,
             )
             model.run(num_steps)
@@ -353,6 +318,8 @@ def plot_environment_for_varying_pessimism(savedir: Path | None = None):
                     env_update_fn=env_update_fn,
                     rationality=rationality,
                     simmer_time=simmer_time,
+                    neighb_prediction_option=None,
+                    severity_benefit_option=None,
                     max_storage=num_steps,
                     prop_pessimistic=pess,
                     pessimism_level=pess_level,
@@ -427,11 +394,11 @@ def main():
     results_dir = Path("vectorised_model_results")
     results_dir.mkdir(exist_ok=True)
 
-    plot_support_derivative(savedir=results_dir)
-    plot_environment_for_varying_simmer_time(savedir=results_dir)
-    plot_environment_for_varying_rationality(savedir=results_dir)
-    plot_environment_for_varying_pessimism(savedir=results_dir)
-    plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
+    # plot_support_derivative(savedir=results_dir)
+    # plot_environment_for_varying_simmer_time(savedir=results_dir)
+    # plot_environment_for_varying_rationality(savedir=results_dir)
+    # plot_environment_for_varying_pessimism(savedir=results_dir)
+    # plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
 
     num_agents = 2500
     width = 50
@@ -451,6 +418,8 @@ def main():
         env_update_fn=env_update_fn,
         rationality=1.8,
         simmer_time=1,
+        neighb_prediction_option=None,
+        severity_benefit_option=None,
         max_storage=num_steps,
     )
     model.run(num_steps)
