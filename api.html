@@ -12,6 +12,7 @@
     <script src="_static/documentation_options.js?v=d45e8c67"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Contributing" href="contributing.html" />
@@ -654,6 +655,393 @@ and the current environment status.</p>
 If the memory exceeds the specified count, the oldest action is removed.</p>
 </dd></dl>
 
+</dd></dl>
+
+</section>
+<section id="module-abm_project.vectorised_model">
+<span id="vectorised-model"></span><h2>Vectorised Model<a class="headerlink" href="#module-abm_project.vectorised_model" title="Link to this heading">¶</a></h2>
+<p>Vectorised implementation of the OOP model.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">VectorisedModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_agents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_update_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EnvUpdateFn</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rationality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_storage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moore</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simmer_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_pessimistic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pessimism_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorised base model for agent-based simulations.</p>
+<p>This model comprises a 2D lattice of agents who repeatedly choose between
+cooperation (pro-environmental behaviour) and defection, based on the state
+of their local environment and the social norms imposed by their direct
+neighbors.</p>
+<p>Agents have heterogeneous attributes which weight the respective contributions
+of environmental concern and social norms in the decision-making process.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.action">
+<span class="sig-name descname"><span class="pre">action</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.action" title="Link to this definition">¶</a></dt>
+<dd><p>2D array of agents’ actions with shape (time, agent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.environment">
+<span class="sig-name descname"><span class="pre">environment</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.environment" title="Link to this definition">¶</a></dt>
+<dd><p>2D array of agents’ environments with shape (time, agent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.s">
+<span class="sig-name descname"><span class="pre">s</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.s" title="Link to this definition">¶</a></dt>
+<dd><p>2D array of agents’ support for cooperation with shape (time, agent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.float64]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.b">
+<span class="sig-name descname"><span class="pre">b</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.b" title="Link to this definition">¶</a></dt>
+<dd><p>2D array of agents’ decision-making weights, shape (attributes, agent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.float64]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.rationality">
+<span class="sig-name descname"><span class="pre">rationality</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.rationality" title="Link to this definition">¶</a></dt>
+<dd><p>float
+Homogeneous rationality coefficient for all agents.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.adj">
+<span class="sig-name descname"><span class="pre">adj</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.adj" title="Link to this definition">¶</a></dt>
+<dd><p>Normalised adjacency matrix with shape (agent, agent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.float64]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.time">
+<span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.time" title="Link to this definition">¶</a></dt>
+<dd><p>Current time step in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.num_agents">
+<span class="sig-name descname"><span class="pre">num_agents</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.num_agents" title="Link to this definition">¶</a></dt>
+<dd><p>Total number of agents in the grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.width">
+<span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.width" title="Link to this definition">¶</a></dt>
+<dd><p>Width of the grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.height">
+<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.height" title="Link to this definition">¶</a></dt>
+<dd><p>Height of the grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.simmer_time">
+<span class="sig-name descname"><span class="pre">simmer_time</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.simmer_time" title="Link to this definition">¶</a></dt>
+<dd><p>Number of agent adaptation steps between environment updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.rng">
+<span class="sig-name descname"><span class="pre">rng</span></span><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.rng" title="Link to this definition">¶</a></dt>
+<dd><p>Random number generator for stochastic processes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.random.Generator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.action_probabilities">
+<span class="sig-name descname"><span class="pre">action_probabilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.action_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.action_probabilities" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the probability of each possible action.</p>
+<p>The probabilities are calculated using a logit softmax
+function over the utilities of each action.
+The formula is:</p>
+<div class="math notranslate nohighlight">
+\[P(a_i(t) = a) = \frac{\exp(\lambda \cdot V_i(a))}{\exp(\lambda \cdot \
+V_i(C)) + \exp(\lambda \cdot V_i(D))}\]</div>
+<p>Where <span class="math notranslate nohighlight">\(V_i(a)\)</span> is the representative utility for action <span class="math notranslate nohighlight">\(a\)</span>
+for agent <span class="math notranslate nohighlight">\(i\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array of probabilities for each action, with shape (2,agent).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.adapt">
+<span class="sig-name descname"><span class="pre">adapt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.adapt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.adapt" title="Link to this definition">¶</a></dt>
+<dd><p>Update agents’ support for cooperation.</p>
+<p>Agents’ support for cooperation changes as a function of the current
+environment. It decreases when the environment is either particularly
+healthy (no reason to act) or particularly unhealthy (no point in acting).
+It increases when the environment is not at either of these extremes.</p>
+<p>We write the change in support as a derivative:</p>
+<div class="math notranslate nohighlight">
+\[\frac{ds_i}{dt} = \alpha_i \sigma(n_i) (1 - s_i(t)) \
+- \beta_i (1 - \sigma(n_i)) s_i(t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma(n_i) = 4n_i (1 - n_i)\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> – Current state of the environment, with shape (agent,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.decide">
+<span class="sig-name descname"><span class="pre">decide</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.decide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.decide" title="Link to this definition">¶</a></dt>
+<dd><p>Select a new action for each agent.</p>
+<p>The probability of selecting each action is set by an agents’ logit model,
+based on their current environment and the social norms imposed by their
+neighbors.</p>
+<p>To select a new action, we sample a random number in [0,1] for each agent.
+If it does not exceed the probability of cooperation, the agent cooperates,
+and defects otherwise.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.initialise">
+<span class="sig-name descname"><span class="pre">initialise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.initialise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.initialise" title="Link to this definition">¶</a></dt>
+<dd><p>Initialise agents’ and environment state.</p>
+<p>Optionally sets agents’ initial actions to zero (defection), and
+environments to one (healthy).</p>
+<p>After initialising the environment, runs agent adaptation for 100
+steps to reach stable support levels (for cooperation) given agent
+heterogeneity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zero</strong> – Initialise environment as healthy and agents as cooperating.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.mean_local_action">
+<span class="sig-name descname"><span class="pre">mean_local_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.mean_local_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.mean_local_action" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the average action in each agents’ local neighborhood.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>memory</strong> – Number of previous neighbors’ actions to consider.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The mean local action for each agent, reflecting the perceived social norm
+for each agent at the current timestep. Shape is (agent,).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.representative_utility">
+<span class="sig-name descname"><span class="pre">representative_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.representative_utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.representative_utility" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the representative utility of an action for each agent.</p>
+<p>Representative utility is a linear combination of the support for
+cooperation and the social norms imposed by an agents’ neighbors:</p>
+<div class="math notranslate nohighlight">
+\[V_i(a) = b_1 \cdot [a^* \cdot s_i(t) + (1 - a^*) \cdot (1 - s_i(t))] + \
+b_2 (a^* - \overline{A^*}_i (t))^2\]</div>
+<p>Where <span class="math notranslate nohighlight">\(a^* = (a + 1)/2\)</span> is a transformation of the action to the set
+<span class="math notranslate nohighlight">\(\{0,1\}\)</span>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Re-initialise agents to original actions and environment states.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.run" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation for specified number of steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>steps</strong> – Number of steps to iterate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.simmer">
+<span class="sig-name descname"><span class="pre">simmer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.simmer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.simmer" title="Link to this definition">¶</a></dt>
+<dd><p>Simulate a number of agent decision-making and adaptation steps.</p>
+<p>A step comprises the following processes:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Agents choose an action based on their current support for cooperation,</dt><dd><p>and the social norms imposed by their neighbors.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Agents adapt their support for cooperation based on the current state</dt><dd><p>of the environment.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>Note that the environment is fixed during this process. As such, a longer
+simmer time reflects a faster rate of behavioural change relative to the
+rate of environmental change.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.step" title="Link to this definition">¶</a></dt>
+<dd><p>Execute a single simulation step.</p>
+<p>A step comprises the following processes:
+1. Increment the simulation time.
+2. Update the environment based on agents’ actions in the previous timestep.
+3. Run a fixed number of agent decision-making and adaptation steps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.update_env">
+<span class="sig-name descname"><span class="pre">update_env</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.update_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.update_env" title="Link to this definition">¶</a></dt>
+<dd><p>Update each agents’ environment based on their last action.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.exponential_update">
+<span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">exponential_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#exponential_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.exponential_update" title="Link to this definition">¶</a></dt>
+<dd><p>Construct exponential environment update function.</p>
+<div class="math notranslate nohighlight">
+\[n(t+1) = n(t) + a\cdot r \cdot \exp(-n(t))\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rate</strong> – Multiplicative coefficient for exponential function.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exponential update function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.lattice2d">
+<span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">lattice2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagonals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#lattice2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.lattice2d" title="Link to this definition">¶</a></dt>
+<dd><p>Construct normalised adjacency matrix for a 2D lattice.</p>
+<p>Uses networkx to create a 2D lattice with optional periodic boundaries and
+Moore neighborhoods (diagonals). Converts this to a sparse adjacency matrix
+with normalised rows, to simplify computing averages over neighborhoods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> – Number of nodes along the horizontal span of the lattice.</p></li>
+<li><p><strong>height</strong> – Number of nodes along the vertical span of the lattice.</p></li>
+<li><p><strong>periodic</strong> – Connect nodes at the edges of the lattice with periodic boundary
+conditions.</p></li>
+<li><p><strong>diagonals</strong> – Connect nodes to their diagonal neighbors, also known as the Moore
+neighborhood. Default is the von Neumann neighborhood (cartesian neighbors).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sparse CSR adjacency matrix with shape (width x height, width x height),
+normalised per row.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.linear_update">
+<span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">linear_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#linear_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.linear_update" title="Link to this definition">¶</a></dt>
+<dd><p>Construct linear environment update function.</p>
+<div class="math notranslate nohighlight">
+\[n(t+1) = n(t) + a\cdot r\]</div>
+<p>The returned value is clipped to the interval [0,1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rate</strong> – Linear step size.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Linear update function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.piecewise_exponential_update">
+<span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">piecewise_exponential_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#piecewise_exponential_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.piecewise_exponential_update" title="Link to this definition">¶</a></dt>
+<dd><p>Construct piecewise exponential environment update function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> – Rate of improvement due to good actions</p></li>
+<li><p><strong>beta</strong> – Rate of degradation due to bad actions</p></li>
+<li><p><strong>rate</strong> – Step size for environmental change</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Piecewise exponential update function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.sigmoid_update">
+<span class="sig-prename descclassname"><span class="pre">abm_project.vectorised_model.</span></span><span class="sig-name descname"><span class="pre">sigmoid_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#sigmoid_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.sigmoid_update" title="Link to this definition">¶</a></dt>
+<dd><p>Update environment according to sigmoid rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Each agents’ current environment, shape: (agents,)</p></li>
+<li><p><strong>a</strong> – Each agents’ current action, shape: (agents,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array of new environment values for each agent, with same shape as <cite>n</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
