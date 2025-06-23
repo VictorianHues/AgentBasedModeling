@@ -190,7 +190,9 @@ def plot_list_over_time(
         plt.show()
 
 
-def plot_mean_and_variability_array(data: np.ndarray, title: str, kind: str = "std"):
+def plot_mean_and_variability_array(
+    data: np.ndarray, title: str, kind: str = "std", file_name: str | None = None
+):
     """Plot the mean and variability of a 2D array over time."""
     time = np.arange(data.shape[1])
     mean = np.mean(data, axis=0)
@@ -216,10 +218,15 @@ def plot_mean_and_variability_array(data: np.ndarray, title: str, kind: str = "s
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    if file_name:
+        plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+        print(f"Plot saved to {get_plot_directory(file_name)}")
+        plt.close()
+    else:
+        plt.show()
 
 
-def plot_sobol_indices(Si, time_steps, var_names, output_label):
+def plot_sobol_indices(Si, time_steps, var_names, output_label, file_name=None):
     """Plot Sobol sensitivity indices for given time steps and variable names."""
     num_vars = len(var_names)
 
@@ -246,7 +253,13 @@ def plot_sobol_indices(Si, time_steps, var_names, output_label):
         axs[1].set_ylim(0, 1)
 
         plt.tight_layout()
-        plt.show()
+        file_name = str(t) + "_" + file_name
+        if file_name:
+            plt.savefig(get_plot_directory(file_name), bbox_inches="tight")
+            print(f"Plot saved to {get_plot_directory(file_name)}")
+            plt.close()
+        else:
+            plt.show()
 
 
 def plot_support_derivative(a: float = 1, b: float = 1, savedir: Path | None = None):

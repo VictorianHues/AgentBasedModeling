@@ -158,10 +158,16 @@ def run_single_parameter_set():
         cluster_scores=action_cluster_scores,
     )
 
-    plot_mean_and_variability_array(env_means, title="Environment Over Time")
-    plot_mean_and_variability_array(action_means, title="Actions Over Time")
     plot_mean_and_variability_array(
-        action_cluster_scores, title="Spatial Clustering Over Time"
+        env_means, title="Environment Over Time", file_name="env_over_time.png"
+    )
+    plot_mean_and_variability_array(
+        action_means, title="Actions Over Time", file_name="action_over_time.png"
+    )
+    plot_mean_and_variability_array(
+        action_cluster_scores,
+        title="Spatial Clustering Over Time",
+        file_name="action_cluster_scores_over_time.png",
     )
 
     env_vars = np.var(env_means, axis=0)
@@ -173,18 +179,21 @@ def run_single_parameter_set():
         title="Variance of Environment Status Over Time",
         xlabel="Time Step",
         ylabel="Variance",
+        file_name="env_variance_over_time.png",
     )
     plot_list_over_time(
         action_vars,
         title="Variance of Actions Over Time",
         xlabel="Time Step",
         ylabel="Variance",
+        file_name="action_variance_over_time.png",
     )
     plot_list_over_time(
         action_cluster_score_vars,
         title="Variance of Action Cluster Scores Over Time",
         xlabel="Time Step",
         ylabel="Variance",
+        file_name="action_cluster_score_variance_over_time.png",
     )
 
 
@@ -200,7 +209,13 @@ def sobol_analysis():
     for t, res in results_act.items():
         print(f"Time step {t}: S1={res['S1']}, ST={res['ST']}, S2={res['S2']}")
 
-    plot_sobol_indices(results_env, time_steps, problem["names"], "Environment")
+    plot_sobol_indices(
+        results_env,
+        time_steps,
+        problem["names"],
+        "Environment",
+        file_name="sobol_env_indices.png",
+    )
 
 
 if __name__ == "__main__":
