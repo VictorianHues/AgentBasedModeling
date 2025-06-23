@@ -46,7 +46,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">curve_fit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">abm_project.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">sigmoid</span>
 
 
 <div class="viewcode-block" id="BaseModel">
@@ -227,26 +228,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">save_results</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.sigmoid">
-<a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.sigmoid">[docs]</a>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sigmoid function for logistic regression.</span>
-
-<span class="sd">        This function defines a sigmoid curve for logistic regression</span>
-<span class="sd">        fitting, which maps any real-valued number into the range [0, 1].</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            x (float or np.ndarray): Input value(s) to the sigmoid function.</span>
-<span class="sd">            a (float): Slope of the sigmoid curve.</span>
-<span class="sd">            b (float): Offset of the sigmoid curve.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            float or np.ndarray: Sigmoid-transformed value(s).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">)))</span></div>
-
-
 <div class="viewcode-block" id="BaseModel.pred_neighb_action">
 <a class="viewcode-back" href="../../api.html#abm_project.oop_model.BaseModel.pred_neighb_action">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">pred_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -302,9 +283,7 @@
                     <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
                     <span class="n">log_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">time_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">popt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">,</span> <span class="n">log_time</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">maxfev</span><span class="o">=</span><span class="mi">10000</span>
-                        <span class="p">)</span>
+                        <span class="n">popt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">sigmoid</span><span class="p">,</span> <span class="n">log_time</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">maxfev</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
                         <span class="n">pred_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -532,8 +511,6 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="../index.html">Module code</a><ul>
-  <li><a href="../abm_project.html">abm_project</a><ul>
-  </ul></li>
   </ul></li>
   </ul></li>
 </ul>

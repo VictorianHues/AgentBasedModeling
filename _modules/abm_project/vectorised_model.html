@@ -33,180 +33,16 @@
   <h1>Source code for abm_project.vectorised_model</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Vectorised implementation of the OOP model.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.oop_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">lattice2d</span><span class="p">,</span> <span class="n">linear_update</span>
 
 <span class="nb">type</span> <span class="n">EnvUpdateFn</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[(</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">int</span><span class="p">]),</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span>
-
-
-<div class="viewcode-block" id="sigmoid_update">
-<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.sigmoid_update">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sigmoid_update</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update environment according to sigmoid rule.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        n: Each agents&#39; current environment, shape: (agents,)</span>
-<span class="sd">        a: Each agents&#39; current action, shape: (agents,)</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Numpy array of new environment values for each agent, with same shape as `n`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sensitivity</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">6</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)))</span>
-    <span class="n">delta</span> <span class="o">=</span> <span class="n">sensitivity</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="mf">0.05</span>
-    <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">delta</span></div>
-
-
-
-<div class="viewcode-block" id="exponential_update">
-<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.exponential_update">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">exponential_update</span><span class="p">(</span><span class="n">rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Construct exponential environment update function.</span>
-
-<span class="sd">    .. math::</span>
-
-<span class="sd">        n(t+1) = n(t) + a\cdot r \cdot \exp(-n(t))</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        rate: Multiplicative coefficient for exponential function.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Exponential update function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update environment according to exponential rule.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n: Each agents&#39; current environment, shape: (agents,)</span>
-<span class="sd">            a: Each agents&#39; current action, shape: (agents,)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Numpy array of new environment values for each agent, with same shape</span>
-<span class="sd">            as `n`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">delta</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">rate</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">n</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">delta</span>
-
-    <span class="k">return</span> <span class="n">inner</span></div>
-
-
-
-<div class="viewcode-block" id="linear_update">
-<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.linear_update">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">linear_update</span><span class="p">(</span><span class="n">rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Construct linear environment update function.</span>
-
-<span class="sd">    .. math::</span>
-
-<span class="sd">        n(t+1) = n(t) + a\cdot r</span>
-
-<span class="sd">    The returned value is clipped to the interval [0,1].</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        rate: Linear step size.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Linear update function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update environment according to linear rule.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n: Each agents&#39; current environment, shape: (agents,)</span>
-<span class="sd">            a: Each agents&#39; current action, shape: (agents,)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Numpy array of new environment values for each agent, with same shape</span>
-<span class="sd">            as `n`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">delta</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">rate</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">delta</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">inner</span></div>
-
-
-
-<div class="viewcode-block" id="piecewise_exponential_update">
-<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.piecewise_exponential_update">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">piecewise_exponential_update</span><span class="p">(</span><span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Construct piecewise exponential environment update function.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        alpha: Rate of improvement due to good actions</span>
-<span class="sd">        beta: Rate of degradation due to bad actions</span>
-<span class="sd">        rate: Step size for environmental change</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Piecewise exponential update function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">a</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update environment according to piecewise exponential rule.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            n: Each agents&#39; current environment, shape: (agents,)</span>
-<span class="sd">            a: Each agents&#39; current action, shape: (agents,)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Numpy array of new environment values for each agent, with same shape</span>
-<span class="sd">            as `n`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">improvement</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">a</span>
-        <span class="n">degradation</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
-        <span class="n">dn_dt</span> <span class="o">=</span> <span class="n">improvement</span> <span class="o">-</span> <span class="n">degradation</span>
-        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">rate</span> <span class="o">*</span> <span class="n">dn_dt</span>
-
-    <span class="k">return</span> <span class="n">inner</span></div>
-
-
-
-<div class="viewcode-block" id="lattice2d">
-<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.lattice2d">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">lattice2d</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">periodic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct normalised adjacency matrix for a 2D lattice.</span>
-
-<span class="sd">    Uses networkx to create a 2D lattice with optional periodic boundaries and</span>
-<span class="sd">    Moore neighborhoods (diagonals). Converts this to a sparse adjacency matrix</span>
-<span class="sd">    with normalised rows, to simplify computing averages over neighborhoods.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        width: Number of nodes along the horizontal span of the lattice.</span>
-<span class="sd">        height: Number of nodes along the vertical span of the lattice.</span>
-<span class="sd">        periodic: Connect nodes at the edges of the lattice with periodic boundary</span>
-<span class="sd">            conditions.</span>
-<span class="sd">        diagonals: Connect nodes to their diagonal neighbors, also known as the Moore</span>
-<span class="sd">            neighborhood. Default is the von Neumann neighborhood (cartesian neighbors).</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Sparse CSR adjacency matrix with shape (width x height, width x height),</span>
-<span class="sd">        normalised per row.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">network</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">grid_2d_graph</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">diagonals</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">)):</span>
-            <span class="k">for</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dx</span> <span class="ow">in</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
-                <span class="n">ty</span><span class="p">,</span> <span class="n">tx</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dy</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dx</span>
-                <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
-                    <span class="n">ty</span> <span class="o">=</span> <span class="n">ty</span> <span class="o">%</span> <span class="n">height</span>
-                    <span class="n">tx</span> <span class="o">=</span> <span class="n">tx</span> <span class="o">%</span> <span class="n">width</span>
-                <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ty</span> <span class="o">&lt;</span> <span class="n">height</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">tx</span> <span class="o">&lt;</span> <span class="n">width</span><span class="p">:</span>
-                    <span class="n">network</span><span class="o">.</span><span class="n">add_edge</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">ty</span><span class="p">,</span> <span class="n">tx</span><span class="p">))</span>
-
-    <span class="c1"># Extract normalised adjacency matrix</span>
-    <span class="n">adj</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">adjacency_matrix</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
-    <span class="n">adj</span> <span class="o">=</span> <span class="n">adj</span> <span class="o">/</span> <span class="n">adj</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_array</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span></div>
-
 
 
 <div class="viewcode-block" id="VectorisedModel">
@@ -251,6 +87,8 @@
     <span class="n">DEFAULT_MEMORY_COUNT</span> <span class="o">=</span> <span class="n">BaseModel</span><span class="o">.</span><span class="n">DEFAULT_MEMORY_COUNT</span>
     <span class="n">DEFAULT_MAX_STORAGE</span> <span class="o">=</span> <span class="mi">1000</span>
     <span class="n">DEFAULT_SIMMER_TIME</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">DEFAULT_NEIGHB_PREDICTION_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
+    <span class="n">DEFAULT_SEVERITY_BENEFIT_OPTION</span> <span class="o">=</span> <span class="s2">&quot;adaptive&quot;</span>
 
     <span class="n">ACTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">N_WEIGHTS</span> <span class="o">=</span> <span class="mi">2</span>
@@ -267,6 +105,8 @@
         <span class="n">max_storage</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_STORAGE</span><span class="p">,</span>
         <span class="n">moore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">simmer_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_SIMMER_TIME</span><span class="p">,</span>
+        <span class="n">neighb_prediction_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NEIGHB_PREDICTION_OPTION</span><span class="p">,</span>
+        <span class="n">severity_benefit_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SEVERITY_BENEFIT_OPTION</span><span class="p">,</span>
         <span class="n">prop_pessimistic</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">pessimism_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
@@ -286,6 +126,9 @@
 <span class="sd">                against runaway memory.</span>
 <span class="sd">            moore: Include diagonal neighbors.</span>
 <span class="sd">            simmer_time: Number of agent adaptation steps between environment updates.</span>
+<span class="sd">            neighb_prediction_option: Method for predicting neighbors&#39; actions.</span>
+<span class="sd">            severity_benefit_option: Method for calculating the benefit of</span>
+<span class="sd">                cooperating in a healthy environment.</span>
 <span class="sd">            prop_pessimistic: Proportion of agents to set as pessimistic.</span>
 <span class="sd">            pessimism_level: How much pessimistic agents overestimate environmental</span>
 <span class="sd">                degradation. Higher is more pessimistic. The default (1) is no</span>
@@ -300,6 +143,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_storage</span> <span class="o">=</span> <span class="n">max_storage</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simmer_time</span> <span class="o">=</span> <span class="n">simmer_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">=</span> <span class="n">neighb_prediction_option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">severity_benefit_option</span> <span class="o">=</span> <span class="n">severity_benefit_option</span>
 
         <span class="c1"># Set up agents&#39; connections and attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">=</span> <span class="n">lattice2d</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">diagonals</span><span class="o">=</span><span class="n">moore</span><span class="p">)</span>
@@ -322,7 +167,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pessimism</span><span class="p">[</span><span class="n">pessimistic</span><span class="p">]</span> <span class="o">=</span> <span class="n">pessimism_level</span>
 
         <span class="c1"># Initialise agents and environment</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initialise</span><span class="p">(</span><span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialise</span><span class="p">(</span><span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_environment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -489,6 +334,64 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">curr_s</span> <span class="o">+=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">ds_dt</span></div>
 
 
+<div class="viewcode-block" id="VectorisedModel.pred_neighb_action">
+<a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.VectorisedModel.pred_neighb_action">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pred_neighb_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the average action of peers based on their recent actions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            memory (int): Number of previous steps to use for prediction.</span>
+<span class="sd">            method (str): Prediction method, &quot;linear&quot; or &quot;logistic&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            npt.NDArray[np.float64]: Predicted average action of</span>
+<span class="sd">            neighbors for each agent.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the recent actions for each agent (shape: memory, num_agents)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>  <span class="c1"># shape: (memory, num_agents)</span>
+
+        <span class="k">if</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_local_action</span><span class="p">(</span><span class="n">memory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+            <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">predicted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">neighb_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">@</span> <span class="n">predicted</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">neighb_pred</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">==</span> <span class="s2">&quot;logistic&quot;</span><span class="p">:</span>
+            <span class="c1"># For logistic regression, map actions from -1/1 to 0/1</span>
+            <span class="n">act_bin</span> <span class="o">=</span> <span class="p">(</span><span class="n">actions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">log_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">time_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">predicted_probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">popt</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">c</span><span class="p">))),</span>
+                        <span class="n">log_time</span><span class="p">,</span>
+                        <span class="n">act_bin</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span>
+                        <span class="n">maxfev</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                        <span class="n">bounds</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]),</span>
+                    <span class="p">)</span>
+                    <span class="n">pred_prob</span> <span class="o">=</span> <span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span>
+                        <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">popt</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">pred_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">act_bin</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+                <span class="n">predicted_probs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_prob</span>
+            <span class="n">neighb_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">@</span> <span class="n">predicted_probs</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">neighb_pred</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_local_action</span><span class="p">(</span><span class="n">memory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="VectorisedModel.action_probabilities">
 <a class="viewcode-back" href="../../api.html#abm_project.vectorised_model.VectorisedModel.action_probabilities">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">action_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
@@ -532,10 +435,13 @@
 <span class="sd">        Where :math:`a^* = (a + 1)/2` is a transformation of the action to the set </span>
 <span class="sd">        :math:`\{0,1\}`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># severity_benefit = -(2 * self.environment[self.time - 1] - 1) * action</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">action</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">severity_benefit</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">curr_s</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">curr_s</span><span class="p">)</span>
-        <span class="n">deviation_cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">action</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_local_action</span><span class="p">())</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">severity_benefit_option</span> <span class="o">==</span> <span class="s2">&quot;adaptive&quot;</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">action</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">severity_benefit</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">curr_s</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">curr_s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">severity_benefit</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">action</span>
+
+        <span class="n">deviation_cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">action</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_neighb_action</span><span class="p">())</span> <span class="o">**</span> <span class="mi">2</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">severity_benefit</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">deviation_cost</span></div>
 
@@ -598,8 +504,6 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="../index.html">Module code</a><ul>
-  <li><a href="../abm_project.html">abm_project</a><ul>
-  </ul></li>
   </ul></li>
   </ul></li>
 </ul>
