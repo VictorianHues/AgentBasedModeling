@@ -9,13 +9,12 @@ from abm_project.batch_run_tools import (
     attribute_variance_over_time,
     plot_mean_with_variability,
     run_parameter_batch,
-    spatial_clustering_over_time,
+    spatial_clustering_score,
 )
 from abm_project.oop_model import BaseModel
 from abm_project.plotting import (
     plot_list_over_time,
 )
-
 
 def run_model_output(radius, memory_count, peer_pressure_learning_rate, rationality):
     """Run the agent-based model simulation with given parameters."""
@@ -183,4 +182,4 @@ def run_single_parameter_set():
 
 if __name__ == "__main__":
     run_full_sobol()
-    run_single_parameter_set()
+    #run_single_parameter_set()
