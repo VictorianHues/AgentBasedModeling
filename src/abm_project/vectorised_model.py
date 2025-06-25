@@ -51,7 +51,7 @@ class VectorisedModel:
     DEFAULT_HEIGHT = BaseModel.DEFAULT_HEIGHT
     DEFAULT_MEMORY_COUNT = BaseModel.DEFAULT_MEMORY_COUNT
     DEFAULT_MAX_STORAGE = 1000
-    DEFAULT_SIMMER_TIME = 0
+    DEFAULT_SIMMER_TIME = 1
     DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"  # "logistic", None
     DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"  # None
     DEFAULT_RADIUS_OPTION = ("single",)  # "all"
@@ -224,6 +224,7 @@ class VectorisedModel:
         self.time += 1
         self.update_env()
         self.simmer()
+        self.adapt(self.environment[self.time - 1])
         self.s[self.time] = self.curr_s.copy()
 
     def update_env(self):
@@ -250,7 +251,6 @@ class VectorisedModel:
         """
         for _ in range(self.simmer_time):
             self.decide()
-            self.adapt(self.environment[self.time - 1])
 
     def decide(self):
         """Select a new action for each agent.
