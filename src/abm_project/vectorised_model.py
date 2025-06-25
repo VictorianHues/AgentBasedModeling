@@ -78,6 +78,7 @@ class VectorisedModel:
         pessimism_level: float = 1,
         b_1: npt.NDArray[np.float64] | None = None,
         b_2: npt.NDArray[np.float64] | None = None,
+        gamma_s: float = 0.001,
     ):
         """Construct new vectorised model.
 
@@ -106,6 +107,7 @@ class VectorisedModel:
                 pessimism.
             b_1: Initial weight for the first attribute (e.g., environmental concern).
             b_2: Initial weight for the second attribute (e.g., social norms).
+            gamma_s: Rate at which agents change their action preferences.
         """
         self.time = 0
         self.num_agents = num_agents
@@ -136,8 +138,7 @@ class VectorisedModel:
             self.b[1] = self.rng.random(self.num_agents)
             self.b = self.b / self.b.sum(axis=0, keepdims=True)
 
-        # self.b = self.rng.random((self.N_WEIGHTS, self.num_agents))
-        # self.b = self.b / self.b.sum(axis=0, keepdims=True)  # Normalise
+        self.gamma_s = gamma_s
 
         # Set strategy change params
         # alpha: rate of increasing support when support is low
@@ -289,7 +290,7 @@ class VectorisedModel:
             self.alpha * logistic * (4 - self.curr_s)
             - self.beta * (4 - logistic) * self.curr_s
         )
-        self.curr_s += 0.001 * ds_dt
+        self.curr_s += self.gamma_s * ds_dt
 
     def pred_neighb_action(self) -> npt.NDArray[np.float64]:
         """Predict the average action of peers based on their recent actions.
