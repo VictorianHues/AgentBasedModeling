@@ -9,7 +9,7 @@ from abm_project.batch_run_tools import (
     attribute_variance_over_time,
     plot_mean_with_variability,
     run_parameter_batch,
-    spatial_clustering_score,
+    spatial_clustering_over_time,
 )
 from abm_project.oop_model import BaseModel
 from abm_project.plotting import (
