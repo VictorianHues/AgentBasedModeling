@@ -288,7 +288,7 @@ class VectorisedModel:
         logistic = 4 * n * (1 - n)  # Scale derivative so it is zero at the boundaries
         ds_dt = (
             self.alpha * logistic * (4 - self.curr_s)
-            - self.beta * (4 - logistic) * self.curr_s
+            - self.beta * (1 - logistic) * self.curr_s
         )
         self.curr_s += self.gamma_s * ds_dt
 
