@@ -13,10 +13,6 @@ def compute_s_from_p(p: float, b: float, c: float) -> float:
     return (1 / b) * (2 * (b + c) - 4 * c * p - (1 / 2) * np.log((1 - p) / p))
 
 
-# def compute_s_from_m(m: float, rationality: float, b: float, c: float) -> float:
-#    return (1 / (rationality * b)) * np.arctanh(m) + 2 * (1 - (c / b) * m)
-
-
 def f_dn_dt(recovery: float, pollution: float, rate: float = 0.01):
     """Construct parameterised mean-field dn/dt derivative function.
 
@@ -59,19 +55,6 @@ def f_ds_dt(alpha: float, beta: float, rate: float = 0.001):
         return rate * (alpha * sigma(n) * (4 - s) - beta * (1 - sigma(n)) * s)
 
     return derivative
-
-
-# def f_dp_dt(b: float, c: float, alpha: float, beta: float, rate: float = 0.001):
-#    s_prime = f_ds_dt(alpha, beta, rate)
-#
-#    def derivative(p: float, n: float) -> float:
-#        s = compute_s_from_p(p, b, c)
-#        ds_dt = s_prime(n, s)
-#        dp_ds = (2 * b * p * (1 - p)) / (1 - 8 * c * p * (1 - p))
-#        dp_dt = dp_ds * ds_dt
-#        return dp_dt
-#
-#    return derivative
 
 
 def f_dm_dt(
@@ -394,87 +377,6 @@ def fixedpoint_mean_action(
             fp_middle = middle_root_res.root
 
     return FixedpointResult(lower=fp_lower, middle=fp_middle, upper=fp_upper)
-
-
-# def solve_for_fixedpoint_abar(s: float, c: float, ignore_warnings: bool = False):
-#    r"""Identify fixed-point values of :math:`\bar{a}` for given :math:`S_c`."""
-#
-#    def f(abar):
-#        return np.tanh((1 - c) * (s - 2) + 2 * c * abar) - abar
-#
-#    def fprime(abar):
-#        t = np.tanh((1 - c) * (s - 2) + 2 * c * abar)
-#        return 2 * c * (1 - t**2) - 1
-#
-#    roots = []
-#    lower_root_res = root_scalar(f, x0=-1.0, fprime=fprime)
-#    if not lower_root_res.converged and not ignore_warnings:
-#        print(f"Warning: Lower root-finding didn't converge: {s=}, {c=}")
-#    if 0 <= lower_root_res.root <= 1.0:
-#        return [lower_root_res.root]
-#    elif -1.0 <= lower_root_res.root <= 1.0:
-#        # Make sure root is stable. Below: -ve, above: +ve
-#        below = f(lower_root_res.root - 0.01)
-#        above = f(lower_root_res.root + 0.01)
-#        if below > 0 and above < 0:
-#            roots.append(lower_root_res.root)
-#
-#    upper_root_res = root_scalar(f, x0=1.0, fprime=fprime)
-#    if not upper_root_res.converged and not ignore_warnings:
-#        print(f"Warning: Upper root-finding didn't converge: {s=}, {c=}")
-#    if -1.0 <= upper_root_res.root <= 0.0:
-#        # No upper root, return solution for lower root
-#        return roots
-#    elif -1.0 <= upper_root_res.root <= 1.0:
-#        # Make sure its stable
-#        below = f(upper_root_res.root - 0.01)
-#        above = f(upper_root_res.root + 0.01)
-#        if below > 0 and above < 0:
-#            roots.append(upper_root_res.root)
-#    return roots
-
-
-# def solve_for_fixedpoint_pc(
-#    s: float, b0: float, b1: float, ignore_warnings: bool = False
-# ):
-#    """Identify fixed-point values of :math:`P_c` for given :math:`S_c`."""
-#
-#    def fexp(pc: float):
-#        return np.exp(-2 * (b0 * s + 4 * b1 * pc - 2 * b1 - 2 * b0))
-#
-#    def f(pc):
-#        return 1 / (1 + fexp(pc)) - pc
-#
-#    def fprime(pc):
-#        exp_part = fexp(pc)
-#        return (8 * b1 * exp_part) / (1 + exp_part) ** 2 - 1
-#
-#    roots = []
-#    lower_root_res = root_scalar(f, x0=0.0, fprime=fprime)
-#    if not lower_root_res.converged and not ignore_warnings:
-#        print(f"Warning: Lower root-finding didn't converge: {s=}, {b0=}, {b1=}")
-#    if 0.5 <= lower_root_res.root <= 1.0:
-#        return [lower_root_res.root]
-#    elif 0.0 <= lower_root_res.root <= 1.0:
-#        # Make sure root is stable. Below: -ve, above: +ve
-#        below = f(lower_root_res.root - 0.01)
-#        above = f(lower_root_res.root + 0.01)
-#        if below > 0 and above < 0:
-#            roots.append(lower_root_res.root)
-#
-#    upper_root_res = root_scalar(f, x0=1.0, fprime=fprime)
-#    if not upper_root_res.converged and not ignore_warnings:
-#        print(f"Warning: Upper root-finding didn't converge: {s=}, {b0=}, {b1=}")
-#    if 0.0 <= upper_root_res.root <= 0.5:
-#        # No upper root, return solution for lower root
-#        return roots
-#    elif 0.0 <= upper_root_res.root <= 1.0:
-#        # Make sure its stable
-#        below = f(upper_root_res.root - 0.01)
-#        above = f(upper_root_res.root + 0.01)
-#        if below > 0 and above < 0:
-#            roots.append(upper_root_res.root)
-#    return roots
 
 
 def solve(
