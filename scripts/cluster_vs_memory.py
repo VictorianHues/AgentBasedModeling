@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -104,10 +105,13 @@ def plot_cluster_across_memory(critical_times, savedir):
 def plot_ncluster_given_memory(model, option, savedir):
     savedir = savedir or Path(".")
 
-    Nc, C1 = cluster_time_series(model=model, option=option)
+    # Nc, C1 = cluster_time_series(model=model, option=option)
+    nc, c1 = cluster_time_series(model=model, option=option)
+    print(f"Number of clusters at each time step: {nc}")
+    print(f"Largest cluster fraction at each time step: {c1 / model.num_agents}")
 
     plt.figure(figsize=(10, 6))
-    plt.plot(Nc, label="Number of Clusters")
+    plt.plot(nc, label="Number of Clusters")
     plt.xlabel("Time Steps")
     plt.ylabel("Number of Clusters")
     plt.title("Number of Clusters Over Time")
@@ -116,11 +120,16 @@ def plot_ncluster_given_memory(model, option, savedir):
 
     if savedir:
         plt.savefig(
-            savedir / f"n_clusters_given_{model.memory_count}_{option}_.png",
+            savedir
+            / f"n_clusters_given_{model.memory_count}_{option}_\
+            {model.severity_benefit_option}_{model.rationality}.png",
             dpi=300,
             bbox_inches="tight",
         )
-        print(f"Plot saved as 'n_clusters_given_{model.memory_count}_{option}_.png'")
+        print(
+            f"Plot saved as 'n_clusters_given_{model.memory_count}_\
+            {option}_{model.severity_benefit_option}_{model.rationality}.png'"
+        )
     plt.show()
 
 
@@ -156,9 +165,39 @@ if __name__ == "__main__":
     option = "environment"
     # critical_times, cluster_n, largest_cluster, _ = test_cluster_across_memory(option)
     # plot_cluster_across_memory(critical_times,
-    #                            savedir=Path("cluster_analysis_results"))
+    #    savedir=Path("plots/cluster_analysis_results"))
     # for m in cluster_n.keys():
     #     print(cluster_n[m])
 
     # plot_ncluster_across_memory(cluster_n, savedir=Path("cluster_analysis_results"))
+    num_agents = 2500
+    width = 50
+    height = 50
+    num_steps = 500
+    memory_count = 50
+    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    rng = None
+
+    start = time.time()
+    model = VectorisedModel(
+        num_agents=num_agents,
+        width=width,
+        height=height,
+        memory_count=memory_count,
+        rng=rng,
+        env_update_fn=env_update_fn,
+        rationality=10,
+        simmer_time=1,
+        neighb_prediction_option="linear",
+        severity_benefit_option="adaptive",
+        max_storage=num_steps,
+    )
+    model.run(num_steps)
+    end = time.time()
+
+    print(f"Simulation completed in {end - start:.2f} seconds.")
+
+    plot_ncluster_given_memory(
+        model=model, option=option, savedir=Path("cluster_analysis_results")
+    )
     print("Cluster analysis completed and plot generated.")

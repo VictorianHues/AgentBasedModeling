@@ -530,7 +530,7 @@ def main():
     plt.tight_layout()
     ani.save(results_dir / "example_actions.mp4", dpi=150)
 
-    plot_cluster_time_series(savedir=results_dir, model=model)
+    # plot_cluster_time_series(savedir=results_dir, model=model)
 
 
 if __name__ == "__main__":

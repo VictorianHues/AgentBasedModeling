@@ -160,3 +160,56 @@ def cluster_time_series(model, option: str = "action"):
         c_max[t] = max(sizes.values(), default=0)
 
     return nc, c_max
+
+
+def cluster_given_timestep(model, option: str = "action", timestep: int = 0):
+    """Run Hoshen-Kopelman on a specific timestep of the action or environment history.
+
+    Args:
+        model : BaseModel
+            The model instance containing the action history.
+        option : str, optional
+            The option to choose between "action" or "environment" history.
+        timestep : int, optional
+            The specific timestep to analyze.
+
+    Returns:
+        labels : np.ndarray or scipy.sparse.coo_matrix
+            Labeled clusters at the specified timestep.
+        n_clusters : int
+            Number of clusters detected at the specified timestep.
+        sizes : dict[int, int]
+            Mapping from each cluster label to its size
+            (number of sites in that cluster).
+    """
+    if timestep > model.num_steps:
+        raise ValueError(f"Timestep {timestep} exceeds {model.num_steps}")
+
+    environment_threshold = 0.6  # can change this later
+
+    if option == "action":
+        history = model.action[: model.time + 1]
+        # print("Action History:", history.shape)
+    elif option == "environment":
+        history = model.environment[: model.time + 1]
+        # print("Environment History:", history.shape)
+    else:
+        raise ValueError(f"Unknown option: {option}")
+
+    history = history.reshape((-1, model.height, model.width))
+    # T = history.shape[0]
+
+    lattice = history[timestep]
+
+    if option == "action":
+        lattice = np.where(lattice == -1, 0, lattice)
+    elif option == "environment":
+        # Using 0.6 as threshold for "good" environment
+        lattice = np.where(lattice > environment_threshold, 1, 0)
+
+    # if issparse(lattice):
+    #     lattice = lattice.toarray()
+
+    labels, n_clusters, sizes = hoshen_kopelman(lattice)
+
+    return n_clusters, sizes
