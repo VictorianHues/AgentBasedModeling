@@ -1,8 +1,6 @@
 """Implementation of the Hoshen-Kopelman algorithm for cluster analysis."""
 
 import numpy as np
-
-# from numpy.typing import npt
 from scipy.sparse import coo_matrix, issparse
 
 

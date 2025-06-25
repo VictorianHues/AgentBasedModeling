@@ -10,7 +10,7 @@ from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
 
-def test_cluster_across_memory():
+def test_cluster_across_memory(option):
     # Parameters for the simulation
     num_agents = 2500
     width = 50
@@ -22,7 +22,7 @@ def test_cluster_across_memory():
     simmer_time = 1
     neighb_prediction_option = "linear"
     # severity_benefit_option = None
-    memory_values = [x for x in range(50, num_steps + 1, num_steps // 10)]
+    memory_values = [x for x in range(5, 101, 5)]
 
     # Analysis parameters
     replicates = 20
@@ -57,7 +57,7 @@ def test_cluster_across_memory():
             model.run(num_steps)
             # end = time.time()
 
-            Nc, C1 = cluster_time_series(model=model, option="action")
+            Nc, C1 = cluster_time_series(model=model, option=option)
 
             # 3) Detect transition time t_c via change‐point on Nc(t)
             algo = Pelt(model="rbf", min_size=5).fit(Nc)
@@ -72,6 +72,7 @@ def test_cluster_across_memory():
     return critical_times, cluster_n, largest_cluster, memory_values
 
 
+# TODO: Fix it. Doesn't work yet
 def plot_cluster_across_memory(critical_times, savedir):
     savedir = savedir or Path(".")
 
@@ -91,8 +92,35 @@ def plot_cluster_across_memory(critical_times, savedir):
     plt.grid()
 
     if savedir:
-        plt.savefig(savedir / "cluster_across_memory.png", dpi=300, bbox_inches="tight")
-        print("Plot saved as 'cluster_across_memory.png'")
+        plt.savefig(
+            savedir / f"cluster_across_memory_{option}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        print(f"Plot saved as 'cluster_across_memory_{option}.png'")
+    plt.show()
+
+
+def plot_ncluster_given_memory(model, option, savedir):
+    savedir = savedir or Path(".")
+
+    Nc, C1 = cluster_time_series(model=model, option=option)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(Nc, label="Number of Clusters")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Number of Clusters")
+    plt.title("Number of Clusters Over Time")
+    plt.legend()
+    plt.grid()
+
+    if savedir:
+        plt.savefig(
+            savedir / f"n_clusters_given_{model.memory_count}_{option}_.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        print(f"Plot saved as 'n_clusters_given_{model.memory_count}_{option}_.png'")
     plt.show()
 
 
@@ -111,14 +139,26 @@ def plot_ncluster_across_memory(cluster_n, savedir):
     ax.grid()
     if savedir:
         fig.savefig(
-            savedir / "n_clusters_across_memory.png", dpi=300, bbox_inches="tight"
+            savedir / f"n_clusters_across_memory_{option}.png",
+            dpi=300,
+            bbox_inches="tight",
         )
         print("Plot saved as 'n_clusters_across_memory.png'")
     plt.show()
 
 
+# def main():
+# Set model parameters
+
+
 if __name__ == "__main__":
-    critical_times, cluster_n, largest_cluster, _ = test_cluster_across_memory()
-    plot_cluster_across_memory(critical_times, savedir=Path("cluster_analysis_results"))
-    plot_ncluster_across_memory(cluster_n, savedir=Path("cluster_analysis_results"))
+    # option  = "action"
+    option = "environment"
+    # critical_times, cluster_n, largest_cluster, _ = test_cluster_across_memory(option)
+    # plot_cluster_across_memory(critical_times,
+    #                            savedir=Path("cluster_analysis_results"))
+    # for m in cluster_n.keys():
+    #     print(cluster_n[m])
+
+    # plot_ncluster_across_memory(cluster_n, savedir=Path("cluster_analysis_results"))
     print("Cluster analysis completed and plot generated.")
