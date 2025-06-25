@@ -8,7 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from matplotlib.axes import Axes
+from matplotlib.colors import ListedColormap
 from tqdm import tqdm
+
+from . import mean_field as mf
 
 
 def get_plot_directory(file_name):
@@ -301,3 +304,137 @@ def plot_support_derivative(a: float = 1, b: float = 1, savedir: Path | None = N
     fig.supylabel(r"$\frac{ds}{dn}$", rotation=0)
     fig.savefig(savedir, dpi=300, bbox_inches="tight")
     plt.show()
+
+
+def plot_phase_portrait(
+    c: float,
+    recovery: float,
+    pollution: float,
+    rationality: float = 1,
+    gamma_n: float = 0.01,
+    gamma_s: float = 0.001,
+    equilibria: bool = True,
+    dn_dt_nullcline: bool = True,
+    dm_dt_nullcline: bool = False,
+    critical_points: bool = True,
+    ax: Axes | None = None,
+):
+    """Draw a phase portrait for a mean-field model.
+
+    Args:
+        c: Utility function weight for the 'peer pressure' term.
+        recovery: How quickly the environment recovers under positive action.
+        pollution: How quickly the environment degrades due to negative action.
+        rationality: Controls how rational agents are. Larger is more rational
+            (deterministic). 0 is random.
+        gamma_n: Scale coefficient for dn/dt, controls the general rate
+            of change in the (average) environment.
+        gamma_s: Scale coefficient for ds/dt, controls the general rate
+            of change in preference for cooperation.
+        equilibria: Display equilibria as red circles.
+        dn_dt_nullcline: Show dn/dt = 0 as a dashed grey line.
+        dm_dt_nullcline: Show dm/dt = 0 as orange (stable) and green (unstable)
+            circles.
+        critical_points: Show critical points where ds/dt diverges (currently
+            unimplemented).
+        ax: Optional matplotlib Axes object to draw plot onto. If unspecified, uses
+            the current artist.
+    """
+    b = 1 - c
+    ALPHA = 1
+    BETA = 1
+
+    # Since P(C) is probabilistic, m is bounded in open interval (-1, 1)
+    min_m = mf.fixedpoint_mean_action(0, c, rationality).lower + 1e-3
+    max_m = mf.fixedpoint_mean_action(4, c, rationality).upper - 1e-3
+
+    # Axis samples
+    ns = np.linspace(0, 1, 100)
+    ms = np.linspace(min_m, max_m, 100)
+
+    # Construct derivative functions
+    m_prime = mf.f_dm_dt(rationality, b, c, ALPHA, BETA, rate=gamma_s)
+    n_prime = mf.f_dn_dt(recovery, pollution, rate=gamma_n)
+
+    # Calculate derivatives for mean action
+    N, M = np.meshgrid(ns, ms)
+    DM_DT = m_prime(M, N)
+
+    # Calculate derivatives for environment
+    pc = (ms + 1) / 2
+    N, P = np.meshgrid(ns, pc)
+    DN_DT = n_prime(N, P)
+
+    # Plotting
+    # =========
+    if not ax:
+        ax = plt.gca()
+
+    # 1. Plot phase portait
+    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5)
+
+    # 2. Draw nullclines
+    # m' = 0 when s' = 0
+    if dm_dt_nullcline:
+        sigma_n = 4 * ns * (1 - ns)
+        s = 4 * ALPHA * sigma_n / (BETA * (1 - sigma_n) + ALPHA * sigma_n)
+        da_dt_nullcline_ns = []
+        da_dt_nullcline_ms = []
+        for n, _s in zip(ns, s, strict=True):
+            roots = mf.fixedpoint_mean_action(_s, c, rationality)
+            for m in roots.stable():
+                da_dt_nullcline_ns.append(n)
+                da_dt_nullcline_ms.append(m)
+        ax.scatter(da_dt_nullcline_ns, da_dt_nullcline_ms, s=10, color="orange")
+
+        da_dt_nullcline_ns = []
+        da_dt_nullcline_ms = []
+        for n, _s in zip(ns, s, strict=True):
+            roots = mf.fixedpoint_mean_action(_s, c, rationality)
+            for m in roots.unstable():
+                da_dt_nullcline_ns.append(n)
+                da_dt_nullcline_ms.append(m)
+        ax.scatter(da_dt_nullcline_ns, da_dt_nullcline_ms, s=10, color="green")
+
+    # n' = 0
+    if dn_dt_nullcline:
+        stationary_ns = (recovery * (1 + ms)) / (
+            pollution * (1 - ms) + recovery * (1 + ms)
+        )
+        ax.plot(
+            stationary_ns,
+            ms,
+            linestyle="dashed",
+            color="gray",
+            linewidth=0.7,
+            label=r"$\frac{dn}{dt} = 0$",
+        )
+
+    # 3. Plot equilibrium points
+    if equilibria:
+        eq_n, eq_m = mf.solve_for_equilibria(
+            b=b, c=c, rationality=rationality, recovery=recovery, pollution=pollution
+        )
+
+        ax.scatter(eq_n, eq_m, color="red")
+
+    # 4. Draw locations where dm/dt diverges (critical points)
+    # !! Currently commented because unfinished derivation.
+    if critical_points:
+        raise NotImplementedError("Plotting ds/dt = 0 is not yet implemented.")
+    #    # Check if critical points exist
+    #    if c >= 1 / (2 * rationality):
+    #        t = np.arccosh(np.sqrt(2 * rationality * c))
+    #        mc = [
+    #            1 / (2 * c) * ((1 - c) * (2 - s) - t),
+    #            1 / (2 * c) * ((1 - c) * (2 - s) + t),
+    #        ]
+    #        ax.hlines(
+    #            y=mc,
+    #            xmin=0,
+    #            xmax=1,
+    #            linewidth=0.7,
+    #            linestyle="-.",
+    #            color="gray",
+    #            label=r"$\frac{dm}{dt} \to \infty$",
+    #        )
