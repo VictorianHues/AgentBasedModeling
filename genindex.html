@@ -39,6 +39,7 @@
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
@@ -79,6 +80,13 @@
 </li>
       </ul></li>
       <li>
+    abm_project.mean_field
+
+      <ul>
+        <li><a href="api.html#module-abm_project.mean_field">module</a>
+</li>
+      </ul></li>
+      <li>
     abm_project.oop_model
 
       <ul>
@@ -92,10 +100,10 @@
         <li><a href="api.html#module-abm_project.vectorised_model">module</a>
 </li>
       </ul></li>
-      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.action">action (abm_project.vectorised_model.VectorisedModel attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.action">action (abm_project.vectorised_model.VectorisedModel attribute)</a>
+</li>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.action_probabilities">action_probabilities() (abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
       <li><a href="api.html#abm_project.agent.Agent.ACTIONS">ACTIONS (abm_project.agent.Agent attribute)</a>
@@ -142,13 +150,15 @@
 </li>
       <li><a href="api.html#abm_project.agent.Agent.calculate_action_utility">calculate_action_utility() (abm_project.agent.Agent method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.agent.Agent.calculate_deviation_cost">calculate_deviation_cost() (abm_project.agent.Agent method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.agent.Agent.calculate_perceived_severity">calculate_perceived_severity() (abm_project.agent.Agent method)</a>
 </li>
       <li><a href="api.html#abm_project.kraan.KraanModel.choose">choose() (abm_project.kraan.KraanModel method)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.compute_s_from_p">compute_s_from_p() (in module abm_project.mean_field)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -221,6 +231,24 @@
   </ul></td>
 </tr></table>
 
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.mean_field.f_dm_dt">f_dm_dt() (in module abm_project.mean_field)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.f_dn_dt">f_dn_dt() (in module abm_project.mean_field)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.mean_field.f_ds_dt">f_ds_dt() (in module abm_project.mean_field)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.fixedpoint_mean_action">fixedpoint_mean_action() (in module abm_project.mean_field)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.FixedpointResult">FixedpointResult (class in abm_project.mean_field)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -282,6 +310,8 @@
 </li>
         <li><a href="api.html#module-abm_project.kraan">abm_project.kraan</a>
 </li>
+        <li><a href="api.html#module-abm_project.mean_field">abm_project.mean_field</a>
+</li>
         <li><a href="api.html#module-abm_project.oop_model">abm_project.oop_model</a>
 </li>
         <li><a href="api.html#module-abm_project.vectorised_model">abm_project.vectorised_model</a>
@@ -325,14 +355,16 @@
 </li>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.reset">reset() (abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.oop_model.BaseModel.rng">rng (abm_project.oop_model.BaseModel attribute)</a>
 
       <ul>
         <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.rng">(abm_project.vectorised_model.VectorisedModel attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.mean_field.FixedpointResult.roots">roots() (abm_project.mean_field.FixedpointResult method)</a>
+</li>
       <li><a href="api.html#abm_project.kraan.KraanModel.run">run() (abm_project.kraan.KraanModel method)</a>
 
       <ul>
@@ -357,9 +389,15 @@
         <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer">(abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer_time">simmer_time (abm_project.vectorised_model.VectorisedModel attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer_time">simmer_time (abm_project.vectorised_model.VectorisedModel attribute)</a>
+      <li><a href="api.html#abm_project.mean_field.solve">solve() (in module abm_project.mean_field)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.solve_for_equilibria">solve_for_equilibria() (in module abm_project.mean_field)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.FixedpointResult.stable">stable() (abm_project.mean_field.FixedpointResult method)</a>
 </li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.step">step() (abm_project.oop_model.BaseModel method)</a>
 
@@ -387,12 +425,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.kraan.KraanModel.u_active">u_active (abm_project.kraan.KraanModel property)</a>
 </li>
-      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.update_env">update_env() (abm_project.vectorised_model.VectorisedModel method)</a>
+      <li><a href="api.html#abm_project.mean_field.FixedpointResult.unstable">unstable() (abm_project.mean_field.FixedpointResult method)</a>
 </li>
-      <li><a href="api.html#abm_project.agent.Agent.update_env_perception_coeff">update_env_perception_coeff() (abm_project.agent.Agent method)</a>
+      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.update_env">update_env() (abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.agent.Agent.update_env_perception_coeff">update_env_perception_coeff() (abm_project.agent.Agent method)</a>
+</li>
       <li><a href="api.html#abm_project.agent.Agent.update_environment_status">update_environment_status() (abm_project.agent.Agent method)</a>
 </li>
       <li><a href="api.html#abm_project.agent.Agent.update_past_actions">update_past_actions() (abm_project.agent.Agent method)</a>
