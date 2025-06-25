@@ -151,7 +151,7 @@ class VectorisedModel:
         self.pessimism[pessimistic] = pessimism_level
 
         # Initialise agents and environment
-        self.initialise(zero=False)
+        self.initialise(zero=True)
         self.initial_action = self.action[: self.memory_count].copy()
         self.initial_environment = self.environment[: self.memory_count].copy()
 

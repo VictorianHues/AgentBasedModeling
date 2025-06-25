@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from matplotlib.axes import Axes
-from matplotlib.colors import ListedColormap
 from tqdm import tqdm
 
 from . import mean_field as mf
@@ -316,7 +315,7 @@ def plot_phase_portrait(
     equilibria: bool = True,
     dn_dt_nullcline: bool = True,
     dm_dt_nullcline: bool = False,
-    critical_points: bool = True,
+    critical_points: bool = False,
     ax: Axes | None = None,
 ):
     """Draw a phase portrait for a mean-field model.

@@ -10,7 +10,8 @@ from abm_project.mean_field import (
     solve_for_equilibria,
 )
 from abm_project.plotting import plot_phase_portrait
-from abm_project.vectorised_model import VectorisedModel, piecewise_exponential_update
+from abm_project.utils import piecewise_exponential_update
+from abm_project.vectorised_model import VectorisedModel
 
 
 def plot_steady_state_expected_action_bifurcation():
