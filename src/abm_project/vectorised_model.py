@@ -142,12 +142,8 @@ class VectorisedModel:
         # Set strategy change params
         # alpha: rate of increasing support when support is low
         # beta: rate of decreasing support when support is high
-        # w: Scale factor to ensure consistent scale with Kraan,
-        #       derived by solving for w which makes steady-state
-        #       support == 4 when n == 0.5
         self.alpha = 1
         self.beta = 1
-        self.w = (self.alpha * 4) / ((self.alpha - self.beta) * 4 + self.beta)
 
         pessimistic = self.rng.random(self.num_agents) < prop_pessimistic
         self.pessimism = np.ones(self.num_agents)
@@ -288,9 +284,7 @@ class VectorisedModel:
             n: Current state of the environment, with shape (agent,)
         """
         n = n**self.pessimism
-        logistic = (
-            4 * self.w * n * (1 - n)
-        )  # Scale derivative so it is zero at the boundaries
+        logistic = 4 * n * (1 - n)  # Scale derivative so it is zero at the boundaries
         ds_dt = (
             self.alpha * logistic * (4 - self.curr_s)
             - self.beta * (4 - logistic) * self.curr_s
