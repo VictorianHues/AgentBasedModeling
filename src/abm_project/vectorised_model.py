@@ -168,7 +168,7 @@ class VectorisedModel:
         Args:
             zero: Initialise environment as healthy and agents as cooperating.
         """
-        self.action = np.zeros(
+        self.action = -np.ones(
             (self.max_storage, self.num_agents),
             dtype=np.int64,
         )
