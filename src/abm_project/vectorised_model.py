@@ -52,8 +52,9 @@ class VectorisedModel:
     DEFAULT_MEMORY_COUNT = BaseModel.DEFAULT_MEMORY_COUNT
     DEFAULT_MAX_STORAGE = 1000
     DEFAULT_SIMMER_TIME = 0
-    DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"
-    DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"
+    DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"  # "logistic", None
+    DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"  # None
+    DEFAULT_RADIUS_OPTION = ("single",)  # "all"
 
     ACTIONS = [-1, 1]
     N_WEIGHTS = 2
@@ -72,8 +73,11 @@ class VectorisedModel:
         simmer_time: int = DEFAULT_SIMMER_TIME,
         neighb_prediction_option: str = DEFAULT_NEIGHB_PREDICTION_OPTION,
         severity_benefit_option: str = DEFAULT_SEVERITY_BENEFIT_OPTION,
+        radius_option: str = DEFAULT_RADIUS_OPTION,
         prop_pessimistic: float = 0,
         pessimism_level: float = 1,
+        b_1: npt.NDArray[np.float64] | None = None,
+        b_2: npt.NDArray[np.float64] | None = None,
     ):
         """Construct new vectorised model.
 
@@ -94,10 +98,14 @@ class VectorisedModel:
             neighb_prediction_option: Method for predicting neighbors' actions.
             severity_benefit_option: Method for calculating the benefit of
                 cooperating in a healthy environment.
+            radius_option: Method for determining the radius of neighbors to consider
+                when calculating neighbors' actions. Options are "single" (default) for
             prop_pessimistic: Proportion of agents to set as pessimistic.
             pessimism_level: How much pessimistic agents overestimate environmental
                 degradation. Higher is more pessimistic. The default (1) is no
                 pessimism.
+            b_1: Initial weight for the first attribute (e.g., environmental concern).
+            b_2: Initial weight for the second attribute (e.g., social norms).
         """
         self.time = 0
         self.num_agents = num_agents
@@ -110,12 +118,26 @@ class VectorisedModel:
         self.simmer_time = simmer_time
         self.neighb_prediction_option = neighb_prediction_option
         self.severity_benefit_option = severity_benefit_option
+        self.radius_option = radius_option
 
         # Set up agents' connections and attributes
         self.adj = lattice2d(width, height, periodic=True, diagonals=moore)
         self.rationality = rationality
-        self.b = self.rng.random((self.N_WEIGHTS, self.num_agents))
-        self.b = self.b / self.b.sum(axis=0, keepdims=True)  # Normalise
+        self.b = np.zeros(
+            (self.N_WEIGHTS, self.num_agents),
+            dtype=np.float64,
+        )
+        if b_1 is not None and b_2 is not None:
+            self.b[0] = b_1
+            self.b[1] = b_2
+        else:
+            # Initialise weights randomly, normalised to sum to 1
+            self.b[0] = self.rng.random(self.num_agents)
+            self.b[1] = self.rng.random(self.num_agents)
+            self.b = self.b / self.b.sum(axis=0, keepdims=True)
+
+        # self.b = self.rng.random((self.N_WEIGHTS, self.num_agents))
+        # self.b = self.b / self.b.sum(axis=0, keepdims=True)  # Normalise
 
         # Set strategy change params
         # alpha: rate of increasing support when support is low
@@ -388,9 +410,17 @@ class VectorisedModel:
             The mean local action for each agent, reflecting the perceived social norm
             for each agent at the current timestep. Shape is (agent,).
         """
-        if memory == -1:
-            memory = self.max_storage
-        start = max(0, self.time - memory)
-        stop = self.time
-        mean_per_timestep = self.adj @ self.action[start:stop].T
-        return mean_per_timestep.mean(axis=1)
+        if self.radius_option == "single":
+            if memory == -1:
+                memory = self.max_storage
+            start = max(0, self.time - memory)
+            stop = self.time
+            mean_per_timestep = self.adj @ self.action[start:stop].T
+            return mean_per_timestep.mean(axis=1)
+        elif self.radius_option == "all":
+            if memory == -1:
+                memory = self.max_storage
+            start = max(0, self.time - memory)
+            stop = self.time
+            mean_per_timestep = self.action[start:stop].mean(axis=1)
+            return np.full(self.num_agents, mean_per_timestep.mean())
