@@ -2,7 +2,6 @@
 
 This class represents an agent that interacts with its environment and peers.
 It includes methods for decision-making based on peer actions and environmental status.
-
 """
 
 import numpy as np
@@ -227,17 +226,17 @@ class Agent:
         where delta is calculated based on the action decision
         and the current environment status.
 
-        Sigmoid: Rate of change is higher when the environment status is around 0.5.
+        - Sigmoid: Rate of change is higher when the environment status is around 0.5.
             Lowest delta is at 1, highest delta is at 0.0.
-        Sigmoid Asymmetric: Delta is asymmetric based on the action decision.
+        - Sigmoid Asymmetric: Delta is asymmetric based on the action decision.
             Positive delta is lower when the environment status is low,
             and negative delta is higher when the environment status is low.
-        Exponential: Rate of change decreases as the environment status increases.
+        - Exponential: Rate of change decreases as the environment status increases.
             Lowest delta is at 1, highest delta is at 0.0.
-        Linear: Delta is a constant value based on the action decision.
-        Bell: Lowest delta at 0 and 1, highest delta at 0.5.
-        Bimodal: Highest delta at two peaks, around 0.25 and 0.75,
-        and lowest delta at 0, 0.5, and 1.
+        - Linear: Delta is a constant value based on the action decision.
+        - Bell: Lowest delta at 0 and 1, highest delta at 0.5.
+        - Bimodal: Highest delta at two peaks, around 0.25 and 0.75,
+            and lowest delta at 0, 0.5, and 1.
 
         Args:
             action_decision (int): The action taken by the agent, either -1 or 1.
