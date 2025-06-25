@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
+from abm_project.cluster_analysis import cluster_time_series
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
@@ -390,6 +391,35 @@ def plot_environment_for_varying_pessimism(savedir: Path | None = None):
     plt.show()
 
 
+def plot_cluster_time_series(
+    savedir: Path | None = None,
+    model: VectorisedModel | None = None,
+    option: str = "action",
+):
+    savedir = savedir or Path(".")
+
+    nc, c1 = cluster_time_series(model, option=option)
+    print(f"Number of clusters at each time step: {nc}")
+    print(f"Largest cluster fraction at each time step: {c1 / model.num_agents}")
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(6, 4), constrained_layout=True)
+    ax.plot(nc, label=f"Number of clusters {option}")
+    ax.plot(c1 / (model.num_agents), label="Largest cluster")
+    ax.set_xlabel("Time step")
+    ax.set_ylabel("Number of clusters")
+    ax.set_title("Number of Clusters Over Time")
+    ax.legend()
+
+    fig.savefig(
+        savedir / f"cluster_analysis_{option}_mem_count_{model.memory_count}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    plt.show()
+
+
 def main():
     results_dir = Path("vectorised_model_results")
     results_dir.mkdir(exist_ok=True)
@@ -400,11 +430,11 @@ def main():
     # plot_environment_for_varying_pessimism(savedir=results_dir)
     # plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
 
-    num_agents = 2500
-    width = 50
-    height = 50
-    num_steps = 1000
-    memory_count = 1
+    num_agents = 25
+    width = 5
+    height = 5
+    num_steps = 100
+    memory_count = 10
     env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
     rng = None
 
@@ -418,7 +448,7 @@ def main():
         env_update_fn=env_update_fn,
         rationality=1.8,
         simmer_time=1,
-        neighb_prediction_option=None,
+        neighb_prediction_option="logistic",
         severity_benefit_option=None,
         max_storage=num_steps,
     )
@@ -479,6 +509,8 @@ def main():
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
     plt.tight_layout()
     ani.save(results_dir / "example_actions.mp4", dpi=150)
+
+    plot_cluster_time_series(savedir=results_dir, model=model)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,9 @@ import scipy
 from .oop_model import BaseModel
 from .utils import lattice2d, linear_update
 
-type EnvUpdateFn = Callable[(npt.NDArray[float], npt.NDArray[int]), npt.NDArray[float]]
+type EnvUpdateFn = Callable[
+    [npt.NDArray[np.float64], npt.NDArray[np.int64]], npt.NDArray[np.float64]
+]
 
 
 class VectorisedModel:

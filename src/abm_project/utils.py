@@ -8,10 +8,14 @@ import numpy as np
 import numpy.typing as npt
 import scipy
 
-type EnvUpdateFn = Callable[(npt.NDArray[float], npt.NDArray[int]), npt.NDArray[float]]
+type EnvUpdateFn = Callable[
+    [npt.NDArray[np.float64], npt.NDArray[np.int64]], npt.NDArray[np.float64]
+]
 
 
-def sigmoid_update(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
+def sigmoid_update(
+    n: npt.NDArray[np.float64], a: npt.NDArray[np.int64]
+) -> npt.NDArray[np.float64]:
     """Update environment according to sigmoid rule.
 
     Args:
@@ -57,7 +61,9 @@ def exponential_update(rate: float):
         Exponential update function.
     """
 
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
+    def inner(
+        n: npt.NDArray[np.float64], a: npt.NDArray[np.int64]
+    ) -> npt.NDArray[np.float64]:
         """Update environment according to exponential rule.
 
         Args:
@@ -90,7 +96,9 @@ def linear_update(rate: float):
         Linear update function.
     """
 
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
+    def inner(
+        n: npt.NDArray[np.float64], a: npt.NDArray[np.int64]
+    ) -> npt.NDArray[np.float64]:
         """Update environment according to linear rule.
 
         Args:
@@ -119,7 +127,9 @@ def piecewise_exponential_update(alpha: float, beta: float, rate: float):
         Piecewise exponential update function.
     """
 
-    def inner(n: npt.NDArray[float], a: npt.NDArray[int]) -> npt.NDArray[float]:
+    def inner(
+        n: npt.NDArray[np.float64], a: npt.NDArray[np.int64]
+    ) -> npt.NDArray[np.float64]:
         """Update environment according to piecewise exponential rule.
 
         Args:
