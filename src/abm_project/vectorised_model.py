@@ -54,7 +54,7 @@ class VectorisedModel:
     DEFAULT_SIMMER_TIME = 1
     DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"  # "logistic", None
     DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"  # None
-    DEFAULT_RADIUS_OPTION = ("single",)  # "all"
+    DEFAULT_RADIUS_OPTION = "single"  # "all"
 
     ACTIONS = [-1, 1]
     N_WEIGHTS = 2
