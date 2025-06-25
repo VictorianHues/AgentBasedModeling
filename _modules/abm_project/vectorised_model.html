@@ -87,8 +87,9 @@
     <span class="n">DEFAULT_MEMORY_COUNT</span> <span class="o">=</span> <span class="n">BaseModel</span><span class="o">.</span><span class="n">DEFAULT_MEMORY_COUNT</span>
     <span class="n">DEFAULT_MAX_STORAGE</span> <span class="o">=</span> <span class="mi">1000</span>
     <span class="n">DEFAULT_SIMMER_TIME</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">DEFAULT_NEIGHB_PREDICTION_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>
-    <span class="n">DEFAULT_SEVERITY_BENEFIT_OPTION</span> <span class="o">=</span> <span class="s2">&quot;adaptive&quot;</span>
+    <span class="n">DEFAULT_NEIGHB_PREDICTION_OPTION</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span>  <span class="c1"># &quot;logistic&quot;, None</span>
+    <span class="n">DEFAULT_SEVERITY_BENEFIT_OPTION</span> <span class="o">=</span> <span class="s2">&quot;adaptive&quot;</span>  <span class="c1"># None</span>
+    <span class="n">DEFAULT_RADIUS_OPTION</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;single&quot;</span><span class="p">,)</span>  <span class="c1"># &quot;all&quot;</span>
 
     <span class="n">ACTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">N_WEIGHTS</span> <span class="o">=</span> <span class="mi">2</span>
@@ -107,8 +108,11 @@
         <span class="n">simmer_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_SIMMER_TIME</span><span class="p">,</span>
         <span class="n">neighb_prediction_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NEIGHB_PREDICTION_OPTION</span><span class="p">,</span>
         <span class="n">severity_benefit_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_SEVERITY_BENEFIT_OPTION</span><span class="p">,</span>
+        <span class="n">radius_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_RADIUS_OPTION</span><span class="p">,</span>
         <span class="n">prop_pessimistic</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">pessimism_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">b_1</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">b_2</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct new vectorised model.</span>
 
@@ -129,10 +133,14 @@
 <span class="sd">            neighb_prediction_option: Method for predicting neighbors&#39; actions.</span>
 <span class="sd">            severity_benefit_option: Method for calculating the benefit of</span>
 <span class="sd">                cooperating in a healthy environment.</span>
+<span class="sd">            radius_option: Method for determining the radius of neighbors to consider</span>
+<span class="sd">                when calculating neighbors&#39; actions. Options are &quot;single&quot; (default) for</span>
 <span class="sd">            prop_pessimistic: Proportion of agents to set as pessimistic.</span>
 <span class="sd">            pessimism_level: How much pessimistic agents overestimate environmental</span>
 <span class="sd">                degradation. Higher is more pessimistic. The default (1) is no</span>
 <span class="sd">                pessimism.</span>
+<span class="sd">            b_1: Initial weight for the first attribute (e.g., environmental concern).</span>
+<span class="sd">            b_2: Initial weight for the second attribute (e.g., social norms).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span> <span class="o">=</span> <span class="n">num_agents</span>
@@ -145,12 +153,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">simmer_time</span> <span class="o">=</span> <span class="n">simmer_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">neighb_prediction_option</span> <span class="o">=</span> <span class="n">neighb_prediction_option</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">severity_benefit_option</span> <span class="o">=</span> <span class="n">severity_benefit_option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_option</span> <span class="o">=</span> <span class="n">radius_option</span>
 
         <span class="c1"># Set up agents&#39; connections and attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">=</span> <span class="n">lattice2d</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">diagonals</span><span class="o">=</span><span class="n">moore</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rationality</span> <span class="o">=</span> <span class="n">rationality</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">N_WEIGHTS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Normalise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N_WEIGHTS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">b_1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">b_2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">b_1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">b_2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Initialise weights randomly, normalised to sum to 1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># self.b = self.rng.random((self.N_WEIGHTS, self.num_agents))</span>
+        <span class="c1"># self.b = self.b / self.b.sum(axis=0, keepdims=True)  # Normalise</span>
 
         <span class="c1"># Set strategy change params</span>
         <span class="c1"># alpha: rate of increasing support when support is low</span>
@@ -458,12 +480,20 @@
 <span class="sd">            The mean local action for each agent, reflecting the perceived social norm</span>
 <span class="sd">            for each agent at the current timestep. Shape is (agent,).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">memory</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_storage</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">memory</span><span class="p">)</span>
-        <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
-        <span class="n">mean_per_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">return</span> <span class="n">mean_per_timestep</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_option</span> <span class="o">==</span> <span class="s2">&quot;single&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">memory</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_storage</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">memory</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+            <span class="n">mean_per_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adj</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">return</span> <span class="n">mean_per_timestep</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_option</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">memory</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_storage</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">memory</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+            <span class="n">mean_per_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_agents</span><span class="p">,</span> <span class="n">mean_per_timestep</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span></div>
 </div>
 
 </pre></div>
