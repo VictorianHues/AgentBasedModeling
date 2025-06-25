@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
-from abm_project.mean_field import solve
 from abm_project.cluster_analysis import cluster_time_series
+from abm_project.mean_field import solve
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
