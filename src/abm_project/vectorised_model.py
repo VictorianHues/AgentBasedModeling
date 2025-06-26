@@ -7,7 +7,7 @@ import numpy.typing as npt
 import scipy
 
 from .oop_model import BaseModel
-from .utils import lattice2d, linear_update
+from .utils import lattice2d, piecewise_exponential_update
 
 type EnvUpdateFn = Callable[(npt.NDArray[float], npt.NDArray[int]), npt.NDArray[float]]
 
@@ -54,7 +54,7 @@ class VectorisedModel:
     DEFAULT_SIMMER_TIME = 0
     DEFAULT_NEIGHB_PREDICTION_OPTION = "linear"  # "logistic", None
     DEFAULT_SEVERITY_BENEFIT_OPTION = "adaptive"  # None
-    DEFAULT_RADIUS_OPTION = ("single",)  # "all"
+    DEFAULT_RADIUS_OPTION = "single"  # "all"
 
     ACTIONS = [-1, 1]
     N_WEIGHTS = 2
@@ -112,7 +112,9 @@ class VectorisedModel:
         self.width = width
         self.height = height
         self.memory_count = memory_count
-        self.env_update_fn = env_update_fn or linear_update(0.05)
+        self.env_update_fn = env_update_fn or piecewise_exponential_update(
+            alpha=1, beta=1, rate=0.01
+        )  # linear_update(0.05)
         self.rng = rng or np.random.default_rng()
         self.max_storage = max_storage + 1
         self.simmer_time = simmer_time

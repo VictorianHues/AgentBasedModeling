@@ -197,7 +197,7 @@ def plot_mean_and_variability_array(
     time = np.arange(data.shape[1])
     mean = np.mean(data, axis=0)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(7, 4))
     plt.plot(time, mean, label="Mean", color="blue")
 
     if kind == "std":
@@ -231,7 +231,7 @@ def plot_sobol_indices(Si, time_steps, var_names, output_label, file_name=None):
     num_vars = len(var_names)
 
     for t in time_steps:
-        fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+        fig, axs = plt.subplots(1, 2, figsize=(7, 4))
         fig.suptitle(f"Sobol Sensitivity Analysis for {output_label} at t={t}")
 
         # First-order indices
@@ -267,7 +267,7 @@ def plot_support_derivative(a: float = 1, b: float = 1, savedir: Path | None = N
     savedir = savedir or Path(".")
 
     fig, axes = plt.subplots(
-        ncols=3, figsize=(10, 4), constrained_layout=True, sharey=True
+        ncols=3, figsize=(7, 4), constrained_layout=True, sharey=True
     )
 
     support = np.array([0, 0.25, 0.5, 0.75, 1.0])

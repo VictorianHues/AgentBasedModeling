@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
-from abm_project.utils import linear_update, piecewise_exponential_update
+from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
 
@@ -29,7 +29,7 @@ def plot_environment_for_varying_rationality(savedir: Path | None = None):
 
     fig, axes = plt.subplots(
         nrows=4,
-        figsize=(6, 10),
+        figsize=(7, 4),
         constrained_layout=True,
         sharex=True,
         sharey="row",
@@ -124,9 +124,8 @@ def plot_steady_state_environment_for_varying_rationality(savedir: Path | None =
     width = 30
     height = 30
     num_steps = 1000
-    memory_count = 1
-    env_update_fn = linear_update(0.01)
-    # piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    memory_count = 10
+    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
     rng = None
 
     repeats = 50
@@ -144,17 +143,19 @@ def plot_steady_state_environment_for_varying_rationality(savedir: Path | None =
                 env_update_fn=env_update_fn,
                 rationality=lmbda,
                 simmer_time=1,
-                neighb_prediction_option=None,  # "logistic",
+                neighb_prediction_option="linear",
                 severity_benefit_option="adaptive",
                 radius_option="single",
                 max_storage=num_steps,
+                b_1=np.full(num_agents, 1.0, dtype=np.float64),
+                b_2=np.full(num_agents, 1.0, dtype=np.float64),
             )
             model.run(num_steps)
             results[r, i] = model.environment[model.time].mean()
 
     # Plot mean environment at steady state
     fig, ax = plt.subplots(
-        figsize=(6, 4),
+        figsize=(7, 4),
         constrained_layout=True,
     )
 
@@ -181,7 +182,7 @@ def plot_steady_state_environment_for_varying_rationality(savedir: Path | None =
     ax.set_xlabel(r"Rationality ($\lambda$)")
     ax.set_ylabel(r"Equilibrium mean environment ($\overline{n}^*$)")
     ax.set_ylim(0, 1)
-    ax.set_xlim(0, 4)
+    ax.set_xlim(0, 1)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.legend()
@@ -198,21 +199,21 @@ def main():
     results_dir = Path("vectorised_model_results")
     results_dir.mkdir(exist_ok=True)
 
-    plot_environment_for_varying_rationality(savedir=results_dir)
+    # plot_environment_for_varying_rationality(savedir=results_dir)
     # plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
 
     num_agents = 2500
     width = 50
     height = 50
-    num_steps = 1000
+    num_steps = 3000
     memory_count = 10
     env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
     rng = None
-    rationality = 1.8
+    rationality = 0.41
     simmer_time = 1
-    neighb_prediction_option = None  #  "logistic", "linear" or None
+    neighb_prediction_option = "linear"  #  "logistic", "linear" or None
     severity_benefit_option = "adaptive"  # "adaptive" or None
-    radius_option = "all"  # "single" or "all"
+    radius_option = "single"  # "single" or "all"
 
     start = time.time()
     model = VectorisedModel(
@@ -246,30 +247,34 @@ def main():
     print(f"Min: {model.s[num_steps].min():.2f}")
     print(f"Max: {model.s[num_steps].max():.2f}")
 
+    # Take every 5th frame for environment status animation
     env_status_history = model.environment[: model.time + 1]
     env_status_history = env_status_history.reshape((-1, model.height, model.width))
-    num_steps = env_status_history.shape[0]
+    env_status_history = env_status_history[::5]
+    num_env_frames = env_status_history.shape[0]
 
     fig, ax = plt.subplots()
     im = ax.imshow(env_status_history[0], cmap="RdYlGn", origin="lower", vmin=0, vmax=1)
     ax.set_title("Agent Environment Status Over Time")
 
-    def update(frame):
+    def update_env(frame):
         im.set_array(env_status_history[frame])
         return [im]
 
     ani = animation.FuncAnimation(
-        fig, update, frames=num_steps, blit=True, interval=100, repeat=False
+        fig, update_env, frames=num_env_frames, blit=True, interval=100, repeat=False
     )
 
     plt.colorbar(im, ax=ax, label="Environment Status")
     plt.tight_layout()
-    ani.save(results_dir / "example_env.mp4", dpi=150)
+    ani.save(results_dir / "example_env.gif", dpi=150)
+    ani.save(results_dir / "example_env.mp4", dpi=150, writer="ffmpeg")
 
-    # Animate actions
+    # Take every 5th frame for agent actions animation
     agent_action_history = model.action[: model.time + 1]
     agent_action_history = agent_action_history.reshape((-1, model.height, model.width))
-    num_steps = agent_action_history.shape[0]
+    agent_action_history = agent_action_history[::5]
+    num_action_frames = agent_action_history.shape[0]
 
     fig, ax = plt.subplots()
     im = ax.imshow(
@@ -277,17 +282,23 @@ def main():
     )
     ax.set_title("Agent Actions Over Time")
 
-    def update(frame):
+    def update_action(frame):
         im.set_array(agent_action_history[frame])
         return [im]
 
     ani = animation.FuncAnimation(
-        fig, update, frames=num_steps, blit=True, interval=100, repeat=False
+        fig,
+        update_action,
+        frames=num_action_frames,
+        blit=True,
+        interval=100,
+        repeat=False,
     )
 
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
     plt.tight_layout()
-    ani.save(results_dir / "example_actions.mp4", dpi=150)
+    ani.save(results_dir / "example_actions.gif", dpi=150)
+    ani.save(results_dir / "example_actions.mp4", dpi=150, writer="ffmpeg")
 
 
 if __name__ == "__main__":

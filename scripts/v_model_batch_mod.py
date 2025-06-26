@@ -124,9 +124,9 @@ def run_single_simulation(args):
 
 def run_single_parameter_set():
     num_runs = 500  # number of runs for the batch simulation
-    steps = 1000  # number of simulation steps
-    width = 50  # width of the grid
-    height = 50  # height of the grid
+    steps = 10000  # number of simulation steps
+    width = 30  # width of the grid
+    height = 30  # height of the grid
     num_agents = width * height
 
     kwargs = {
@@ -135,7 +135,7 @@ def run_single_parameter_set():
         "height": height,
         "memory_count": 1,
         "rng": None,
-        "rationality": 10.0,
+        "rationality": 2.07,
         "max_storage": steps,
         "moore": True,
         "simmer_time": 1,
@@ -145,6 +145,7 @@ def run_single_parameter_set():
         "prop_pessimistic": 1.0,
         "pessimism_level": 1.0,
         "b_1": np.full(num_agents, 1.0, dtype=np.float64),
+        # "b_2": np.full(num_agents, 1.0, dtype=np.float64),
     }
 
     env_means = np.zeros((num_runs, steps + 1))
