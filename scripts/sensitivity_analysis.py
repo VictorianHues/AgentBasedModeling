@@ -4,6 +4,7 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 import tqdm as tqdm
+from matplotlib.axes import Axes
 from SALib.analyze import sobol
 from SALib.sample import sobol as sobol_sample
 
@@ -27,7 +28,7 @@ def sample_parameter_space():
         "names": ["width", "rationality", "memory_count"],
         "bounds": [[5, 50], [0, 20], [1, 10]],
     }
-    param_values = sobol_sample.sample(problem, 64)
+    param_values = sobol_sample.sample(problem, 512)
     return param_values
 
 
@@ -42,7 +43,7 @@ def run_single_simulation(i, repeat, steps, **kwargs):
 
 
 def gather_output_statistics():
-    repeats = 15
+    repeats = 1
     steps = 1000
     param_values = sample_parameter_space()
     environment_output = np.empty((repeats, len(param_values)))
@@ -92,33 +93,34 @@ def plotting_output():
     action_output = load_data["act"]
 
     # Plot Environment Output
-    plt.figure(figsize=(8, 5))
-    plt.hist(
+    fig, axes = plt.subplots(
+        ncols=2, figsize=(6, 2.5), constrained_layout=True, sharey=True
+    )
+
+    axes[0].hist(
         environment_output, bins=50, color="steelblue", edgecolor="black", alpha=0.7
     )
-    plt.title("Environment Output", fontsize=14)
-    plt.xlabel("Mean Environment Value", fontsize=12)
-    plt.xlim(0, 1)
-    plt.ylabel("Frequency", fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.5)
-    plt.tight_layout()
-    plt.savefig("plots/environment_output.png")
-    plt.show()
+    axes[0].set_title("Environment Output", fontsize=14)
+    axes[0].set_xlabel("Mean Environment Value", fontsize=12)
+    axes[0].set_xlim(0, 1)
+    axes[0].set_ylabel("Frequency", fontsize=12)
+    axes[0].grid(True, linestyle="--", alpha=0.5)
 
     # Plot Action Output
-    plt.figure(figsize=(8, 5))
-    plt.hist(action_output, bins=50, color="darkorange", edgecolor="black", alpha=0.7)
-    plt.title("Action Output", fontsize=14)
-    plt.xlabel("Mean Action Value", fontsize=12)
-    plt.xlim(-1, 1)
-    plt.ylabel("Frequency", fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.5)
-    plt.tight_layout()
-    plt.savefig("plots/action_output.png")
+    axes[1].hist(
+        action_output, bins=50, color="darkorange", edgecolor="black", alpha=0.7
+    )
+    axes[1].set_title("Action Output", fontsize=14)
+    axes[1].set_xlabel("Mean Action Value", fontsize=12)
+    axes[1].set_xlim(-1, 1)
+    axes[1].grid(True, linestyle="--", alpha=0.5)
+
+    fig.savefig("plots/action_output.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 
-def plot_index(s, params, i, title=""):
+def plot_index(s, params, i, title="", ax: Axes | None = None):
+    ax = ax or plt.gca()
     if i == "2":
         p = len(params)
         param_pairs = list(combinations(params, 2))
@@ -131,15 +133,13 @@ def plot_index(s, params, i, title=""):
         indices = s["S" + i]
         errors = s["S" + i + "_conf"]
         labels = params
-        plt.figure()
 
     n_indices = len(indices)
-    plt.title(title)
-    plt.ylim([-0.2, n_indices - 1 + 0.2])
-    plt.yticks(range(n_indices), labels)
-    plt.errorbar(indices, range(n_indices), xerr=errors, linestyle="None", marker="o")
-    plt.axvline(0, color="black")
-    plt.tight_layout()
+    ax.set_title(title)
+    ax.set_ylim([-0.2, n_indices - 1 + 0.2])
+    ax.set_yticks(range(n_indices), labels)
+    ax.errorbar(indices, range(n_indices), xerr=errors, linestyle="None", marker="o")
+    ax.axvline(0, color="black")
 
 
 def sobol_sensitivity():
@@ -154,22 +154,23 @@ def sobol_sensitivity():
 
     param_names = ("width", "rationality", "memory_count")
 
-    for Si, label in zip(
-        [sobol_environment, sobol_action],
-        ["Environment output", "Action output"],
-        strict=False,
-    ):
-        plot_index(Si, param_names, "1", f"First-order sensitivity ({label})")
-        plt.savefig(f"plots/S1_{label}")
-        plt.show()
+    fig, axes = plt.subplots(
+        ncols=2, figsize=(5, 2), constrained_layout=True, sharey=True
+    )
+    plot_index(sobol_environment, param_names, "1", "First-order", axes[0])
+    plot_index(sobol_environment, param_names, "T", "Total-order", axes[1])
+    fig.suptitle("Environment")
+    fig.savefig(
+        "plots/sensitivity_analysis_environment.png", dpi=300, bbox_inches="tight"
+    )
 
-        plot_index(Si, param_names, "2", f"Second-order sensitivity ({label})")
-        plt.savefig(f"plots/S2_{label}")
-        plt.show()
-
-        plot_index(Si, param_names, "T", f"Total-order sensitivity ({label})")
-        plt.savefig(f"plots/ST_{label}")
-        plt.show()
+    fig, axes = plt.subplots(
+        ncols=2, figsize=(5, 2), constrained_layout=True, sharey=True
+    )
+    plot_index(sobol_action, param_names, "1", "First-order", axes[0])
+    plot_index(sobol_action, param_names, "T", "Total-order", axes[1])
+    fig.suptitle("Action")
+    fig.savefig("plots/sensitivity_analysis_action.png", dpi=300, bbox_inches="tight")
 
     return sobol_environment, sobol_action
 
