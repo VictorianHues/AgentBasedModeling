@@ -2,10 +2,12 @@ import numpy as np
 from SALib.analyze import sobol
 from SALib.sample import sobol as sobol_sample
 from SALib.sample import saltelli
+from SALib.plotting.bar import plot as sobol_bar_plot
 import tqdm as tqdm
 import matplotlib.pyplot as plt
 from SALib.plotting.bar import plot as sobol_plot
 from SALib.analyze.sobol import to_df
+from itertools import combinations
 
 from abm_project.plotting import (
     get_data_directory
@@ -100,13 +102,50 @@ def plotting_output():
     environment_output = load_data["env"]
     action_output = load_data["act"]
     
-    plt.hist(environment_output, bins=30)
-    plt.title("Environment output")
+    # Plot Environment Output
+    plt.figure(figsize=(8, 5))
+    plt.hist(environment_output, bins=50, color="steelblue", edgecolor="black", alpha=0.7)
+    plt.title("Environment Output", fontsize=14)
+    plt.xlabel("Mean Environment Value", fontsize=12)
+    plt.xlim(0,1)
+    plt.ylabel("Frequency", fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
     plt.show()
 
-    plt.hist(action_output, bins=30)
-    plt.title("Action output")
+    # Plot Action Output
+    plt.figure(figsize=(8, 5))
+    plt.hist(action_output, bins=50, color="darkorange", edgecolor="black", alpha=0.7)
+    plt.title("Action Output", fontsize=14)
+    plt.xlabel("Mean Action Value", fontsize=12)
+    plt.xlim(-1,1)
+    plt.ylabel("Frequency", fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
     plt.show()
+
+def plot_index(s, params, i, title=''):
+    if i == '2':
+        p = len(params)
+        param_pairs = list(combinations(params, 2))
+        indices = s['S' + i].reshape((p ** 2))
+        indices = indices[~np.isnan(indices)]
+        errors = s['S' + i + '_conf'].reshape((p ** 2))
+        errors = errors[~np.isnan(errors)]
+        labels = [f"{a}, {b}" for a, b in param_pairs]
+    else:
+        indices = s['S' + i]
+        errors = s['S' + i + '_conf']
+        labels = params
+        plt.figure()
+
+    l = len(indices)
+    plt.title(title)
+    plt.ylim([-0.2, l - 1 + 0.2])
+    plt.yticks(range(l), labels)
+    plt.errorbar(indices, range(l), xerr=errors, linestyle='None', marker='o')
+    plt.axvline(0, color='black')
+    plt.tight_layout()
 
 def sobol_sensitivity():
     load_data = np.load("data/output_environment.npz")
@@ -118,11 +157,25 @@ def sobol_sensitivity():
     sobol_environment = sobol.analyze(problem_dict, environment_output)
     sobol_action = sobol.analyze(problem_dict, action_output)
 
+    param_names = ("width", "rationality", "memory_count")
+
+    for Si, label in zip(
+        [sobol_environment, sobol_action],
+        ['Environment output', 'Action output']
+    ):
+        plot_index(Si, param_names, '1', f'First-order sensitivity ({label})')
+        plt.show()
+
+        plot_index(Si, param_names, '2', f'Second-order sensitivity ({label})')
+        plt.show()
+
+        plot_index(Si, param_names, 'T', f'Total-order sensitivity ({label})')
+        plt.show()
+
     return sobol_environment, sobol_action
     
 
 if __name__ == "__main__":
-    gather_output_statistics()
+    #gather_output_statistics()
     #plotting_output()
-    #sobol_sensitivity()
-    
+    sobol_sensitivity()
