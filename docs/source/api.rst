@@ -9,14 +9,6 @@ Package
    :imported-members:
    :undoc-members:
 
-Test module
------------
-
-.. automodule:: abm_project.test_module
-   :members:
-   :undoc-members:
-
-
 Kraan Model
 ------------
 
@@ -39,4 +31,9 @@ Basic OOP Agent
 Vectorised Model
 -----------------
 .. automodule:: abm_project.vectorised_model
+   :members:
+
+Mean-field
+----------
+.. automodule:: abm_project.mean_field
    :members:

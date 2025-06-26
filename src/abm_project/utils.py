@@ -107,13 +107,13 @@ def linear_update(rate: float):
     return inner
 
 
-def piecewise_exponential_update(alpha: float, beta: float, rate: float):
+def piecewise_exponential_update(recovery: float, pollution: float, gamma: float):
     r"""Construct piecewise exponential environment update function.
 
     Args:
-        alpha: Rate of improvement due to good actions
-        beta: Rate of degradation due to bad actions
-        rate: Step size for environmental change
+        recovery: Rate of improvement due to good actions
+        pollution: Rate of degradation due to bad actions
+        gamma: Step size for environmental change
 
     Returns:
         Piecewise exponential update function.
@@ -130,11 +130,11 @@ def piecewise_exponential_update(alpha: float, beta: float, rate: float):
             Numpy array of new environment values for each agent, with same shape
             as `n`.
         """
-        a = (a + 1) / 2
-        improvement = alpha * (1 - n) * a
-        degradation = beta * n * (1 - a)
-        dn_dt = improvement - degradation
-        return n + rate * dn_dt
+        pc = (a + 1) / 2
+        improvement = recovery * (1 - n) * pc
+        degradation = pollution * n * (1 - pc)
+        dn_dt = gamma * (improvement - degradation)
+        return n + dn_dt
 
     return inner
 

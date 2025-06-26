@@ -6,24 +6,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
+from abm_project.mean_field import solve
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
 
-def plot_environment_for_varying_simmer_time(savedir: Path | None = None):
+def plot_abm_vs_meanfield_time_series(savedir: Path | None = None):
     savedir = savedir or Path(".")
 
-    rationality = 1
+    rationality = 2
     num_agents = 900
     width = 30
     height = 30
-    num_steps = 1000
+    num_steps = 3000
     memory_count = 1
-    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
+    gamma_s = 0.005
     rng = None
 
     repeats = 30
-    simmer_time = np.array([1, 5, 20])
 
     fig, axes = plt.subplots(
         nrows=4,
@@ -32,62 +33,81 @@ def plot_environment_for_varying_simmer_time(savedir: Path | None = None):
         sharex=True,
         sharey="row",
     )
-    for st in simmer_time:
-        environment = np.empty((repeats, num_steps + 1))
-        action = np.empty((repeats, num_steps + 1))
-        social_pressure = np.empty((repeats, num_steps + 1))
-        support = np.empty((repeats, num_steps + 1))
-        for r in range(repeats):
-            model = VectorisedModel(
-                num_agents=num_agents,
-                width=width,
-                height=height,
-                memory_count=memory_count,
-                rng=rng,
-                env_update_fn=env_update_fn,
-                rationality=rationality,
-                simmer_time=st,
-                neighb_prediction_option=None,
-                severity_benefit_option=None,
-                max_storage=num_steps,
-            )
-            model.run(num_steps)
-            environment[r] = model.environment.mean(axis=1)
-            action[r] = model.action.mean(axis=1)
-            support[r] = model.s.mean(axis=1)
-            mean_local_action = (model.adj @ model.action.T).T
-            social_pressure[r] = (
-                model.b[1] * (model.action - mean_local_action) ** 2
-            ).mean(axis=1)
-        t = np.arange(num_steps + 1)
+    environment = np.empty((repeats, num_steps + 1))
+    action = np.empty((repeats, num_steps + 1))
+    social_pressure = np.empty((repeats, num_steps + 1))
+    support = np.empty((repeats, num_steps + 1))
+    for r in range(repeats):
+        model = VectorisedModel(
+            num_agents=num_agents,
+            width=width,
+            height=height,
+            memory_count=memory_count,
+            rng=rng,
+            env_update_fn=env_update_fn,
+            rationality=rationality,
+            neighb_prediction_option=None,
+            severity_benefit_option="adaptive",
+            max_storage=num_steps,
+            moore=False,
+            gamma_s=gamma_s,
+        )
+        model.run(num_steps)
+        environment[r] = model.environment.mean(axis=1)
+        action[r] = model.action.mean(axis=1)
+        support[r] = model.s.mean(axis=1)
+        mean_local_action = (model.adj @ model.action.T).T
+        social_pressure[r] = (
+            model.b[1] * (model.action - mean_local_action) ** 2
+        ).mean(axis=1)
+    t = np.arange(num_steps + 1)
 
-        # Plot mean environment
-        n_mean = environment.mean(axis=0)
-        n_std = environment.std(axis=0, ddof=1)
-        n_ci = 1.97 * n_std / np.sqrt(repeats)
-        axes[0].plot(t, n_mean, label=f"$\\gamma = {st:.2f}$")
-        axes[0].fill_between(t, n_mean - n_ci, n_mean + n_ci, alpha=0.3)
+    # Plot mean environment
+    n_mean = environment.mean(axis=0)
+    n_std = environment.std(axis=0, ddof=1)
+    n_ci = 1.97 * n_std / np.sqrt(repeats)
+    axes[0].plot(t, n_mean)
+    axes[0].fill_between(t, n_mean - n_ci, n_mean + n_ci, alpha=0.3)
 
-        # Plot mean support
-        s_mean = support.mean(axis=0)
-        s_std = support.std(axis=0, ddof=1)
-        s_ci = 1.97 * s_std / np.sqrt(repeats)
-        axes[1].plot(t, s_mean, label=f"$\\gamma = {st:.2f}$")
-        axes[1].fill_between(t, s_mean - s_ci, s_mean + s_ci, alpha=0.3)
+    # Plot mean support
+    s_mean = support.mean(axis=0)
+    s_std = support.std(axis=0, ddof=1)
+    s_ci = 1.97 * s_std / np.sqrt(repeats)
+    axes[1].plot(t, s_mean)
+    axes[1].fill_between(t, s_mean - s_ci, s_mean + s_ci, alpha=0.3)
 
-        # Plot mean social pressure
-        p_mean = social_pressure.mean(axis=0)
-        p_std = social_pressure.std(axis=0, ddof=1)
-        p_ci = 1.97 * p_std / np.sqrt(repeats)
-        axes[2].plot(t, p_mean, label=f"$\\gamma = {st:.2f}$")
-        axes[2].fill_between(t, p_mean - p_ci, p_mean + p_ci, alpha=0.3)
+    # Plot mean social pressure
+    p_mean = social_pressure.mean(axis=0)
+    p_std = social_pressure.std(axis=0, ddof=1)
+    p_ci = 1.97 * p_std / np.sqrt(repeats)
+    axes[2].plot(t, p_mean)
+    axes[2].fill_between(t, p_mean - p_ci, p_mean + p_ci, alpha=0.3)
 
-        # Plot mean action
-        a_mean = action.mean(axis=0)
-        a_std = action.std(axis=0, ddof=1)
-        a_ci = 1.97 * a_std / np.sqrt(repeats)
-        axes[3].plot(t, a_mean, label=f"$\\gamma = {st:.2f}$")
-        axes[3].fill_between(t, a_mean - a_ci, a_mean + a_ci, alpha=0.3)
+    # Plot mean action
+    a_mean = action.mean(axis=0)
+    a_std = action.std(axis=0, ddof=1)
+    a_ci = 1.97 * a_std / np.sqrt(repeats)
+    axes[3].plot(t, a_mean)
+    axes[3].fill_between(t, a_mean - a_ci, a_mean + a_ci, alpha=0.3)
+
+    t, (n, s, sp, a, _) = solve(
+        b=0.5,
+        c=0.5,
+        recovery=1,
+        pollution=1,
+        alpha=1,
+        beta=1,
+        n_update_rate=0.01,
+        s_update_rate=gamma_s,
+        n0=1,
+        m0=-0.93,
+        num_steps=num_steps,
+    )
+
+    axes[0].plot(t, n, linestyle="dashed", linewidth=1, color="black")
+    axes[1].plot(t, s, linestyle="dashed", linewidth=1, color="black")
+    axes[2].plot(t, sp, linestyle="dashed", linewidth=1, color="black")
+    axes[3].plot(t, a, linestyle="dashed", linewidth=1, color="black")
 
     axes[0].set_ylabel("Environment ($n$)")
     axes[1].set_ylabel("Support ($s$)")
@@ -107,7 +127,7 @@ def plot_environment_for_varying_simmer_time(savedir: Path | None = None):
     fig.supxlabel("Time")
 
     fig.savefig(
-        savedir / "system_time_series_varying_simmer.png",
+        savedir / "system_time_series_mean_field.png",
         dpi=300,
         bbox_inches="tight",
     )
@@ -122,7 +142,7 @@ def plot_environment_for_varying_rationality(savedir: Path | None = None):
     height = 30
     num_steps = 1000
     memory_count = 1
-    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
     repeats = 30
@@ -225,7 +245,7 @@ def plot_steady_state_environment_for_varying_rationality(savedir: Path | None =
     height = 30
     num_steps = 3000
     memory_count = 1
-    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
     repeats = 20
@@ -287,7 +307,7 @@ def plot_environment_for_varying_pessimism(savedir: Path | None = None):
     height = 30
     num_steps = 1000
     memory_count = 1
-    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
     repeats = 15
@@ -395,17 +415,17 @@ def main():
     results_dir.mkdir(exist_ok=True)
 
     # plot_support_derivative(savedir=results_dir)
-    # plot_environment_for_varying_simmer_time(savedir=results_dir)
-    # plot_environment_for_varying_rationality(savedir=results_dir)
-    # plot_environment_for_varying_pessimism(savedir=results_dir)
-    # plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
+    plot_abm_vs_meanfield_time_series(savedir=results_dir)
+    plot_environment_for_varying_rationality(savedir=results_dir)
+    plot_environment_for_varying_pessimism(savedir=results_dir)
+    plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
 
     num_agents = 2500
     width = 50
     height = 50
     num_steps = 1000
     memory_count = 1
-    env_update_fn = piecewise_exponential_update(alpha=1, beta=1, rate=0.01)
+    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
     start = time.time()
