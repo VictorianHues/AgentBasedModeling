@@ -18,20 +18,19 @@ def plot_abm_vs_meanfield_time_series(savedir: Path | None = None):
     num_agents = 900
     width = 30
     height = 30
-    num_steps = 3000
+    num_steps = 1500
     memory_count = 1
     env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     gamma_s = 0.005
     rng = None
 
-    repeats = 30
+    repeats = 3
 
     fig, axes = plt.subplots(
         nrows=4,
-        figsize=(6, 10),
+        figsize=(3, 4.5),
         constrained_layout=True,
         sharex=True,
-        sharey="row",
     )
     environment = np.empty((repeats, num_steps + 1))
     action = np.empty((repeats, num_steps + 1))
@@ -66,28 +65,28 @@ def plot_abm_vs_meanfield_time_series(savedir: Path | None = None):
     n_mean = environment.mean(axis=0)
     n_std = environment.std(axis=0, ddof=1)
     n_ci = 1.97 * n_std / np.sqrt(repeats)
-    axes[0].plot(t, n_mean)
+    axes[0].plot(t, n_mean, linewidth=0.75, label="ABM output")
     axes[0].fill_between(t, n_mean - n_ci, n_mean + n_ci, alpha=0.3)
 
     # Plot mean support
     s_mean = support.mean(axis=0)
     s_std = support.std(axis=0, ddof=1)
     s_ci = 1.97 * s_std / np.sqrt(repeats)
-    axes[1].plot(t, s_mean)
+    axes[1].plot(t, s_mean, linewidth=0.75)
     axes[1].fill_between(t, s_mean - s_ci, s_mean + s_ci, alpha=0.3)
 
     # Plot mean social pressure
     p_mean = social_pressure.mean(axis=0)
     p_std = social_pressure.std(axis=0, ddof=1)
     p_ci = 1.97 * p_std / np.sqrt(repeats)
-    axes[2].plot(t, p_mean)
+    axes[2].plot(t, p_mean, linewidth=0.75)
     axes[2].fill_between(t, p_mean - p_ci, p_mean + p_ci, alpha=0.3)
 
     # Plot mean action
     a_mean = action.mean(axis=0)
     a_std = action.std(axis=0, ddof=1)
     a_ci = 1.97 * a_std / np.sqrt(repeats)
-    axes[3].plot(t, a_mean)
+    axes[3].plot(t, a_mean, linewidth=0.75)
     axes[3].fill_between(t, a_mean - a_ci, a_mean + a_ci, alpha=0.3)
 
     t, (n, s, sp, a, _) = solve(
@@ -104,27 +103,33 @@ def plot_abm_vs_meanfield_time_series(savedir: Path | None = None):
         num_steps=num_steps,
     )
 
-    axes[0].plot(t, n, linestyle="dashed", linewidth=1, color="black")
-    axes[1].plot(t, s, linestyle="dashed", linewidth=1, color="black")
-    axes[2].plot(t, sp, linestyle="dashed", linewidth=1, color="black")
-    axes[3].plot(t, a, linestyle="dashed", linewidth=1, color="black")
+    axes[0].plot(
+        t, n, linestyle="dashed", linewidth=0.75, color="black", label="Mean-field"
+    )
+    axes[1].plot(t, s, linestyle="dashed", linewidth=0.75, color="black")
+    axes[2].plot(t, sp, linestyle="dashed", linewidth=0.75, color="black")
+    axes[3].plot(t, a, linestyle="dashed", linewidth=0.75, color="black")
 
-    axes[0].set_ylabel("Environment ($n$)")
-    axes[1].set_ylabel("Support ($s$)")
-    axes[2].set_ylabel("Social pressure ($p$)")
-    axes[3].set_ylabel("Action ($a$)")
+    axes[0].set_ylabel(r"$\overline{n}$", rotation=0, labelpad=10, va="center")
+    axes[1].set_ylabel(r"$\overline{V_s}$", rotation=0, labelpad=10, va="center")
+    axes[2].set_ylabel(r"$\overline{V_p}$", rotation=0, labelpad=10, va="center")
+    axes[3].set_ylabel(r"$m$", rotation=0, labelpad=10, va="center")
+    axes[-1].set_xlabel("Time")
+    fig.align_ylabels(axes)
 
+    axes[0].set_xlim(0, num_steps)
     axes[0].set_ylim(0, 1)
     axes[1].set_ylim(0, 4)
     axes[2].set_ylim(0, 4)
     axes[3].set_ylim(-1, 1)
 
     for ax in axes.flatten():
-        ax.legend()
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
-    fig.supxlabel("Time")
+    axes[0].legend(
+        ncols=2, loc="lower center", bbox_to_anchor=(0.5, 1.0, 0, 0), frameon=False
+    )
 
     fig.savefig(
         savedir / "system_time_series_mean_field.png",
