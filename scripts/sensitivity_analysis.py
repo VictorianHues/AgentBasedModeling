@@ -27,7 +27,7 @@ def sample_parameter_space():
         "names": ["width", "rationality", "memory_count"],
         "bounds": [[5, 50], [0, 20], [1, 10]],
     }
-    param_values = sobol_sample.sample(problem, 2)
+    param_values = sobol_sample.sample(problem, 64)
     return param_values
 
 
@@ -43,7 +43,7 @@ def run_single_simulation(i, steps, **kwargs):
 
 def run_single_parameter_set(width, rationality, memory_count):
     num_runs = 15  # number of runs for the batch simulation
-    steps = 10  # number of simulation steps
+    steps = 1000  # number of simulation steps
 
     kwargs = {
         "num_agents": width * width,
