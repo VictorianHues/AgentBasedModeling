@@ -27,7 +27,7 @@ def sample_parameter_space():
         "names": ["width", "rationality", "memory_count"],
         "bounds": [[5, 50], [0, 20], [1, 10]],
     }
-    param_values = sobol_sample.sample(problem, 64)
+    param_values = sobol_sample.sample(problem, 2)
     return param_values
 
 
@@ -43,7 +43,7 @@ def run_single_simulation(i, steps, **kwargs):
 
 def run_single_parameter_set(width, rationality, memory_count):
     num_runs = 15  # number of runs for the batch simulation
-    steps = 1000  # number of simulation steps
+    steps = 10  # number of simulation steps
 
     kwargs = {
         "num_agents": width * width,
@@ -94,12 +94,12 @@ def gather_output_statistics():
         )
         environment_output.append(mean_env)
         action_output.append(mean_action)
-    np.savez("data/output_environment.npz", env=environment_output, act=action_output)
+    np.savez("data/output.npz", env=environment_output, act=action_output)
     return environment_output, action_output
 
 
 def plotting_output():
-    load_data = np.load("data/output_environment.npz")
+    load_data = np.load("data/output.npz")
     environment_output = load_data["env"]
     action_output = load_data["act"]
 
@@ -114,6 +114,7 @@ def plotting_output():
     plt.ylabel("Frequency", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig("plots/environment_output.png")
     plt.show()
 
     # Plot Action Output
@@ -125,6 +126,7 @@ def plotting_output():
     plt.ylabel("Frequency", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig("plots/action_output.png")
     plt.show()
 
 
@@ -170,12 +172,15 @@ def sobol_sensitivity():
         strict=False,
     ):
         plot_index(Si, param_names, "1", f"First-order sensitivity ({label})")
+        plt.savefig(f"plots/S1_{label}")
         plt.show()
 
         plot_index(Si, param_names, "2", f"Second-order sensitivity ({label})")
+        plt.savefig(f"plots/S2_{label}")
         plt.show()
 
         plot_index(Si, param_names, "T", f"Total-order sensitivity ({label})")
+        plt.savefig(f"plots/ST_{label}")
         plt.show()
 
     return sobol_environment, sobol_action
@@ -183,5 +188,5 @@ def sobol_sensitivity():
 
 if __name__ == "__main__":
     gather_output_statistics()
-    # plotting_output()
+    plotting_output()
     sobol_sensitivity()
