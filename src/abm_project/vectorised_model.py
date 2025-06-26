@@ -206,6 +206,9 @@ class VectorisedModel:
         Args:
             steps: Number of steps to iterate.
         """
+        if steps > self.environment.shape[0]:
+            raise RuntimeError("Maximum steps exceeded. Raise `max_storage`.")
+        self.r = self.rng.random(size=(steps * self.simmer_time, self.num_agents))
         for _ in range(steps):
             self.step()
 
@@ -217,9 +220,6 @@ class VectorisedModel:
         2. Update the environment based on agents' actions in the previous timestep.
         3. Run a fixed number of agent decision-making and adaptation steps.
         """
-        if self.time > self.environment.shape[0]:
-            raise RuntimeError("Maximum steps exceeded. Raise `max_storage`.")
-
         self.time += 1
         self.update_env()
         self.simmer()
@@ -248,10 +248,10 @@ class VectorisedModel:
         simmer time reflects a faster rate of behavioural change relative to the
         rate of environmental change.
         """
-        for _ in range(self.simmer_time):
-            self.decide()
+        for i in range(self.simmer_time):
+            self.decide(i)
 
-    def decide(self):
+    def decide(self, i: int):
         """Select a new action for each agent.
 
         The probability of selecting each action is set by an agents' logit model,
@@ -261,9 +261,12 @@ class VectorisedModel:
         To select a new action, we sample a random number in [0,1] for each agent.
         If it does not exceed the probability of cooperation, the agent cooperates,
         and defects otherwise.
+
+        Args:
+            i: Simmer step idx
         """
         pa = self.action_probabilities()
-        r = self.rng.random(size=self.num_agents)
+        r = self.r[((self.time - 1) * self.simmer_time) + i]
         self.action[self.time] = np.where(r < pa[1], 1, -1)
 
     def adapt(self, n: npt.NDArray[np.float64]):
@@ -286,7 +289,6 @@ class VectorisedModel:
         Args:
             n: Current state of the environment, with shape (agent,)
         """
-        n = n**self.pessimism
         logistic = 4 * n * (1 - n)  # Scale derivative so it is zero at the boundaries
         ds_dt = (
             self.alpha * logistic * (4 - self.curr_s)
@@ -367,6 +369,12 @@ class VectorisedModel:
         Returns:
             An array of probabilities for each action, with shape (2,agent).
         """
+        if self.severity_benefit_option == "adaptive":
+            m = self.pred_neighb_action()
+            z = self.b[0] * (self.curr_s - 2) + 2 * self.b[1] * m
+            pc = 1 / (1 + np.exp(-2 * self.rationality * z))
+            return (1 - pc, pc)
+
         utilities = self.rationality * np.array(
             [self.representative_utility(-1), self.representative_utility(1)]
         )
