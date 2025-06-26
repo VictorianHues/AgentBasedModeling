@@ -27,73 +27,61 @@ def sample_parameter_space():
         "names": ["width", "rationality", "memory_count"],
         "bounds": [[5, 50], [0, 20], [1, 10]],
     }
-    param_values = sobol_sample.sample(problem, 2)
+    param_values = sobol_sample.sample(problem, 64)
     return param_values
 
 
-def run_single_simulation(i, steps, **kwargs):
-    rng = np.random.default_rng(i)
+def run_single_simulation(i, repeat, steps, **kwargs):
+    rng = np.random.default_rng(repeat)
     env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     model = VectorisedModel(rng=rng, env_update_fn=env_update_fn, **kwargs)
     model.run(steps)
     env_mean = np.mean(model.environment[-1])
     action_mean = np.mean(model.action[-1])
-    return i, env_mean, action_mean
-
-
-def run_single_parameter_set(width, rationality, memory_count):
-    num_runs = 15  # number of runs for the batch simulation
-    steps = 10  # number of simulation steps
-
-    kwargs = {
-        "num_agents": width * width,
-        "width": width,
-        "height": width,
-        "memory_count": memory_count,
-        "rationality": rationality,
-        "max_storage": steps,
-        "moore": True,
-        "simmer_time": 1,
-        "neighb_prediction_option": "linear",
-        "severity_benefit_option": None,
-        "prop_pessimistic": 1.0,
-        "pessimism_level": 1.0,
-    }
-
-    env_means = np.zeros((num_runs, 1))
-    # env_vars = np.zeros((steps + 1,))
-    action_means = np.zeros((num_runs, 1))
-    # action_vars = np.zeros((steps + 1,))
-
-    with ProcessPoolExecutor() as executor:
-        futures = [
-            executor.submit(run_single_simulation, i, steps, **kwargs)
-            for i in range(num_runs)
-        ]
-        for future in as_completed(futures):
-            i, n_mean, a_mean = future.result()
-            env_means[i] = n_mean
-            action_means[i] = a_mean
-
-    mean_env = np.mean(env_means)
-    mean_action = np.mean(action_means)
-
-    return mean_env, mean_action
+    return i, repeat, env_mean, action_mean
 
 
 def gather_output_statistics():
+    repeats = 15
+    steps = 1000
     param_values = sample_parameter_space()
-    environment_output = []
-    action_output = []
+    environment_output = np.empty((repeats, len(param_values)))
+    action_output = np.empty_like(environment_output)
 
-    for width, rationality, memory_count in tqdm.tqdm(param_values):
-        width = int(width)
-        memory_count = int(memory_count)
-        mean_env, mean_action = run_single_parameter_set(
-            width, rationality, memory_count
-        )
-        environment_output.append(mean_env)
-        action_output.append(mean_action)
+    with ProcessPoolExecutor() as executor:
+        futures = []
+
+        for i, (width, rationality, memory_count) in enumerate(param_values):
+            width = int(width)
+            memory_count = int(memory_count)
+            kwargs = {
+                "num_agents": width * width,
+                "width": width,
+                "height": width,
+                "memory_count": memory_count,
+                "rationality": rationality,
+                "max_storage": steps,
+                "moore": True,
+                "simmer_time": 1,
+                "neighb_prediction_option": "linear",
+                "severity_benefit_option": None,
+                "prop_pessimistic": 1.0,
+                "pessimism_level": 1.0,
+            }
+
+            for r in range(repeats):
+                future = executor.submit(run_single_simulation, i, r, steps, **kwargs)
+                futures.append(future)
+
+        for future in tqdm.tqdm(
+            as_completed(futures), total=repeats * len(param_values)
+        ):
+            param_idx, repeat, n_mean, a_mean = future.result()
+            environment_output[repeat, param_idx] = n_mean
+            action_output[repeat, param_idx] = a_mean
+
+    environment_output = environment_output.mean(axis=0)
+    action_output = action_output.mean(axis=0)
     np.savez("data/output.npz", env=environment_output, act=action_output)
     return environment_output, action_output
 
