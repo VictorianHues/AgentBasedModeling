@@ -7,6 +7,7 @@ name = "abm-project"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ffmpeg" },
     { name = "matplotlib" },
     { name = "mesa" },
     { name = "networkx" },
@@ -26,6 +27,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ffmpeg", specifier = ">=1.4" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mesa", specifier = ">=3.2.0" },
     { name = "networkx", specifier = ">=3.5" },
@@ -179,6 +181,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/ae/ed/aefcc8cd0ba62a056
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/d7/9322c609343d929e75e7e5e6255e614fcc67572cfd083959cdef3b7aad79/docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2", size = 587408, upload-time = "2024-04-23T18:57:14.835Z" },
 ]
+
+[[package]]
+name = "ffmpeg"
+version = "1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/cc/3b7408b8ecf7c1d20ad480c3eaed7619857bf1054b690226e906fdf14258/ffmpeg-1.4.tar.gz", hash = "sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9", size = 5055, upload-time = "2018-10-08T07:50:05.748Z" }
 
 [[package]]
 name = "fonttools"

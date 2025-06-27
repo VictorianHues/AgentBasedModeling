@@ -159,7 +159,7 @@ def cluster_time_series(model, option: str = "action"):
         nc[t] = n_clusters
         c_max[t] = max(sizes.values(), default=0)
 
-    return nc, c_max
+    return labels, nc, c_max
 
 
 def cluster_given_timestep(model, option: str = "action", timestep: int = 0):
@@ -213,3 +213,99 @@ def cluster_given_timestep(model, option: str = "action", timestep: int = 0):
     labels, n_clusters, sizes = hoshen_kopelman(lattice)
 
     return n_clusters, sizes
+
+
+def correlation_length_snapshot(label_array: np.ndarray, sizes: dict[int, int]):
+    """Estimate correlation length for a 2d array using the FK second-moment method.
+
+    Args:
+        label_array: np.ndarray
+            2-D integer array of shape (height, width).
+            Output of `hoshen_kopelman`, where occupied sites carry a
+            positive cluster label and empty sites are 0.
+        sizes: dict[int, int]
+            Mapping {cluster_label → cluster_size} for the same snapshot.
+
+    Returns:
+        float: Correlation length ξ for the snapshot.
+               Returns 0.0 if no cluster has size ≥ 2.
+    """
+    numerator = 0.0
+    denominator = 0.0
+
+    for lab, s in sizes.items():
+        if s < 2:  # singleton → Rg undefined
+            continue
+
+        ys, xs = np.where(label_array == lab)  # coords of cluster
+        coords = np.stack((ys, xs), axis=1).astype(float)
+        r_cm = coords.mean(axis=0)  # centre of mass
+        rg2 = ((coords - r_cm) ** 2).sum(axis=1).mean()  # ⟨r²⟩
+
+        numerator += (s**2) * rg2
+        denominator += s
+
+    return 0.0 if denominator == 0.0 else np.sqrt(numerator / denominator)
+
+
+def correlation_length_time_series(model, option: str = "action"):
+    """Compute correlation length and basic cluster statistics.
+
+    Args:
+        model: BaseModel
+            Instance with attributes `.action` or `.environment`,
+            `.time`, `.height`, and `.width`.
+        option: str
+            Either "action" or "environment".  Selects which lattice
+            history to analyse.
+
+    Returns:
+        dict[str, np.ndarray]:
+            {
+                "xi":               Correlation length ξ(t), shape (T,),
+                "num_clusters":     Number of clusters at each t, shape (T,),
+                "max_cluster_size": Size of the largest cluster at each t,
+                                    shape (T,),
+                "mean_cluster_size":Mean cluster size at each t, shape (T,)
+            }
+            where T = model.time + 1.
+    """
+    if option == "action":
+        history = model.action[: model.time + 1]
+    elif option == "environment":
+        history = model.environment[: model.time + 1]
+    else:
+        raise ValueError(f"Unknown option: {option}")
+
+    history = history.reshape((-1, model.height, model.width))
+    T = history.shape[0]
+
+    xi = np.zeros(T, dtype=float)
+    num_clusters = np.zeros(T, dtype=int)
+    max_cluster_size = np.zeros(T, dtype=int)
+    mean_cluster_sz = np.zeros(T, dtype=float)
+
+    for t in range(T):
+        lattice = history[t]
+
+        if option == "action":
+            lattice = np.where(lattice == -1, 0, lattice)  # defect=0
+        else:  # environment
+            lattice = np.where(lattice > 0.6, 1, 0)  # threshold
+
+        if issparse(lattice):
+            lattice = lattice.toarray()
+
+        labels, n_clusters, sizes = hoshen_kopelman(lattice)
+
+        xi[t] = correlation_length_snapshot(labels, sizes)
+        num_clusters[t] = n_clusters
+        max_cluster_size[t] = max(sizes.values(), default=0)
+        mean_cluster_sz[t] = np.mean(list(sizes.values())) if sizes else 0.0
+
+    return {
+        "xi": xi,
+        "num_clusters": num_clusters,
+        "max_cluster_size": max_cluster_size,
+        "mean_cluster_size": mean_cluster_sz,
+    }

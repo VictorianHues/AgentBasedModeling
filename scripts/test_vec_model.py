@@ -445,16 +445,18 @@ def main():
     results_dir.mkdir(exist_ok=True)
 
     # plot_support_derivative(savedir=results_dir)
-    plot_abm_vs_meanfield_time_series(savedir=results_dir)
-    plot_environment_for_varying_rationality(savedir=results_dir)
-    plot_environment_for_varying_pessimism(savedir=results_dir)
-    plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
+    # plot_abm_vs_meanfield_time_series(savedir=results_dir)
+    # plot_environment_for_varying_rationality(savedir=results_dir)
+    # plot_environment_for_varying_pessimism(savedir=results_dir)
+    # plot_steady_state_environment_for_varying_rationality(savedir=results_dir)
 
     num_agents = 2500
     width = 50
     height = 50
     num_steps = 1000
-    memory_count = 1
+    memory_count = 40
+    rationality = 1.5
+    gamma_s = 0.001
     env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
@@ -466,10 +468,11 @@ def main():
         memory_count=memory_count,
         rng=rng,
         env_update_fn=env_update_fn,
-        rationality=1.8,
+        rationality=rationality,
         simmer_time=1,
-        neighb_prediction_option="logistic",
-        severity_benefit_option=None,
+        neighb_prediction_option="linear",
+        severity_benefit_option="adaptive",
+        gamma_s=gamma_s,
         max_storage=num_steps,
     )
     model.run(num_steps)
