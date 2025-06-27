@@ -16,10 +16,10 @@ from . import mean_field as mf
 
 def configure_mpl():
     """Configure Matplotlib style."""
-    FONT_SIZE_SMALL = 8
-    FONT_SIZE_DEFAULT = 10
+    FONT_SIZE_SMALL = 7
+    FONT_SIZE_DEFAULT = 9
 
-    # plt.rc("font", family="Computer Modern") # LaTeX default font
+    plt.rc("font", family="Times New Roman")  # LaTeX default font
     plt.rc("font", weight="normal")
     plt.rc("mathtext", fontset="stix")
     plt.rc("font", size=FONT_SIZE_DEFAULT)
