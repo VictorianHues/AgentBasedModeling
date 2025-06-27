@@ -1,10 +1,12 @@
+import functools
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tqdm as tqdm
-from SALib.analyze import sobol
+from matplotlib.axes import Axes
+from SALib.analyze import pawn, sobol
 from SALib.sample import sobol as sobol_sample
 
 from abm_project.utils import piecewise_exponential_update
@@ -14,26 +16,37 @@ from abm_project.vectorised_model import VectorisedModel
 # get parameter values
 def problem():
     problem = {
-        "num_vars": 3,
-        "names": ["width", "rationality", "memory_count"],
-        "bounds": [[5, 50], [0, 20], [1, 10]],
+        "num_vars": 6,
+        "names": [
+            "width",
+            "rationality",
+            "memory_count",
+            "gamma_s",
+            "radius",
+            "recovery_rate",
+        ],
+        "bounds": [
+            [5, 50],
+            [0, 10],
+            [2, 100],
+            [0.001, 0.05],
+            [0, 1],
+            [0.5, 2.0],
+        ],
     }
     return problem
 
 
 def sample_parameter_space():
-    problem = {
-        "num_vars": 3,
-        "names": ["width", "rationality", "memory_count"],
-        "bounds": [[5, 50], [0, 20], [1, 10]],
-    }
-    param_values = sobol_sample.sample(problem, 64)
+    param_values = sobol_sample.sample(problem(), 2048, calc_second_order=False)
     return param_values
 
 
-def run_single_simulation(i, repeat, steps, **kwargs):
+def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     rng = np.random.default_rng(repeat)
-    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
+    env_update_fn = piecewise_exponential_update(
+        recovery=recovery_rate, pollution=1, gamma=0.01
+    )
     model = VectorisedModel(rng=rng, env_update_fn=env_update_fn, **kwargs)
     model.run(steps)
     env_mean = np.mean(model.environment[-1])
@@ -42,8 +55,8 @@ def run_single_simulation(i, repeat, steps, **kwargs):
 
 
 def gather_output_statistics():
-    repeats = 15
-    steps = 1000
+    repeats = 1
+    steps = 1500
     param_values = sample_parameter_space()
     environment_output = np.empty((repeats, len(param_values)))
     action_output = np.empty_like(environment_output)
@@ -51,9 +64,24 @@ def gather_output_statistics():
     with ProcessPoolExecutor() as executor:
         futures = []
 
-        for i, (width, rationality, memory_count) in enumerate(param_values):
+        for i, (
+            width,
+            rationality,
+            memory_count,
+            gamma_s,
+            radius,
+            recovery_rate,
+        ) in enumerate(param_values):
             width = int(width)
             memory_count = int(memory_count)
+            radius = np.round(radius)
+            if radius == 1:
+                radius_str = "all"
+            elif radius == 0:
+                radius_str = "single"
+            else:
+                raise ValueError("Unsupported radius value")
+
             kwargs = {
                 "num_agents": width * width,
                 "width": width,
@@ -64,13 +92,17 @@ def gather_output_statistics():
                 "moore": True,
                 "simmer_time": 1,
                 "neighb_prediction_option": "linear",
-                "severity_benefit_option": None,
+                "severity_benefit_option": "adaptive",
+                "radius_option": radius_str,
                 "prop_pessimistic": 1.0,
                 "pessimism_level": 1.0,
+                "gamma_s": gamma_s,
             }
 
             for r in range(repeats):
-                future = executor.submit(run_single_simulation, i, r, steps, **kwargs)
+                future = executor.submit(
+                    run_single_simulation, i, r, steps, recovery_rate, **kwargs
+                )
                 futures.append(future)
 
         for future in tqdm.tqdm(
@@ -82,7 +114,12 @@ def gather_output_statistics():
 
     environment_output = environment_output.mean(axis=0)
     action_output = action_output.mean(axis=0)
-    np.savez("data/output.npz", env=environment_output, act=action_output)
+    np.savez(
+        "data/output.npz",
+        params=param_values,
+        env=environment_output,
+        act=action_output,
+    )
     return environment_output, action_output
 
 
@@ -92,89 +129,158 @@ def plotting_output():
     action_output = load_data["act"]
 
     # Plot Environment Output
-    plt.figure(figsize=(8, 5))
-    plt.hist(
+    fig, axes = plt.subplots(
+        ncols=2, figsize=(6, 2.5), constrained_layout=True, sharey=True
+    )
+
+    axes[0].hist(
         environment_output, bins=50, color="steelblue", edgecolor="black", alpha=0.7
     )
-    plt.title("Environment Output", fontsize=14)
-    plt.xlabel("Mean Environment Value", fontsize=12)
-    plt.xlim(0, 1)
-    plt.ylabel("Frequency", fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.5)
-    plt.tight_layout()
-    plt.savefig("plots/environment_output.png")
-    plt.show()
+    axes[0].set_title("Environment Output", fontsize=14)
+    axes[0].set_xlabel("Mean Environment Value", fontsize=12)
+    axes[0].set_xlim(0, 1)
+    axes[0].set_ylabel("Frequency", fontsize=12)
+    axes[0].grid(True, linestyle="--", alpha=0.5)
 
     # Plot Action Output
-    plt.figure(figsize=(8, 5))
-    plt.hist(action_output, bins=50, color="darkorange", edgecolor="black", alpha=0.7)
-    plt.title("Action Output", fontsize=14)
-    plt.xlabel("Mean Action Value", fontsize=12)
-    plt.xlim(-1, 1)
-    plt.ylabel("Frequency", fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.5)
-    plt.tight_layout()
-    plt.savefig("plots/action_output.png")
+    axes[1].hist(
+        action_output, bins=50, color="darkorange", edgecolor="black", alpha=0.7
+    )
+    axes[1].set_title("Action Output", fontsize=14)
+    axes[1].set_xlabel("Mean Action Value", fontsize=12)
+    axes[1].set_xlim(-1, 1)
+    axes[1].grid(True, linestyle="--", alpha=0.5)
+
+    fig.savefig("plots/action_output.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 
-def plot_index(s, params, i, title=""):
-    if i == "2":
-        p = len(params)
-        param_pairs = list(combinations(params, 2))
-        indices = s["S" + i].reshape(p**2)
-        indices = indices[~np.isnan(indices)]
-        errors = s["S" + i + "_conf"].reshape(p**2)
-        errors = errors[~np.isnan(errors)]
-        labels = [f"{a}, {b}" for a, b in param_pairs]
+def plot_index(s, params, i, title="", method: str = "sobol", ax: Axes | None = None):
+    ax = ax or plt.gca()
+    ax.set_title(title)
+    if method == "sobol":
+        if i == "2":
+            p = len(params)
+            param_pairs = list(combinations(params, 2))
+            indices = s["S" + i].reshape(p**2)
+            indices = indices[~np.isnan(indices)]
+            errors = s["S" + i + "_conf"].reshape(p**2)
+            errors = errors[~np.isnan(errors)]
+            labels = [f"{a}, {b}" for a, b in param_pairs]
+        else:
+            indices = s["S" + i]
+            errors = s["S" + i + "_conf"]
+            labels = params
+
+        n_indices = len(indices)
+        ax.set_ylim([-0.2, n_indices - 1 + 0.2])
+        ax.set_yticks(range(n_indices), labels)
+        ax.errorbar(
+            indices, range(n_indices), xerr=errors, linestyle="None", marker="o"
+        )
+        ax.axvline(0, color="black")
+
+    elif method == "pawn":
+        medians = s["median"]
+        labels = s["names"]
+        ax.bar(labels, medians)
+        ax.set_xticks(np.arange(len(labels)), labels, rotation=45, ha="right")
+        ax.set_ylim(0, 1)
+
     else:
-        indices = s["S" + i]
-        errors = s["S" + i + "_conf"]
-        labels = params
-        plt.figure()
-
-    n_indices = len(indices)
-    plt.title(title)
-    plt.ylim([-0.2, n_indices - 1 + 0.2])
-    plt.yticks(range(n_indices), labels)
-    plt.errorbar(indices, range(n_indices), xerr=errors, linestyle="None", marker="o")
-    plt.axvline(0, color="black")
-    plt.tight_layout()
+        raise ValueError(f"Unknown sensitivity analysis method: '{method}'")
 
 
-def sobol_sensitivity():
-    load_data = np.load("data/output_environment.npz")
+def compute_sensitivity(method: str = "sobol"):
+    load_data = np.load("data/output.npz")
+    parameters = load_data["params"]
     environment_output = load_data["env"]
     action_output = load_data["act"]
 
     problem_dict = problem()
 
-    sobol_environment = sobol.analyze(problem_dict, environment_output)
-    sobol_action = sobol.analyze(problem_dict, action_output)
+    if method == "sobol":
+        analyze = functools.partial(sobol.analyze, calc_second_order=False)
+    elif method == "pawn":
+        analyze = functools.partial(pawn.analyze, X=parameters)
+    else:
+        raise ValueError(f"Unknown sensitivity analysis method: '{method}'")
 
-    param_names = ("width", "rationality", "memory_count")
+    results_environment = analyze(
+        problem_dict,
+        Y=environment_output,
+    )
+    results_action = analyze(
+        problem_dict,
+        Y=action_output,
+    )
 
-    for Si, label in zip(
-        [sobol_environment, sobol_action],
-        ["Environment output", "Action output"],
-        strict=False,
-    ):
-        plot_index(Si, param_names, "1", f"First-order sensitivity ({label})")
-        plt.savefig(f"plots/S1_{label}")
-        plt.show()
+    param_names = (
+        "width",
+        "rationality",
+        "memory_count",
+        "gamma_s",
+        "radius",
+        "recovery_rate",
+    )
 
-        plot_index(Si, param_names, "2", f"Second-order sensitivity ({label})")
-        plt.savefig(f"plots/S2_{label}")
-        plt.show()
+    if method == "sobol":
+        fig, axes = plt.subplots(
+            ncols=2, figsize=(5, 2.5), constrained_layout=True, sharey=True
+        )
+        plot_index(results_environment, param_names, "1", "First-order", ax=axes[0])
+        plot_index(results_environment, param_names, "T", "Total-order", ax=axes[1])
+        fig.suptitle("Sobol")
+        fig.savefig(
+            f"plots/sensitivity_analysis_environment_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
 
-        plot_index(Si, param_names, "T", f"Total-order sensitivity ({label})")
-        plt.savefig(f"plots/ST_{label}")
-        plt.show()
+        fig, axes = plt.subplots(
+            ncols=2, figsize=(5, 2.5), constrained_layout=True, sharey=True
+        )
+        plot_index(results_action, param_names, "1", "First-order", ax=axes[0])
+        plot_index(results_action, param_names, "T", "Total-order", ax=axes[1])
+        fig.suptitle("Sobol")
+        fig.savefig(
+            f"plots/sensitivity_analysis_action_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
 
-    return sobol_environment, sobol_action
+    elif method == "pawn":
+        fig, ax = plt.subplots(figsize=(5, 2.5), constrained_layout=True)
+        plot_index(
+            results_environment,
+            param_names,
+            "1",
+            "PAWN (first-order)",
+            method="pawn",
+            ax=ax,
+        )
+        fig.savefig(
+            f"plots/sensitivity_analysis_environment_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+        fig, ax = plt.subplots(figsize=(3.5, 2.5), constrained_layout=True)
+        plot_index(
+            results_action, param_names, "1", "PAWN (first-order)", method="pawn", ax=ax
+        )
+        fig.suptitle("Action")
+        fig.savefig(
+            f"plots/sensitivity_analysis_action_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+    return results_environment, results_action
 
 
 if __name__ == "__main__":
     gather_output_statistics()
     plotting_output()
-    sobol_sensitivity()
+    compute_sensitivity("sobol")
+    compute_sensitivity("pawn")

@@ -317,6 +317,7 @@ def plot_phase_portrait(
     dm_dt_nullcline: bool = False,
     critical_points: bool = False,
     ax: Axes | None = None,
+    b: float | None = None,
 ):
     """Draw a phase portrait for a mean-field model.
 
@@ -338,8 +339,10 @@ def plot_phase_portrait(
             unimplemented).
         ax: Optional matplotlib Axes object to draw plot onto. If unspecified, uses
             the current artist.
+        b: Optional utility function weight for the 'individual preference' term.
     """
-    b = 1 - c
+    if b is None:
+        b = 1 - c
     ALPHA = 1
     BETA = 1
 
@@ -370,7 +373,7 @@ def plot_phase_portrait(
         ax = plt.gca()
 
     # 1. Plot phase portait
-    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5)
+    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5, zorder=1)
 
     # 2. Draw nullclines
     # m' = 0 when s' = 0
@@ -407,6 +410,7 @@ def plot_phase_portrait(
             color="gray",
             linewidth=0.7,
             label=r"$\frac{dn}{dt} = 0$",
+            zorder=0,
         )
 
     # 3. Plot equilibrium points
@@ -415,7 +419,7 @@ def plot_phase_portrait(
             b=b, c=c, rationality=rationality, recovery=recovery, pollution=pollution
         )
 
-        ax.scatter(eq_n, eq_m, color="red")
+        ax.scatter(eq_n, eq_m, color="red", zorder=2)
 
     # 4. Draw locations where dm/dt diverges (critical points)
     # !! Currently commented because unfinished derivation.
