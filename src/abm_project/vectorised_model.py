@@ -76,6 +76,7 @@ class VectorisedModel:
         radius_option: str = DEFAULT_RADIUS_OPTION,
         prop_pessimistic: float = 0,
         pessimism_level: float = 1,
+        randomise: bool = False,
         b_1: npt.NDArray[np.float64] | None = None,
         b_2: npt.NDArray[np.float64] | None = None,
         gamma_s: float = 0.001,
@@ -105,6 +106,8 @@ class VectorisedModel:
             pessimism_level: How much pessimistic agents overestimate environmental
                 degradation. Higher is more pessimistic. The default (1) is no
                 pessimism.
+            randomise: Randomise the initial environment and actions. Default (False)
+                initialises with a healthy environment, and global inaction.
             b_1: Initial weight for the first attribute (e.g., environmental concern).
             b_2: Initial weight for the second attribute (e.g., social norms).
             gamma_s: Rate at which agents change their action preferences.
@@ -153,7 +156,7 @@ class VectorisedModel:
         self.pessimism[pessimistic] = pessimism_level
 
         # Initialise agents and environment
-        self.initialise(zero=True)
+        self.initialise(zero=not randomise)
         self.initial_action = self.action[: self.memory_count].copy()
         self.initial_environment = self.environment[: self.memory_count].copy()
 

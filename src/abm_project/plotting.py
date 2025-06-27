@@ -7,10 +7,38 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+import seaborn as sns
 from matplotlib.axes import Axes
 from tqdm import tqdm
 
 from . import mean_field as mf
+
+
+def configure_mpl():
+    """Configure Matplotlib style."""
+    FONT_SIZE_SMALL = 7
+    FONT_SIZE_DEFAULT = 9
+
+    plt.rc("font", family="Times New Roman")  # LaTeX default font
+    plt.rc("font", weight="normal")
+    plt.rc("mathtext", fontset="stix")
+    plt.rc("font", size=FONT_SIZE_DEFAULT)
+    plt.rc("figure", labelsize=FONT_SIZE_DEFAULT)
+    plt.rc("figure", dpi=300)
+
+    sns.set_context(
+        "paper",
+        rc={
+            "axes.linewidth": 0.5,
+            "axes.labelsize": FONT_SIZE_DEFAULT,
+            "axes.titlesize": FONT_SIZE_DEFAULT,
+            "xtick.major.width": 0.5,
+            "ytick.major.width": 0.5,
+            "ytick.minor.width": 0.4,
+            "xtick.labelsize": FONT_SIZE_SMALL,
+            "ytick.labelsize": FONT_SIZE_SMALL,
+        },
+    )
 
 
 def get_plot_directory(file_name):
@@ -317,6 +345,7 @@ def plot_phase_portrait(
     dm_dt_nullcline: bool = False,
     critical_points: bool = False,
     ax: Axes | None = None,
+    b: float | None = None,
 ):
     """Draw a phase portrait for a mean-field model.
 
@@ -338,8 +367,10 @@ def plot_phase_portrait(
             unimplemented).
         ax: Optional matplotlib Axes object to draw plot onto. If unspecified, uses
             the current artist.
+        b: Optional utility function weight for the 'individual preference' term.
     """
-    b = 1 - c
+    if b is None:
+        b = 1 - c
     ALPHA = 1
     BETA = 1
 
@@ -370,7 +401,7 @@ def plot_phase_portrait(
         ax = plt.gca()
 
     # 1. Plot phase portait
-    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5)
+    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5, zorder=1)
 
     # 2. Draw nullclines
     # m' = 0 when s' = 0
@@ -407,6 +438,7 @@ def plot_phase_portrait(
             color="gray",
             linewidth=0.7,
             label=r"$\frac{dn}{dt} = 0$",
+            zorder=0,
         )
 
     # 3. Plot equilibrium points
@@ -415,7 +447,7 @@ def plot_phase_portrait(
             b=b, c=c, rationality=rationality, recovery=recovery, pollution=pollution
         )
 
-        ax.scatter(eq_n, eq_m, color="red")
+        ax.scatter(eq_n, eq_m, color="red", zorder=2)
 
     # 4. Draw locations where dm/dt diverges (critical points)
     # !! Currently commented because unfinished derivation.
