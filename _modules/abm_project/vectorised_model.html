@@ -111,6 +111,7 @@
         <span class="n">radius_option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_RADIUS_OPTION</span><span class="p">,</span>
         <span class="n">prop_pessimistic</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">pessimism_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">randomise</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">b_1</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">b_2</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gamma_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
@@ -140,6 +141,8 @@
 <span class="sd">            pessimism_level: How much pessimistic agents overestimate environmental</span>
 <span class="sd">                degradation. Higher is more pessimistic. The default (1) is no</span>
 <span class="sd">                pessimism.</span>
+<span class="sd">            randomise: Randomise the initial environment and actions. Default (False)</span>
+<span class="sd">                initialises with a healthy environment, and global inaction.</span>
 <span class="sd">            b_1: Initial weight for the first attribute (e.g., environmental concern).</span>
 <span class="sd">            b_2: Initial weight for the second attribute (e.g., social norms).</span>
 <span class="sd">            gamma_s: Rate at which agents change their action preferences.</span>
@@ -186,7 +189,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pessimism</span><span class="p">[</span><span class="n">pessimistic</span><span class="p">]</span> <span class="o">=</span> <span class="n">pessimism_level</span>
 
         <span class="c1"># Initialise agents and environment</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initialise</span><span class="p">(</span><span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialise</span><span class="p">(</span><span class="n">zero</span><span class="o">=</span><span class="ow">not</span> <span class="n">randomise</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_environment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_count</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
