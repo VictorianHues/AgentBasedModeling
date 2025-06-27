@@ -16,26 +16,37 @@ from abm_project.vectorised_model import VectorisedModel
 # get parameter values
 def problem():
     problem = {
-        "num_vars": 5,
-        "names": ["width", "rationality", "memory_count", "gamma_s", "radius"],
-        "bounds": [[5, 50], [0, 10], [1, 10], [0.001, 0.05], [0, 1]],
+        "num_vars": 6,
+        "names": [
+            "width",
+            "rationality",
+            "memory_count",
+            "gamma_s",
+            "radius",
+            "recovery_rate",
+        ],
+        "bounds": [
+            [5, 50],
+            [0, 10],
+            [2, 100],
+            [0.001, 0.05],
+            [0, 1],
+            [0.5, 2.0],
+        ],
     }
     return problem
 
 
 def sample_parameter_space():
-    problem = {
-        "num_vars": 5,
-        "names": ["width", "rationality", "memory_count", "gamma_s", "radius"],
-        "bounds": [[5, 50], [0, 10], [1, 40], [0.001, 0.05], [0, 1]],
-    }
-    param_values = sobol_sample.sample(problem, 2048, calc_second_order=False)
+    param_values = sobol_sample.sample(problem(), 2048, calc_second_order=False)
     return param_values
 
 
-def run_single_simulation(i, repeat, steps, **kwargs):
+def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     rng = np.random.default_rng(repeat)
-    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
+    env_update_fn = piecewise_exponential_update(
+        recovery=recovery_rate, pollution=1, gamma=0.01
+    )
     model = VectorisedModel(rng=rng, env_update_fn=env_update_fn, **kwargs)
     model.run(steps)
     env_mean = np.mean(model.environment[-1])
@@ -45,7 +56,7 @@ def run_single_simulation(i, repeat, steps, **kwargs):
 
 def gather_output_statistics():
     repeats = 1
-    steps = 1000
+    steps = 1500
     param_values = sample_parameter_space()
     environment_output = np.empty((repeats, len(param_values)))
     action_output = np.empty_like(environment_output)
@@ -53,9 +64,14 @@ def gather_output_statistics():
     with ProcessPoolExecutor() as executor:
         futures = []
 
-        for i, (width, rationality, memory_count, gamma_s, radius) in enumerate(
-            param_values
-        ):
+        for i, (
+            width,
+            rationality,
+            memory_count,
+            gamma_s,
+            radius,
+            recovery_rate,
+        ) in enumerate(param_values):
             width = int(width)
             memory_count = int(memory_count)
             radius = np.round(radius)
@@ -84,7 +100,9 @@ def gather_output_statistics():
             }
 
             for r in range(repeats):
-                future = executor.submit(run_single_simulation, i, r, steps, **kwargs)
+                future = executor.submit(
+                    run_single_simulation, i, r, steps, recovery_rate, **kwargs
+                )
                 futures.append(future)
 
         for future in tqdm.tqdm(
@@ -197,7 +215,14 @@ def compute_sensitivity(method: str = "sobol"):
         Y=action_output,
     )
 
-    param_names = ("width", "rationality", "memory_count", "gamma_s", "radius")
+    param_names = (
+        "width",
+        "rationality",
+        "memory_count",
+        "gamma_s",
+        "radius",
+        "recovery_rate",
+    )
 
     if method == "sobol":
         fig, axes = plt.subplots(
