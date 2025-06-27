@@ -51,10 +51,10 @@
 <a class="viewcode-back" href="../../api.html#abm_project.configure_mpl">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">configure_mpl</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure Matplotlib style.&quot;&quot;&quot;</span>
-    <span class="n">FONT_SIZE_SMALL</span> <span class="o">=</span> <span class="mi">8</span>
-    <span class="n">FONT_SIZE_DEFAULT</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">FONT_SIZE_SMALL</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">FONT_SIZE_DEFAULT</span> <span class="o">=</span> <span class="mi">9</span>
 
-    <span class="c1"># plt.rc(&quot;font&quot;, family=&quot;Computer Modern&quot;) # LaTeX default font</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;font&quot;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s2">&quot;Times New Roman&quot;</span><span class="p">)</span>  <span class="c1"># LaTeX default font</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;font&quot;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;mathtext&quot;</span><span class="p">,</span> <span class="n">fontset</span><span class="o">=</span><span class="s2">&quot;stix&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;font&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">FONT_SIZE_DEFAULT</span><span class="p">)</span>
