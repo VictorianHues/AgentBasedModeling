@@ -9,6 +9,7 @@ from matplotlib.axes import Axes
 from SALib.analyze import pawn, sobol
 from SALib.sample import sobol as sobol_sample
 
+from abm_project import metrics
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
@@ -28,7 +29,7 @@ def problem():
         "bounds": [
             [5, 50],
             [0, 10],
-            [2, 100],
+            [2, 10],
             [0.001, 0.05],
             [0, 1],
             [0.5, 2.0],
@@ -51,15 +52,18 @@ def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     model.run(steps)
     env_mean = np.mean(model.environment[-1])
     action_mean = np.mean(model.action[-1])
-    return i, repeat, env_mean, action_mean
+    pi_mean = metrics.pluralistic_ignorance(model, k=100).mean()
+
+    return i, repeat, env_mean, action_mean, pi_mean
 
 
 def gather_output_statistics():
     repeats = 1
-    steps = 1500
+    steps = 2000
     param_values = sample_parameter_space()
     environment_output = np.empty((repeats, len(param_values)))
     action_output = np.empty_like(environment_output)
+    pluralistic_ignorance = np.empty_like(environment_output)
 
     with ProcessPoolExecutor() as executor:
         futures = []
@@ -108,29 +112,33 @@ def gather_output_statistics():
         for future in tqdm.tqdm(
             as_completed(futures), total=repeats * len(param_values)
         ):
-            param_idx, repeat, n_mean, a_mean = future.result()
+            param_idx, repeat, n_mean, a_mean, pi_mean = future.result()
             environment_output[repeat, param_idx] = n_mean
             action_output[repeat, param_idx] = a_mean
+            pluralistic_ignorance[repeat, param_idx] = pi_mean
 
     environment_output = environment_output.mean(axis=0)
     action_output = action_output.mean(axis=0)
+    pluralistic_ignorance = pluralistic_ignorance.mean(axis=0)
     np.savez(
         "data/output.npz",
         params=param_values,
         env=environment_output,
         act=action_output,
+        pi=pluralistic_ignorance,
     )
-    return environment_output, action_output
+    return environment_output, action_output, pluralistic_ignorance
 
 
 def plotting_output():
     load_data = np.load("data/output.npz")
     environment_output = load_data["env"]
     action_output = load_data["act"]
+    pluralistic_ignorance = load_data["pi"]
 
     # Plot Environment Output
     fig, axes = plt.subplots(
-        ncols=2, figsize=(6, 2.5), constrained_layout=True, sharey=True
+        ncols=3, figsize=(7, 2.5), constrained_layout=True, sharey=True
     )
 
     axes[0].hist(
@@ -150,6 +158,15 @@ def plotting_output():
     axes[1].set_xlabel("Mean Action Value", fontsize=12)
     axes[1].set_xlim(-1, 1)
     axes[1].grid(True, linestyle="--", alpha=0.5)
+
+    # Plot pluralistic ignorance
+    axes[2].hist(
+        pluralistic_ignorance, bins=50, color="steelblue", edgecolor="black", alpha=0.7
+    )
+    axes[2].set_title("Pluralistic ignorance", fontsize=14)
+    axes[2].set_xlabel("Pluralistic ignorance", fontsize=12)
+    axes[2].set_xlim(-1, 1)
+    axes[2].grid(True, linestyle="--", alpha=0.5)
 
     fig.savefig("plots/action_output.png", dpi=300, bbox_inches="tight")
     plt.show()
@@ -196,6 +213,7 @@ def compute_sensitivity(method: str = "sobol"):
     parameters = load_data["params"]
     environment_output = load_data["env"]
     action_output = load_data["act"]
+    pluralistic_ignorance = load_data["pi"]
 
     problem_dict = problem()
 
@@ -213,6 +231,10 @@ def compute_sensitivity(method: str = "sobol"):
     results_action = analyze(
         problem_dict,
         Y=action_output,
+    )
+    results_pi = analyze(
+        problem_dict,
+        Y=pluralistic_ignorance,
     )
 
     param_names = (
@@ -249,6 +271,18 @@ def compute_sensitivity(method: str = "sobol"):
             bbox_inches="tight",
         )
 
+        fig, axes = plt.subplots(
+            ncols=2, figsize=(5, 2.5), constrained_layout=True, sharey=True
+        )
+        plot_index(results_pi, param_names, "1", "First-order", ax=axes[0])
+        plot_index(results_pi, param_names, "T", "Total-order", ax=axes[1])
+        fig.suptitle("Sobol")
+        fig.savefig(
+            f"plots/sensitivity_analysis_pluralistic_ignorance_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
     elif method == "pawn":
         fig, ax = plt.subplots(figsize=(5, 2.5), constrained_layout=True)
         plot_index(
@@ -276,11 +310,27 @@ def compute_sensitivity(method: str = "sobol"):
             bbox_inches="tight",
         )
 
-    return results_environment, results_action
+        fig, ax = plt.subplots(figsize=(3.5, 2.5), constrained_layout=True)
+        plot_index(
+            results_pi,
+            param_names,
+            "1",
+            "PAWN (first-order)",
+            method="pawn",
+            ax=ax,
+        )
+        fig.suptitle("Pluralistic Ignorance")
+        fig.savefig(
+            f"plots/sensitivity_analysis_pluralistic_ignorance_{method}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+    return results_environment, results_action, pluralistic_ignorance
 
 
 if __name__ == "__main__":
-    gather_output_statistics()
+    # gather_output_statistics()
     plotting_output()
     compute_sensitivity("sobol")
     compute_sensitivity("pawn")
