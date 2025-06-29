@@ -52,7 +52,7 @@ def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     model.run(steps)
     env_mean = np.mean(model.environment[-1])
     action_mean = np.mean(model.action[-1])
-    pi_mean = metrics.pluralistic_ignorance(model, k=100).mean()
+    pi_mean = metrics.pluralistic_ignorance(model).mean()
 
     return i, repeat, env_mean, action_mean, pi_mean
 
@@ -330,7 +330,7 @@ def compute_sensitivity(method: str = "sobol"):
 
 
 if __name__ == "__main__":
-    # gather_output_statistics()
+    gather_output_statistics()
     plotting_output()
     compute_sensitivity("sobol")
     compute_sensitivity("pawn")
