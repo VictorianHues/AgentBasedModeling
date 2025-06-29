@@ -227,7 +227,7 @@ def plot_mean_and_variability_array(
     time = np.arange(data.shape[1])
     mean = np.mean(data, axis=0)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(7, 4))
     plt.plot(time, mean, label="Mean", color="blue")
 
     if kind == "std":
@@ -261,7 +261,7 @@ def plot_sobol_indices(Si, time_steps, var_names, output_label, file_name=None):
     num_vars = len(var_names)
 
     for t in time_steps:
-        fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+        fig, axs = plt.subplots(1, 2, figsize=(7, 4))
         fig.suptitle(f"Sobol Sensitivity Analysis for {output_label} at t={t}")
 
         # First-order indices
@@ -297,7 +297,7 @@ def plot_support_derivative(a: float = 1, b: float = 1, savedir: Path | None = N
     savedir = savedir or Path(".")
 
     fig, axes = plt.subplots(
-        ncols=3, figsize=(10, 4), constrained_layout=True, sharey=True
+        ncols=3, figsize=(7, 4), constrained_layout=True, sharey=True
     )
 
     support = np.array([0, 0.25, 0.5, 0.75, 1.0])
@@ -469,3 +469,126 @@ def plot_phase_portrait(
     #            color="gray",
     #            label=r"$\frac{dm}{dt} \to \infty$",
     #        )
+
+
+def get_file_basename(suffix, neighb, severity, radius, b2, env):
+    """Generate a standardized file basename based on parameters.
+
+    Args:
+        suffix (str): Suffix for the file name.
+        neighb (str): Neighborhood type (e.g., "linear", "von_neumann").
+        severity (str): Severity level (e.g., "low", "medium", "high").
+        radius (int): Radius of the neighborhood.
+        b2 (float | None): Second utility function weight, or None if not applicable.
+        env (str): Environment update type (e.g., "static", "dynamic").
+
+    Returns:
+        str: A standardized file basename.
+    """
+    return (
+        f"{suffix}_neighb-{neighb}_sev-{severity}_rad-{radius}_"
+        f"b2-{'1' if b2 is not None else 'None'}_env-{env}"
+    )
+
+
+def save_and_plot_heatmap(
+    data,
+    title,
+    suffix,
+    neighb,
+    severity,
+    radius,
+    b2,
+    env_update_type,
+    savedir,
+    rationality_values=None,
+    gamma_s_values=None,
+):
+    """Save and plot a heatmap of the given data.
+
+    Args:
+        data (np.ndarray): 2D array of data to plot.
+        title (str): Title for the heatmap.
+        suffix (str): Suffix for the file name.
+        neighb (str): Neighborhood type (e.g., "linear", "von_neumann").
+        severity (str): Severity level (e.g., "low", "medium", "high").
+        radius (int): Radius of the neighborhood.
+        b2 (float | None): Second utility function weight,
+            or None if not applicable.
+        env_update_type (str): Environment update type (e.g., "static", "dynamic").
+        savedir (Path): Directory to save the heatmap and data.
+        rationality_values (list[float] | None): List of rationality
+            values for x-axis ticks.
+        gamma_s_values (list[float] | None): List of support
+            update rates for y-axis ticks.
+    """
+    dir_name = (
+        f"neighb-{neighb}_sev-{severity}_rad-{radius}_"
+        f"b2-{'1' if b2 is not None else 'None'}_env-{env_update_type}"
+    )
+    plot_dir = savedir / dir_name
+    plot_dir.mkdir(parents=True, exist_ok=True)
+
+    base = get_file_basename(suffix, neighb, severity, radius, b2, env_update_type)
+    data_path = plot_dir / f"data_{base}.npy"
+    fig_path = plot_dir / f"heatmap_{base}.png"
+
+    np.save(data_path, data)
+
+    fig_width = 3.5  # inches (single column width)
+    fig_height = 2.5
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), constrained_layout=True)
+
+    # Check if data is in [0, 1] and set vmin/vmax accordingly
+    vmin, vmax = None, None
+    if np.nanmin(data) >= 0 and np.nanmax(data) <= 1 and suffix != "peak_freq":
+        vmin, vmax = 0, 1
+
+    if rationality_values is not None and gamma_s_values is not None:
+        x_tick_indices = np.arange(
+            0, len(rationality_values), max(1, len(rationality_values) // 4)
+        )
+        y_tick_indices = np.arange(
+            0, len(gamma_s_values), max(1, len(gamma_s_values) // 4)
+        )
+
+        x_tick_labels = [f"{rationality_values[i]:.1f}" for i in x_tick_indices]
+        y_tick_labels = [f"{gamma_s_values[i]:.3f}" for i in y_tick_indices]
+
+        sns.heatmap(
+            data,
+            xticklabels=False,
+            yticklabels=False,
+            cmap="viridis",
+            cbar_kws={"label": title, "shrink": 0.7, "pad": 0.02},
+            ax=ax,
+            square=False,
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+        ax.set_xticks(x_tick_indices)
+        ax.set_xticklabels(x_tick_labels)
+        ax.set_yticks(y_tick_indices)
+        ax.set_yticklabels(y_tick_labels)
+    else:
+        sns.heatmap(
+            data,
+            xticklabels=4,
+            yticklabels=4,
+            cmap="viridis",
+            cbar_kws={"label": title, "shrink": 0.7, "pad": 0.02},
+            ax=ax,
+            square=False,
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+    ax.set_xlabel("Rationality (λ)", fontsize=9)
+    ax.set_ylabel("Support Update Rate (γₛ)", fontsize=9)
+    ax.tick_params(axis="both", which="major", labelsize=8)
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=8)
+
+    fig.savefig(fig_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)

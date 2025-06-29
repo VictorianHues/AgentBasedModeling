@@ -1,6 +1,7 @@
 """Batch run tools for ABM project."""
 
 import numpy as np
+from scipy.fft import rfft, rfftfreq
 from scipy.ndimage import convolve
 
 from abm_project.oop_model import BaseModel
@@ -169,3 +170,106 @@ def clustering_score_over_time(
         )
         for flat_grid in time_series
     ]
+
+
+class UnionFind:
+    """Union-Find data structure for efficient connectivity checks."""
+
+    def __init__(self, size):
+        """Initialize Union-Find structure with given size."""
+        self.parent = np.arange(size)
+
+    def find(self, x):
+        """Find the root of the component containing x with path compression."""
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x, y):
+        """Union the components containing x and y."""
+        rx = self.find(x)
+        ry = self.find(y)
+        if rx != ry:
+            self.parent[ry] = rx
+
+
+def analyze_environment_clusters_periodic(
+    environment: np.ndarray,
+    width: int,
+    height: int,
+    threshold: float = 0.5,
+    diagonal: bool = False,
+):
+    """Analyze clusters in a 2D environment with periodic boundaries.
+
+    Args:
+        environment: 1D array of environment values per agent.
+        width: Grid width.
+        height: Grid height.
+        threshold: Threshold to binarize the environment (default = 0.5)
+        diagonal: If True, use 8-connectivity (diagonal neighbors included).
+            If False, use 4-connectivity (adjacent only).
+
+    Returns:
+        num_clusters: Number of clusters found
+        cluster_sizes: List of sizes of each cluster
+        labels: 2D array of labeled clusters
+    """
+    env_grid = environment.reshape((height, width))
+    binary = env_grid > threshold
+    uf = UnionFind(width * height)
+
+    def idx(x, y):
+        return (y % height) * width + (x % width)  # periodic indexing
+
+    # Define neighbor offsets
+    neighbors = [(-1, 0), (0, -1), (1, 0), (0, 1)]  # 4-connectivity
+    if diagonal:
+        neighbors += [(-1, -1), (1, -1), (-1, 1), (1, 1)]  # 8-connectivity
+
+    for y in range(height):
+        for x in range(width):
+            if not binary[y, x]:
+                continue
+            for dx, dy in neighbors:
+                nx, ny = (x + dx) % width, (y + dy) % height
+                if binary[ny, nx]:
+                    uf.union(idx(x, y), idx(nx, ny))
+
+    # Count clusters
+    labels = -np.ones((height, width), dtype=int)
+    label_map = {}
+    next_label = 0
+    for y in range(height):
+        for x in range(width):
+            if binary[y, x]:
+                root = uf.find(idx(x, y))
+                if root not in label_map:
+                    label_map[root] = next_label
+                    next_label += 1
+                labels[y, x] = label_map[root]
+
+    num_clusters = len(label_map)
+    cluster_sizes = [np.sum(labels == i) for i in range(num_clusters)]
+    return num_clusters, cluster_sizes, labels
+
+
+def get_dominant_frequency_and_power(
+    signal: np.ndarray, dt: float = 1.0
+) -> tuple[float, float]:
+    """Calculate the dominant frequency and its power in a time series signal.
+
+    Args:
+        signal (np.ndarray): 1D array of time series data.
+        dt (float): Time step between samples in seconds.
+
+    Returns:
+        tuple[float, float]: Dominant frequency (Hz) and its power.
+    """
+    signal = signal - signal.mean()
+    spectrum = np.abs(rfft(signal))
+    freqs = rfftfreq(len(signal), d=dt)
+    if len(spectrum) <= 1:
+        return 0.0, 0.0
+    dominant_idx = np.argmax(spectrum[1:]) + 1
+    return freqs[dominant_idx], spectrum[dominant_idx] ** 2

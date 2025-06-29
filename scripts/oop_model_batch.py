@@ -16,6 +16,7 @@ from abm_project.plotting import (
     plot_list_over_time,
 )
 
+
 def run_model_output(radius, memory_count, peer_pressure_learning_rate, rationality):
     """Run the agent-based model simulation with given parameters."""
     width = 50
@@ -182,4 +183,4 @@ def run_single_parameter_set():
 
 if __name__ == "__main__":
     run_full_sobol()
-    #run_single_parameter_set()
+    # run_single_parameter_set()

@@ -201,6 +201,7 @@ cython_debug/
 *.jpeg
 *.gif
 *.npz
+*.npy
 
 # DS_Store
 .DS_Store
