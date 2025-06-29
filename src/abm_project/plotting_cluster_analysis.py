@@ -24,7 +24,7 @@ def plot_eq_env_against_memory_rationality(filepath, savedir=None):
     memory_range = data["memory_range"]
     rat_range = data["rat_range"]
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(5, 3.5))
     # plot equilibrium env state (environment state at last timestep)
     plt.imshow(
         eq_env_state,
@@ -77,7 +77,7 @@ def plot_nclusters_against_memory_rationality(
     memory_range = data["memory_range"]
     rat_range = data["rat_range"]
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(5, 3.5))
     plt.imshow(
         n_clusters,
         aspect="auto",
@@ -123,7 +123,7 @@ def plot_ncluster_across_memory(filepath, cluster_n, option, savedir):
 
     memory_values = list(cluster_n.keys())
 
-    fig, ax = plt.figure(figsize=(10, 6))
+    fig, ax = plt.figure(figsize=(5, 3.5))
     for mem in memory_values:
         ax.plot(cluster_n[mem], label=f"Memory {mem}")
     ax.set_xlabel("Time Steps")
@@ -172,7 +172,7 @@ def plot_ncluster_multiple_model_runs(num_steps=1000, models=None, savedir=None)
 
     # Plot the average number of clusters
     timesteps = np.arange(len(avg_num_clusters))
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(5, 3.5))
 
     # Plot mean and shaded std of number of clusters
     plt.plot(timesteps, avg_num_clusters, label="Mean Num. of Clusters", color="blue")
@@ -218,7 +218,9 @@ def plot_ncluster_multiple_model_runs(num_steps=1000, models=None, savedir=None)
     plt.close()
 
 
-def plot_ncluster_given_memory(filepath, model, option, num_steps, savedir):
+def plot_ncluster_given_memory(
+    filepath=None, model=None, option="environment", num_steps=1000, savedir=None
+):
     """Plot the number of clusters over time for a given model and option.
 
     Args:
@@ -228,11 +230,11 @@ def plot_ncluster_given_memory(filepath, model, option, num_steps, savedir):
         num_steps: Number of timesteps to run the model.
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
+    # savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
-    nc, c1 = cluster_time_series(model=model, option=option)
+    _, nc, c1 = cluster_time_series(model=model, option=option)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(5, 3.5))
     plt.plot(nc, label="Number of Clusters")
     plt.xlabel("Time Steps")
     plt.ylabel("Number of Clusters")
@@ -240,13 +242,13 @@ def plot_ncluster_given_memory(filepath, model, option, num_steps, savedir):
     plt.legend()
     plt.grid()
 
-    if savedir:
-        plt.savefig(
-            savedir
-            / f"mem{model.memory_count}_{option}_{model.rationality:.3f}_\
-            gammas{model.gamma_s}_{model.width}_{model.height}_{num_steps}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-    # plt.show()
+    # if savedir:
+    #     plt.savefig(
+    #         savedir
+    #         / f"mem{model.memory_count}_{option}_{model.rationality:.3f}_\
+    #         gammas{model.gamma_s}_{model.width}_{model.height}_{num_steps}.png",
+    #         dpi=300,
+    #         bbox_inches="tight",
+    #     )
+    plt.show()
     plt.close()
