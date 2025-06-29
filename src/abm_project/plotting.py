@@ -402,7 +402,9 @@ def plot_phase_portrait(
         ax = plt.gca()
 
     # 1. Plot phase portait
-    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5, zorder=1)
+    ax.streamplot(
+        N, M, DN_DT, DM_DT, density=[1.5, 2.5], arrowsize=0.5, linewidth=0.5, zorder=1
+    )
 
     # 2. Draw nullclines
     # m' = 0 when s' = 0
