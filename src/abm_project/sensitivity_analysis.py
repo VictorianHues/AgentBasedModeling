@@ -89,18 +89,12 @@ class OutcomeSobolIndices:
 class SobolIndices:
     """First- and total-order Sobol indices for each outcome variable."""
 
-    # mean_environment: OutcomeSobolIndices
-    # mean_action: OutcomeSobolIndices
     pluralistic_ignorance: OutcomeSobolIndices
-    # cluster_count: OutcomeSobolIndices
 
     def to_list(self) -> list[OutcomeSobolIndices]:
         """Get outcome Sobol indices in a list, for iteration purposes."""
         return [
-            # self.mean_environment,
-            # self.mean_action,
             self.pluralistic_ignorance,
-            # self.cluster_count,
         ]
 
 
@@ -117,10 +111,7 @@ def sample_parameter_space(n: int) -> npt.NDArray[np.float64]:
 
 
 def sobol_analysis(
-    # mean_environment: npt.NDArray[np.float64],
-    # mean_action: npt.NDArray[np.float64],
     pluralistic_ignorance: npt.NDArray[np.float64],
-    # cluster_count: npt.NDArray[np.float64],
 ) -> SobolIndices:
     """Compute Sobol indices for each outcome variable.
 
@@ -133,14 +124,8 @@ def sobol_analysis(
     (x) indicates that an outcome is not included due to distributional problems.
 
     Args:
-        mean_environment: For each parameter sample, the average environment state
-            at the end of simulation.
-        mean_action: For each parameter sample, the average agent action at the end of
-            simulation.
         pluralistic_ignorance: For each parameter sample, the average agent pluralistic
             ignorance at the end of simulation.
-        cluster_count: For each parameter sample, the total number of environment
-            clusters at the end of simulation.
 
     Returns:
         A SobolIndices object with the first-order and total-order Sobol indices for
@@ -166,10 +151,7 @@ def sobol_analysis(
         )
 
     return SobolIndices(
-        # mean_environment=compute_sobol_indices(mean_environment),
-        # mean_action=compute_sobol_indices(mean_action),
         pluralistic_ignorance=compute_sobol_indices(pluralistic_ignorance),
-        # cluster_count=compute_sobol_indices(cluster_count),
     )
 
 
