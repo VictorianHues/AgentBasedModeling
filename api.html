@@ -936,6 +936,18 @@ It increases when the environment is not at either of these extremes.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.calculate_individual_preference">
+<span class="sig-name descname"><span class="pre">calculate_individual_preference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.calculate_individual_preference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.calculate_individual_preference" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate agents’ individual preference for an action.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.calculate_social_pressure">
+<span class="sig-name descname"><span class="pre">calculate_social_pressure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.calculate_social_pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.calculate_social_pressure" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate agents’ social pressure when taking a given action.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="abm_project.vectorised_model.VectorisedModel.decide">
 <span class="sig-name descname"><span class="pre">decide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abm_project/vectorised_model.html#VectorisedModel.decide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.vectorised_model.VectorisedModel.decide" title="Link to this definition">¶</a></dt>
 <dd><p>Select a new action for each agent.</p>
@@ -1274,6 +1286,45 @@ of change in preference for cooperation.</p></li>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A tuple (N, M) containing pairs of equilibria points
 (environment state, action).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-abm_project.metrics">
+<span id="metrics"></span><h2>Metrics<a class="headerlink" href="#module-abm_project.metrics" title="Link to this heading">¶</a></h2>
+<p>Functions to measure model observables.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="abm_project.metrics.pluralistic_ignorance">
+<span class="sig-prename descclassname"><span class="pre">abm_project.metrics.</span></span><span class="sig-name descname"><span class="pre">pluralistic_ignorance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#abm_project.vectorised_model.VectorisedModel" title="abm_project.vectorised_model.VectorisedModel"><span class="pre">VectorisedModel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abm_project/metrics.html#pluralistic_ignorance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abm_project.metrics.pluralistic_ignorance" title="Link to this definition">¶</a></dt>
+<dd><p>Measure agents’ pluralistic ignorance at the end of simulation.</p>
+<p>Pluralistic ignorance is a phenomenon which occurs when individuals underestimate
+public support for a particular action, leading them to behave in a manner which
+does not reflect their own beliefs, even when true public support is high.</p>
+<p>To measure an agent’s pluralistic ignorance at the end of simulation, we consider
+their expected actions:</p>
+<ol class="arabic simple">
+<li><p>Under perceived social norms, <span class="math notranslate nohighlight">\(\mathbb{E}[a_i]_\text{perceived}\)</span></p></li>
+<li><p>In absence of social norms, <span class="math notranslate nohighlight">\(\mathbb{E}[a_i]_\text{individual}\)</span></p></li>
+<li><dl class="simple">
+<dt>When observing their neighbors’ true preferences,</dt><dd><p><span class="math notranslate nohighlight">\(\mathbb{E}[a_i]_\text{true}\)</span></p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>An agent <span class="math notranslate nohighlight">\(i\)</span>’s pluralistic ignorance is calculated as:</p>
+<div class="math notranslate nohighlight">
+\[\psi_i = \max\{0, \
+|\mathbb{E}[a_i]_\text{perceived} - \mathbb{E}[a_i]_\text{individual}| - \
+|\mathbb{E}[a_i]_\text{true} - \mathbb{E}[a_i]_\text{individual}|\}\]</div>
+<p>i.e., it is large when knowing the true social norm would allow an agent to behave
+in a manner more consistent with their individual preferences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> – A VectorisedModel which has been run for at least k timesteps.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 1D Numpy array containing the measured pluralistic ignorance for each agent.</p>
 </dd>
 </dl>
 </dd></dl>
