@@ -204,3 +204,4 @@ cython_debug/
 
 # DS_Store
 .DS_Store
+results/**
