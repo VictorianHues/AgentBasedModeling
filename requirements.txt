@@ -48,6 +48,9 @@ dill==0.4.0 \
     --hash=sha256:0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0 \
     --hash=sha256:44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049
     # via multiprocess
+ffmpeg==1.4 \
+    --hash=sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9
+    # via abm-project
 fonttools==4.58.2 \
     --hash=sha256:27d74b9f6970cefbcda33609a3bee1618e5e57176c8b972134c4e22461b9c791 \
     --hash=sha256:3b379cf05bf776c336a0205632596b1c7d7ab5f7135e3935f2ca2a0596d2d092 \
@@ -200,6 +203,7 @@ numpy==2.3.1 \
     #   matplotlib
     #   mesa
     #   pandas
+    #   ruptures
     #   salib
     #   scipy
     #   seaborn
@@ -297,6 +301,13 @@ pytz==2025.2 \
     --hash=sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3 \
     --hash=sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00
     # via pandas
+ruptures==1.1.9 \
+    --hash=sha256:28d242c961a2b486e36b25a4df3f26fabee0607ae8c80b2e65e73a9db491ce76 \
+    --hash=sha256:8466857f4d5c957b050bead1bb0e7d5f2807c60c5bdc30fc533f36ae0234583f \
+    --hash=sha256:92adde29b24b3ad94d8cd9421634a5f8dd729ae74d3b88bdca4bbc5cfd450c11 \
+    --hash=sha256:9df414e3952e1d6b26dc02515d28b9adfc821ef2c6459c196a3ae751dd7d1813 \
+    --hash=sha256:aa940f3c02235dab94753ff15689f8ebaca10c83da71cb29cbb7f981dfa362dc
+    # via abm-project
 salib==1.5.1 \
     --hash=sha256:a978b619c5a93eb14dd8c527f12e22d354b02f1f7143aba3cb84c1c7bc1382e5 \
     --hash=sha256:e4a9c319b8dd02995a8dc983f57c452cb7e5b6dbd43e7b7856c90cb6a332bb5f
@@ -333,6 +344,7 @@ scipy==1.15.3 \
     # via
     #   abm-project
     #   mesa
+    #   ruptures
     #   salib
 seaborn==0.13.2 \
     --hash=sha256:636f8336facf092165e27924f223d3c62ca560b1f2bb5dff7ab7fad265361987 \

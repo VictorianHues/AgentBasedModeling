@@ -379,7 +379,9 @@ def example_phase_portrait_with_model_trajectory():
     )
 
     # Plot model trajectories through phase portrait
-    env = piecewise_exponential_update()
+    env = piecewise_exponential_update(
+        recovery=recovery, pollution=pollution, gamma=0.01
+    )
     for i in range(3):
         rng = np.random.default_rng(i)
         model = VectorisedModel(

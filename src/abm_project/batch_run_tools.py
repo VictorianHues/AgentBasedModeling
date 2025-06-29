@@ -130,7 +130,7 @@ def local_action_agreement_score(
         float: Clustering score (0 to 1).
     """
     if flat_grid.size != width * height:
-        raise ValueError("flat_grid size does not match width × height")
+        raise ValueError("flat_grid size does not match width x height")
 
     grid = flat_grid.reshape((height, width))
 

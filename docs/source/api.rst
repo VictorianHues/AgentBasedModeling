@@ -37,3 +37,9 @@ Mean-field
 ----------
 .. automodule:: abm_project.mean_field
    :members:
+
+Metrics
+-------
+.. automodule:: abm_project.metrics
+   :members:
+

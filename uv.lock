@@ -7,11 +7,13 @@ name = "abm-project"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ffmpeg" },
     { name = "matplotlib" },
     { name = "mesa" },
     { name = "networkx" },
     { name = "numpy" },
     { name = "pytest" },
+    { name = "ruptures" },
     { name = "salib" },
     { name = "scipy" },
     { name = "seaborn" },
@@ -25,11 +27,13 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ffmpeg", specifier = ">=1.4" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mesa", specifier = ">=3.2.0" },
     { name = "networkx", specifier = ">=3.5" },
     { name = "numpy", specifier = ">=2.3.0" },
     { name = "pytest", specifier = ">=8.4.0" },
+    { name = "ruptures", specifier = ">=1.1.9" },
     { name = "salib", specifier = ">=1.5.1" },
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "seaborn", specifier = ">=0.13.2" },
@@ -177,6 +181,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/ae/ed/aefcc8cd0ba62a056
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/d7/9322c609343d929e75e7e5e6255e614fcc67572cfd083959cdef3b7aad79/docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2", size = 587408, upload-time = "2024-04-23T18:57:14.835Z" },
 ]
+
+[[package]]
+name = "ffmpeg"
+version = "1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/cc/3b7408b8ecf7c1d20ad480c3eaed7619857bf1054b690226e906fdf14258/ffmpeg-1.4.tar.gz", hash = "sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9", size = 5055, upload-time = "2018-10-08T07:50:05.748Z" }
 
 [[package]]
 name = "fonttools"
@@ -620,6 +630,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/30/76/48fd56d17c5bdbdf65609abbc67288728a98ed4c02919428d4f52d23b24b/roman_numerals_py-3.1.0.tar.gz", hash = "sha256:be4bf804f083a4ce001b5eb7e3c0862479d10f94c936f6c4e5f250aa5ff5bd2d", size = 9017, upload-time = "2025-02-22T07:34:54.333Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/53/97/d2cbbaa10c9b826af0e10fdf836e1bf344d9f0abb873ebc34d1f49642d3f/roman_numerals_py-3.1.0-py3-none-any.whl", hash = "sha256:9da2ad2fb670bcf24e81070ceb3be72f6c11c440d73bd579fbeca1e9f330954c", size = 7742, upload-time = "2025-02-22T07:34:52.422Z" },
+]
+
+[[package]]
+name = "ruptures"
+version = "1.1.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/16/7fe5a9ee6e5c8fddce3a7309a7fa5186df10417676779c24a02f650f7e3b/ruptures-1.1.9.tar.gz", hash = "sha256:aa940f3c02235dab94753ff15689f8ebaca10c83da71cb29cbb7f981dfa362dc", size = 308115, upload-time = "2023-12-11T10:04:44.565Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/96/986eca7c0520dfad3662443a88085b676044e5a5f7c2e1f3187ee5f9ce03/ruptures-1.1.9-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:28d242c961a2b486e36b25a4df3f26fabee0607ae8c80b2e65e73a9db491ce76", size = 491736, upload-time = "2023-12-11T10:03:52.244Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/70/3ee8cc4b8847b66d53f53a3fb330b98f3e0281fb0c4b86f8113c2ec18ea3/ruptures-1.1.9-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9df414e3952e1d6b26dc02515d28b9adfc821ef2c6459c196a3ae751dd7d1813", size = 1256852, upload-time = "2023-12-11T10:03:54.15Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/76/ee5c035213ecd622a7196e484fd1aab0c88706ace77c6b16942f90b056dc/ruptures-1.1.9-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8466857f4d5c957b050bead1bb0e7d5f2807c60c5bdc30fc533f36ae0234583f", size = 1271080, upload-time = "2023-12-11T10:03:56.25Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/23/a3effacebdd85732cb5c69679e11b544777cba6329ad70241a7f0512a1f5/ruptures-1.1.9-cp312-cp312-win_amd64.whl", hash = "sha256:92adde29b24b3ad94d8cd9421634a5f8dd729ae74d3b88bdca4bbc5cfd450c11", size = 474018, upload-time = "2023-12-11T10:03:58.072Z" },
 ]
 
 [[package]]
