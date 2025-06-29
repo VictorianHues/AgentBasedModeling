@@ -34,6 +34,7 @@ $(FIGURES_DIR)/appendix_fixed_point_mean_action.pdf: \
 
 $(FIGURES_DIR)/sensitivity_analysis_outcome_distributions.pdf: \
 			scripts/sensitivity_analysis_plots.py \
+			src/abm_project/sensitivity_analysis.py \
 			$(DATA_DIR)/sensitivity_analysis_outcome_measurements.npz \
 			| $(FIGURES_DIR)
 	$(ENTRYPOINT) $<
