@@ -201,4 +201,3 @@ cython_debug/
 *.jpeg
 *.gif
 *.npz
-*.csv

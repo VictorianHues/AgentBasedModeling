@@ -19,7 +19,7 @@ def plot_cluster_across_memory(critical_times, option, savedir):
         option: Option indicating the type of analysis (e.g., "environment").
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(".")
+    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     memory_values = list(critical_times.keys())
 
@@ -56,7 +56,7 @@ def plot_ncluster_given_memory(model, option, num_steps, savedir):
         num_steps: Number of timesteps to run the model.
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(".")
+    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     nc, c1 = cluster_time_series(model=model, option=option)
 
@@ -87,7 +87,7 @@ def plot_eq_env_against_memory_rationality(filepath, savedir=None):
         filepath: Path to the npz file containing equilibrium environment state.
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(".")
+    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     # Read the equilibrium state from the npz file
     data = np.load(filepath)
@@ -136,7 +136,7 @@ def plot_ncluster_across_memory(cluster_n, option, savedir):
         option: Option indicating the type of analysis (e.g., "environment").
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(".")
+    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     memory_values = list(cluster_n.keys())
 
@@ -170,7 +170,7 @@ def plot_ncluster_multiple_model_runs(num_steps=1000, models=None, savedir=None)
     if models is None:
         raise ValueError("No models provided for plotting.")
 
-    savedir = savedir or Path(".")
+    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     num_clusters = []
     max_cluster_sizes = []
@@ -276,3 +276,66 @@ def plot_xi(
         dpi=300,
         bbox_inches="tight",
     )
+
+
+# TODO: Figure out corresponding function in cluster_vs_memory.py
+# def plot_cmax(filepath: str,
+#               loglog: bool,
+#               param_name: str,
+#               param_values: np.ndarray,
+#               means: np.ndarray,
+#               stds: np.ndarray,
+#               ax: plt.Axes | None = None):
+#     """Plot the maximum cluster size against a parameter.
+
+#     Args:
+#         loglog: If True, use log-log scale for both axes.
+#         param_name: Name of the parameter being varied (e.g. "rationality").
+#         param_values: Values of the parameter to plot on the x-axis.
+#         means: Mean maximum cluster sizes for each parameter value.
+#         stds: Standard deviations of maximum cluster sizes for each parameter value.
+#         ax: Existing matplotlib Axes to draw on (creates one if None).
+#         **plot_kwargs: Style arguments forwarded to `ax.errorbar`.
+#     """
+#     savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
+
+#     # Read the equilibrium state from the npz file
+#     data = np.load(filepath)
+
+#     # Scatter vs correlation length
+#     if plot_xi:
+#         stats = correlation_length_time_series(model, option=option)
+#         xi = stats["xi"]
+
+#         fig_sc, ax_sc = plt.subplots(figsize=(4, 4))
+#         ax_sc.scatter(c_max, xi, s=10, alpha=0.7)
+#         ax_sc.set_xscale("log")
+#         ax_sc.set_yscale("log")
+#         ax_sc.set_xlabel("Largest cluster size $c_{max}$")
+#         ax_sc.set_ylabel("Correlation length $\\xi$")
+#         ax_sc.set_title("$c_{max}$ vs $\\xi$")
+#         ax_sc.grid(ls=":", which="both")
+
+#     if savedir is not None:
+#         savedir = Path(savedir)
+#         savedir.mkdir(parents=True, exist_ok=True)
+#         fig_ts.savefig(
+#             savedir
+#             / f"cmax_timeseries_randomenv_rat{model.rationality:.1f}_\
+#             mem{model.memory_count}.png",
+#             dpi=300,
+#             bbox_inches="tight",
+#         )
+#         if plot_xi:
+#             fig_sc.savefig(
+#                 savedir
+#                 / f"cmax_vs_xi_randomenv_rat{model.rationality:.1f}_\
+#                 mem{model.memory_count}.png",
+#                 dpi=300,
+#                 bbox_inches="tight",
+#             )
+
+#     if show:
+#         plt.show()
+#     else:
+#         plt.close("all")
