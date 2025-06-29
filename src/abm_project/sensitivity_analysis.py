@@ -89,10 +89,19 @@ class OutcomeSobolIndices:
 class SobolIndices:
     """First- and total-order Sobol indices for each outcome variable."""
 
-    mean_environment: OutcomeSobolIndices
-    mean_action: OutcomeSobolIndices
+    # mean_environment: OutcomeSobolIndices
+    # mean_action: OutcomeSobolIndices
     pluralistic_ignorance: OutcomeSobolIndices
-    cluster_count: OutcomeSobolIndices
+    # cluster_count: OutcomeSobolIndices
+
+    def to_list(self) -> list[OutcomeSobolIndices]:
+        """Get outcome Sobol indices in a list, for iteration purposes."""
+        return [
+            # self.mean_environment,
+            # self.mean_action,
+            self.pluralistic_ignorance,
+            # self.cluster_count,
+        ]
 
 
 def sample_parameter_space(n: int) -> npt.NDArray[np.float64]:
@@ -108,18 +117,20 @@ def sample_parameter_space(n: int) -> npt.NDArray[np.float64]:
 
 
 def sobol_analysis(
-    mean_environment: npt.NDArray[np.float64],
-    mean_action: npt.NDArray[np.float64],
+    # mean_environment: npt.NDArray[np.float64],
+    # mean_action: npt.NDArray[np.float64],
     pluralistic_ignorance: npt.NDArray[np.float64],
-    cluster_count: npt.NDArray[np.float64],
+    # cluster_count: npt.NDArray[np.float64],
 ) -> SobolIndices:
     """Compute Sobol indices for each outcome variable.
 
     Supported outcome variables:
-    - Mean environment
-    - Mean action
+    - Mean environment         (x)
+    - Mean action              (x)
     - Pluralistic ignorance
-    - Cluster count
+    - Cluster count            (x)
+
+    (x) indicates that an outcome is not included due to distributional problems.
 
     Args:
         mean_environment: For each parameter sample, the average environment state
@@ -139,7 +150,7 @@ def sobol_analysis(
     def compute_sobol_indices(outcome: npt.NDArray[np.float64]):
         result = sobol.analyze(
             PROBLEM,
-            Y=mean_environment,
+            Y=outcome,
             calc_second_order=False,
         )
 
@@ -155,10 +166,10 @@ def sobol_analysis(
         )
 
     return SobolIndices(
-        mean_environment=compute_sobol_indices(mean_environment),
-        mean_action=compute_sobol_indices(mean_action),
+        # mean_environment=compute_sobol_indices(mean_environment),
+        # mean_action=compute_sobol_indices(mean_action),
         pluralistic_ignorance=compute_sobol_indices(pluralistic_ignorance),
-        cluster_count=compute_sobol_indices(cluster_count),
+        # cluster_count=compute_sobol_indices(cluster_count),
     )
 
 

@@ -104,7 +104,7 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path):
 
 if __name__ == "__main__":
     REPEATS = 1
-    STEPS = 1000
-    N_SAMPLES = 256
+    STEPS = 2000
+    N_SAMPLES = 2048
     DATA_DIR = Path("data")
     main(REPEATS, STEPS, N_SAMPLES, DATA_DIR)
