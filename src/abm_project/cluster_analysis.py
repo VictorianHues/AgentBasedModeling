@@ -234,7 +234,7 @@ def correlation_length_snapshot(label_array: np.ndarray, sizes: dict[int, int]):
     denominator = 0.0
 
     for lab, s in sizes.items():
-        if s < 2:  # singleton → Rg undefined
+        if s < 2:  # singleton -> Rg undefined
             continue
 
         ys, xs = np.where(label_array == lab)  # coords of cluster
@@ -253,8 +253,9 @@ def correlation_length_time_series(model, option: str = "action"):
 
     Args:
         model: BaseModel
-            Instance with attributes `.action` or `.environment`,
-            `.time`, `.height`, and `.width`.
+            Instance with attributes `action` and `environment`, which are
+            3D numpy arrays of shape (T, height, width), where T is the
+            number of time steps (model.time + 1).
         option: str
             Either "action" or "environment".  Selects which lattice
             history to analyse.
@@ -303,6 +304,7 @@ def correlation_length_time_series(model, option: str = "action"):
         max_cluster_size[t] = max(sizes.values(), default=0)
         mean_cluster_sz[t] = np.mean(list(sizes.values())) if sizes else 0.0
 
+    # return xi, num_clusters, max_cluster_size, mean_cluster_sz
     return {
         "xi": xi,
         "num_clusters": num_clusters,

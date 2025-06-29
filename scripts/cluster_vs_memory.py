@@ -1,4 +1,5 @@
-import time
+"""Script to run cluster analysis for varying parameters."""
+
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -15,11 +16,9 @@ from abm_project.cluster_analysis import (
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
-# from abm_project.utils_phase_plt import plot_phase_portrait_abm
-
 
 # TODO: Update vectorized model to use the new parameters
-def test_cluster_across_memory(option):
+def test_cluster_across_memory(model, option):
     # Parameters for the simulation
     num_agents = 2500
     width = 50
@@ -49,7 +48,6 @@ def test_cluster_across_memory(option):
 
             memory_count = mem_count
 
-            # start = time.time()
             model = VectorisedModel(
                 num_agents=num_agents,
                 width=width,
@@ -64,7 +62,6 @@ def test_cluster_across_memory(option):
                 max_storage=num_steps,
             )
             model.run(num_steps)
-            # end = time.time()
 
             Nc, C1 = cluster_time_series(model=model, option=option)
 
@@ -81,76 +78,12 @@ def test_cluster_across_memory(option):
     return critical_times, cluster_n, largest_cluster, memory_values
 
 
-# TODO: Fix it. Doesn't work yet
-def plot_cluster_across_memory(critical_times, option, savedir):
-    savedir = savedir or Path(".")
-
-    memory_values = list(critical_times.keys())
-
-    plt.figure(figsize=(10, 6))
-    plt.errorbar(
-        memory_values,
-        [np.mean(critical_times[m]) for m in memory_values],
-        yerr=[np.std(critical_times[m]) for m in memory_values],
-        fmt="o-",
-        capsize=5,
-    )
-    plt.xlabel("Memory Count")
-    plt.ylabel("Critical Time (t_c)")
-    plt.title("Critical Time vs Memory Count")
-    plt.grid()
-
-    if savedir:
-        plt.savefig(
-            savedir / f"cluster_across_memory_{option}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        print(f"Plot saved as 'cluster_across_memory_{option}.png'")
-    # plt.show()
-    plt.close()
-
-
-def plot_ncluster_given_memory(model, option, num_steps, savedir):
-    savedir = savedir or Path(".")
-
-    # Nc, C1 = cluster_time_series(model=model, option=option)
-    nc, c1 = cluster_time_series(model=model, option=option)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(nc, label="Number of Clusters")
-    plt.xlabel("Time Steps")
-    plt.ylabel("Number of Clusters")
-    plt.title("Number of Clusters Over Time")
-    plt.legend()
-    plt.grid()
-
-    if savedir:
-        plt.savefig(
-            savedir
-            / f"mem{model.memory_count}_{option}_{model.rationality:.3f}_\
-            gammas{model.gamma_s}_{model.width}_{model.height}_{num_steps}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        # print(
-        #     f"Plot saved as 'mem{model.memory_count}_{option}_
-        # {model.severity_benefit_option}_{model.rationality}_{model.width}_
-        # {model.height}_{num_steps}.png'"
-        # )
-    # plt.show()
-    plt.close()
-
-
-def plot_ncluster_against_memory_rationality(
-    models, option, memory_range, rat_range, savedir
+def eq_env_against_memory_rationality(
+    models=None, memory_range=None, rat_range=None, savedir=None
 ):
     #  Create a heatmap of memory vs rationality filled with number of clusters
-
     savedir = savedir or Path(".")
 
-    # Plot equilibrium env state (environment state at last timestep)
-    # initialize 2d array to store env equilibrium state
     eq_env_state = np.zeros((len(memory_range), len(rat_range)))
     for i, mem in enumerate(memory_range):
         for j, rat in enumerate(rat_range):
@@ -160,10 +93,7 @@ def plot_ncluster_against_memory_rationality(
                 None,
             )
             if model:
-                if option == "action":
-                    history = model.action[: model.time + 1]
-                elif option == "environment":
-                    history = model.environment[: model.time + 1]
+                history = model.environment[: model.time + 1]
                 history = history.reshape((-1, model.height, model.width))
                 lattice = history[history.shape[0] - 1]
                 eq_env_state[i, j] = np.mean(lattice)
@@ -177,266 +107,36 @@ def plot_ncluster_against_memory_rationality(
         rat_range=rat_range,
     )
 
+    return None
+
+
+def nclusters_against_memory_rationality(
+    models=None, option="environment", memory_range=None, rat_range=None, savedir=None
+):
+    savedir = savedir or Path(".")
+
     # Initialize a 2D array to store the number of clusters
-    # n_clusters = np.zeros((len(memory_range), len(rat_range)))
-    # for i, mem in enumerate(memory_range):
-    #     for j, rat in enumerate(rat_range):
-    #         # Find the model with the current memory and rationality
-    #         model = next((m for m in models if m.memory_count == mem and
-    # m.rationality == rat), None)
-    #         if model:
-    #            nc, _ = cluster_time_series(model=model, option=option)
-    #             n_clusters[i, j] = np.mean(nc)  # Average number of clusters over time
+    n_clusters = np.zeros((len(memory_range), len(rat_range)))
+    for i, mem in enumerate(memory_range):
+        for j, rat in enumerate(rat_range):
+            # Find the model with the current memory and rationality
+            model = next(
+                (m for m in models if m.memory_count == mem and m.rationality == rat),
+                None,
+            )
+            if model:
+                nc, _ = cluster_time_series(model=model, option=option)
+                n_clusters[i, j] = np.mean(nc)  # Average number of clusters over time
 
-    plt.figure(figsize=(12, 8))
-
-    # plt.imshow(n_clusters, aspect='auto', cmap='viridis', origin='lower',
-    #            extent=[rat_range[0], rat_range[-1], memory_range[0],
-    # memory_range[-1]])
-
-    # plot equilibrium env state (environment state at last timestep)
-    plt.imshow(
-        eq_env_state,
-        aspect="auto",
-        cmap="viridis",
-        origin="lower",
-        extent=[rat_range[0], rat_range[-1], memory_range[0], memory_range[-1]],
-    )
-
-    plt.colorbar(label="Equilibrium Environment")
-    plt.xlabel("Rationality (rat)", fontsize=15)
-    plt.ylabel("Memory Count (mem_count)", fontsize=15)
-    plt.title("Steady-State Environment as Function of rat and mem_count", fontsize=18)
-    plt.xticks(rat_range)
-    plt.xticks(fontsize=15)
-    plt.xticks(rotation=90)
-    plt.yticks(memory_range)
-    plt.yticks(fontsize=15)
-
-    if savedir:
-        plt.savefig(
-            savedir
-            / f"n_clusters_vs_memory({memory_count_range[0]},{memory_count_range[-1]})_\
-            rationality({rat_range[0]},{rat_range[-1]})_gs{models[0].gamma_s}.png",
-            dpi=300,
-            bbox_inches="tight",
+        # Save equilibrium state to a npz file
+        filepath = Path(savedir) / "n_clusters.npz"
+        np.savez(
+            filepath,
+            n_clusters=n_clusters,
+            memory_range=memory_range,
+            rat_range=rat_range,
         )
-        print(f"Plot saved as 'cluster_across_memory_{option}.png'")
-    # plt.show()
-    plt.close()
-
-
-# plot heatmap from eq_env_state.npz in a new function below
-def plot_heatmap_from_npz(npz_file, savedir=None):
-    """Plot heatmap from a npz file containing equilibrium environment state."""
-    savedir = savedir or Path(".")
-
-    data = np.load(npz_file)
-    eq_env_state = data["eq_env_state"]
-    memory_range = data["memory_range"]
-    rat_range = data["rat_range"]
-
-    plt.figure(figsize=(8, 6))
-    plt.imshow(
-        eq_env_state,
-        aspect="auto",
-        cmap="viridis",
-        origin="lower",
-        vmin=0.0,
-        vmax=1.0,
-        extent=[rat_range[0], rat_range[-1], memory_range[0], memory_range[-1]],
-    )
-
-    cb = plt.colorbar(label="Equilibrium Environment")
-    cb.set_label(label="Equilibrium Environment", fontsize=15)
-    plt.xlabel(r"Rationality ($\lambda$)", fontsize=15)
-    plt.ylabel("Memory Count (mem_count)", fontsize=15)
-    # plt.title('Steady-State Environment as Function of rat
-    # and mem_count', fontsize=18)
-    plt.xticks(rat_range, fontsize=15)
-    plt.locator_params(axis="x", nbins=15)
-    # make xticks vertical
-    plt.xticks(rotation=90)
-    plt.yticks(memory_range, fontsize=15)
-    plt.locator_params(axis="y", nbins=15)
-    plt.tight_layout()
-
-    if savedir:
-        plt.savefig(
-            savedir
-            / f"n_clusters_vs_memory({memory_count_range[0]},{memory_count_range[-1]})\
-            _rationality({rat_range[0]},{rat_range[-1]}).png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        print("Heatmap saved as 'heatmap_eq_env_state.png'")
-
-    # plt.show()
-    plt.close()
-
-
-def plot_ncluster_across_memory(cluster_n, option, savedir):
-    savedir = savedir or Path(".")
-
-    memory_values = list(cluster_n.keys())
-
-    fig, ax = plt.figure(figsize=(10, 6))
-    for mem in memory_values:
-        ax.plot(cluster_n[mem], label=f"Memory {mem}")
-    ax.set_xlabel("Time Steps")
-    ax.set_ylabel("Number of Clusters")
-    ax.set_title("Number of Clusters Over Time for Different Memory Counts")
-    ax.legend()
-    ax.grid()
-    if savedir:
-        fig.savefig(
-            savedir / f"n_clusters_across_memory_{option}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        print("Plot saved as 'n_clusters_across_memory.png'")
-    # plt.show()
-    plt.close()
-
-
-# def main():
-# Set model parameters
-def run_model(
-    num_agents=2500,
-    width=50,
-    height=50,
-    num_steps=1000,
-    memory_count=40,
-    rationality=0.2,
-    env_update_fn=None,
-    rng=None,
-    neighb_prediction_option="linear",
-    severity_benefit_option="adaptive",
-    gamma_s=0.002,
-):
-    """Run the agent-based model with specified parameters."""
-
-    start = time.time()
-
-    # Create the model instance with the specified parameters
-    model = VectorisedModel(
-        num_agents=num_agents,
-        width=width,
-        height=height,
-        memory_count=memory_count,
-        rng=rng,
-        env_update_fn=env_update_fn,
-        rationality=rationality,
-        neighb_prediction_option=neighb_prediction_option,
-        severity_benefit_option=severity_benefit_option,
-        max_storage=num_steps,
-        gamma_s=gamma_s,
-    )
-
-    model.run(num_steps)
-    end = time.time()
-
-    print(f"Simulation completed in {end - start:.2f} seconds.")
-
-    return model, num_steps
-
-
-def run_model_multiple_runs(
-    num_agents=2500,
-    width=50,
-    height=50,
-    num_steps=1000,
-    memory_count=40,
-    rationality=0.1,
-    env_update_fn=None,
-    rng=None,
-    neighb_prediction_option="linear",
-    severity_benefit_option="adaptive",
-    gamma_s=0.01,
-):
-    # Run model for 50 iterations and plot the number of clusters, a trend line
-    num_runs = 50
-    models = []
-    for i in tqdm(range(num_runs), desc="Running multiple model iterations"):
-        print(f"Running model iteration {i + 1} of {num_runs}...")
-        model, _ = run_model(
-            num_agents=num_agents,
-            width=width,
-            height=height,
-            num_steps=num_steps,
-            memory_count=memory_count,
-            rationality=rationality,
-            env_update_fn=env_update_fn,
-            rng=rng,
-            neighb_prediction_option=neighb_prediction_option,
-            severity_benefit_option=severity_benefit_option,
-            gamma_s=gamma_s,
-        )
-        models.append(model)
-
-    return models
-
-
-def plot_ncluster_multiple_model_runs(num_steps=1000, models=None, savedir=None):
-    # """Plot the average number of clusters across multiple model runs."""
-    # check if models is provided
-    if models is None:
-        raise ValueError("No models provided for plotting.")
-
-    savedir = savedir or Path(".")
-
-    # Initialize lists to store the number of clusters at each time step
-    num_clusters = []
-    max_cluster_sizes = []
-    for model in models:
-        nc, c1 = cluster_time_series(model=model, option="environment")
-        num_clusters.append(nc)
-        max_cluster_sizes.append(c1)
-
-    # Calculate the average number of clusters and max cluster sizes across all models
-    avg_num_clusters = np.mean(num_clusters, axis=0)
-    # avg_max_cluster_sizes = np.mean(max_cluster_sizes, axis=0)
-
-    # Calculate the standard deviation for error bars
-    std_num_clusters = np.std(num_clusters, axis=0)
-    # std_max_cluster_sizes = np.std(max_cluster_sizes, axis=0)
-
-    # Plot the average number of clusters
-    timesteps = np.arange(len(avg_num_clusters))
-
-    # Plot mean and shaded std
-    plt.figure(figsize=(10, 6))
-    plt.plot(timesteps, avg_num_clusters, label="Mean # Clusters", color="blue")
-    plt.fill_between(
-        timesteps,
-        avg_num_clusters - std_num_clusters,
-        avg_num_clusters + std_num_clusters,
-        alpha=0.3,
-        label="±1 Std Dev",
-        color="blue",
-    )
-
-    plt.xlabel("Timestep")
-    plt.ylabel("Number of Clusters")
-    plt.title("Number of Clusters Over Time Across Runs")
-    plt.legend()
-    plt.grid(True)
-
-    if savedir:
-        plt.savefig(
-            savedir
-            / f"average_num_clusters_over_time_mem{models[0].memory_count}_\
-            rat{models[0].rationality}_gs{models[0].gamma_s}_{num_steps}.png",
-            dpi=300,
-            bbox_inches="tight",
-        )
-        print("Plot saved as 'average_num_clusters_over_time.png'")
-
-    # plt.show()
-    plt.close()
-
-
-# ============================================================
+    return None
 
 
 #  Correlation-length scans and plotting
@@ -507,27 +207,6 @@ def scan_parameter_for_xi(
     means = np.asarray(means)
     stds = np.asarray(stds)
 
-    if ax is None:
-        _, ax = plt.subplots(figsize=(6, 4))
-
-    if loglog:
-        # Require strictly positive data for log scale
-        if np.any(param_values <= 0) or np.any(means <= 0):
-            raise ValueError("log-log plot requested but data contain ≤ 0 values.")
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-
-    ax.errorbar(param_values, means, yerr=stds, marker="o", capsize=3, **plot_kwargs)
-    ax.set_xlabel(param_name)
-    ax.set_ylabel(r"Correlation length $\xi$ (final timestep)")
-    ax.set_title(rf"$\xi$ vs {param_name}")
-    ax.grid(ls=":")
-    # ax.savefig(
-    #     f"cluster_analysis_results/extra/xi_vs_{param_name}.png",
-    #     dpi=300,
-    #     bbox_inches="tight",
-    # )
-
     return means, stds
 
 
@@ -572,7 +251,7 @@ def analyse_cmax(
                 "percolation_time": int | None, # first crossing or None
             }
     """
-    # ------------------------------------------------ cluster sizes ----------
+    # ---------- cluster sizes ----------
     _labels, nc, c_max = cluster_time_series(model, option=option)
     t = np.arange(len(c_max))
     y = c_max / model.num_agents if normalise else c_max
@@ -586,7 +265,7 @@ def analyse_cmax(
     ax_ts.set_title("Largest cluster vs time")
     ax_ts.grid(ls=":")
 
-    # ------------------------------------------------ percolation time -------
+    # ---------- percolation time -------
     perc_time = None
     if detect_perc:
         thresh = perc_threshold * (1.0 if normalise else model.num_agents)
@@ -602,7 +281,7 @@ def analyse_cmax(
                 va="top",
             )
 
-    # ------------------------------------------------ scatter vs ξ ----------
+    # ---------- scatter vs ξ ----------
     if plot_xi:
         stats = correlation_length_time_series(model, option=option)
         xi = stats["xi"]
@@ -616,7 +295,6 @@ def analyse_cmax(
         ax_sc.set_title("$c_{max}$ vs $\\xi$")
         ax_sc.grid(ls=":", which="both")
 
-    # ------------------------------------------------ save / show -----------
     if savedir is not None:
         savedir = Path(savedir)
         savedir.mkdir(parents=True, exist_ok=True)
@@ -647,43 +325,8 @@ def analyse_cmax(
     }
 
 
-# ------------------------------------------------------------
-#  Example usage (executes if you run this file as a script)
-# ------------------------------------------------------------
-if __name__ == "__main__":
-    # All the *fixed* parameters for every run
-    base = dict(
-        width=50,
-        height=50,
-        num_agents=2500,
-        memory_count=20,
-        rationality=0.9,
-        gamma_s=0.01,
-        env_update_fn=piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01),
-        rng=None,
-        neighb_prediction_option="linear",
-        severity_benefit_option="adaptive",
-    )
-
-    # # Choose which parameter to sweep
-    # betas = np.linspace(0, 2.1, 20)
-    # # betas = np.logspace(-1.5, 0.3, 12)
-
-    # scan_parameter_for_xi(
-    #     "rationality",           # param to vary
-    #     betas,                   # values to try
-    #     base_kwargs=base,
-    #     num_steps=1000,
-    #     runs_per_value=10,        # 8 independent runs per β
-    #     option="action",
-    #     loglog=True,
-    #     color="tab:blue",
-    # )
-
-    # plt.tight_layout()
-    # plt.show()
-
-    # Define range for model parameters
+def main():
+    # Model parameters
     num_agents = 2500
     width = 50
     height = 50
@@ -691,14 +334,18 @@ if __name__ == "__main__":
 
     memory_count_range = [a for a in np.arange(2, 52, 2)]
     rationality_range = np.linspace(0, 2, 30, endpoint=True)
-    # memory_count = 20
-    # rationality = 0.9
+    # memory_count = [20]
+    # rationality = [0.9]
     gamma_s = 0.004
 
-    env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
-    # env_update_fn = linear_update(rate=0.01)
-    # env_update_fn = exponential_update(rate=0.01)
-    # env_update_fn = sigmoid_update(rate=0.01)
+    # Environment update parameters
+    recovery = 1
+    pollution = 1
+    gamma = 0.01
+
+    env_update_fn = piecewise_exponential_update(
+        recovery=recovery, pollution=pollution, gamma=gamma
+    )
 
     rng = None
     neighb_prediction_option = "linear"  # or "logistic"
@@ -706,45 +353,23 @@ if __name__ == "__main__":
 
     models = []
 
-    # mdl = VectorisedModel(**base)
-    # for mem_count in memory_count_range:
-    #     for rat_val in tqdm(rationality_range, desc=f"Memory: {mem_count},
-    #  Rationality"):
-    #         model = VectorisedModel(
-    #                     num_agents=num_agents,
-    #                     width=width,
-    #                     height=height,
-    #                     memory_count=mem_count,
-    #                     rng=rng,
-    #                     env_update_fn=env_update_fn,
-    #                     rationality=rat_val,
-    #                     simmer_time=1,
-    #                     neighb_prediction_option=neighb_prediction_option,
-    #                     severity_benefit_option=severity_benefit_option,
-    #                     gamma_s=gamma_s,
-    #                     max_storage=num_steps,
-    #                 )
-    #         model.run(num_steps)
-    #         models.append(model)
+    for memory_count in memory_count_range:
+        for rationality in rationality_range:
+            model = VectorisedModel(
+                num_agents=num_agents,
+                width=width,
+                height=height,
+                memory_count=memory_count,
+                rng=rng,
+                env_update_fn=env_update_fn,
+                rationality=rationality,
+                gamma_s=gamma_s,
+                neighb_prediction_option=neighb_prediction_option,
+                severity_benefit_option=severity_benefit_option,
+                max_storage=num_steps,
+            )
+            models.append(model)
 
-    # res = analyse_cmax(
-    #     mdl,
-    #     num_steps = 1000,
-    #     option="environment",
-    #     normalise=True,
-    #     savedir="cluster_analysis_results/extra/cmax_analysis",
-    #     )
-    # print("Percolation time:", res["percolation_time"])
 
-    # plot_ncluster_against_memory_rationality(
-    #     models=models,
-    #     option="environment",
-    #     memory_range=memory_count_range,
-    #     rat_range=rationality_range,
-    #     savedir=Path("cluster_analysis_results/extra")
-    # )
-
-    plot_heatmap_from_npz(
-        npz_file=Path("cluster_analysis_results/extra/eq_env_state.npz"),
-        savedir=Path("cluster_analysis_results/extra"),
-    )
+if __name__ == "__main__":
+    models = main()
