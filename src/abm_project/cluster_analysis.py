@@ -182,8 +182,8 @@ def cluster_given_timestep(model, option: str = "action", timestep: int = 0):
             Mapping from each cluster label to its size
             (number of sites in that cluster).
     """
-    if timestep > model.num_steps:
-        raise ValueError(f"Timestep {timestep} exceeds {model.num_steps}")
+    # if timestep > model.num_steps:
+    #     raise ValueError(f"Timestep {timestep} exceeds {model.num_steps}")
 
     environment_threshold = 0.6  # can change this later
 
