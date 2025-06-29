@@ -212,4 +212,4 @@ def cluster_given_timestep(model, option: str = "action", timestep: int = 0):
 
     labels, n_clusters, sizes = hoshen_kopelman(lattice)
 
-    return n_clusters, sizes
+    return labels, n_clusters, sizes
