@@ -181,8 +181,12 @@ if __name__ == "__main__":
     )
 
     configure_mpl()
-    plot_outcome_distributions(
-        mean_environment, mean_action, pluralistic_ignorance, cluster_count, FIGURES_DIR
-    )
     plot_pawn_heatmap(pawn_indices, FIGURES_DIR)
     plot_sobol_indices(sobol_indices, FIGURES_DIR)
+    plot_outcome_distributions(
+        mean_environment,
+        mean_action,
+        pluralistic_ignorance,
+        cluster_count,
+        FIGURES_DIR,
+    )
