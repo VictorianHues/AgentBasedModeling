@@ -39,7 +39,7 @@ def problem():
 
 
 def sample_parameter_space():
-    param_values = sobol_sample.sample(problem(), 2048, calc_second_order=False)
+    param_values = sobol_sample.sample(problem(), 64, calc_second_order=False)
     return param_values
 
 
@@ -59,7 +59,7 @@ def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
 
 def gather_output_statistics():
     repeats = 1
-    steps = 2000
+    steps = 100
     param_values = sample_parameter_space()
     environment_output = np.empty((repeats, len(param_values)))
     action_output = np.empty_like(environment_output)
