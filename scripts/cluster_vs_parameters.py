@@ -1,6 +1,6 @@
 """Script to run cluster analysis for varying parameters."""
 
-from pathlib import Path
+import os
 
 import numpy as np
 
@@ -24,7 +24,8 @@ def eq_env_against_memory_rationality(
         savedir: Directory to save the npz file. If None,
                     saves in current directory.
     """
-    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
+    # savedir = Path(savedir).mkdir(parents=True, exist_ok=True)
+    # savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     eq_env_state = np.zeros((len(memory_range), len(rat_range)))
     for i, mem in enumerate(memory_range):
@@ -40,7 +41,8 @@ def eq_env_against_memory_rationality(
                 eq_env_state[i, j] = np.mean(lattice)
 
     # Save equilibrium state to a npz file
-    filepath = Path(savedir) / "eq_env_state.npz"
+    os.makedirs(savedir, exist_ok=True)
+    filepath = savedir + "/eq_env_state.npz"
     np.savez(
         filepath,
         eq_env_state=eq_env_state,
@@ -65,7 +67,7 @@ def nclusters_against_memory_rationality(
         savedir: Directory to save the npz file. If None,
                     saves in current directory.
     """
-    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
+    # savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
 
     n_clusters = np.zeros((len(memory_range), len(rat_range)))
     for i, mem in enumerate(memory_range):
@@ -75,11 +77,13 @@ def nclusters_against_memory_rationality(
                 None,
             )
             if model:
-                nc, _ = cluster_time_series(model=model, option=option)
+                _, nc, _ = cluster_time_series(model=model, option=option)
                 n_clusters[i, j] = np.mean(nc)  # Average number of clusters over time
+    print(f"n_clusters shape: {n_clusters.shape}")
 
     # Save equilibrium state to a npz file
-    filepath = Path(savedir) / "n_clusters.npz"
+    os.makedirs(savedir, exist_ok=True)
+    filepath = savedir + "/n_clusters.npz"
     np.savez(
         filepath,
         n_clusters=n_clusters,
@@ -371,19 +375,31 @@ def main():
 
 if __name__ == "__main__":
     models = main()
-    print(f"Running cluster analysis for {len(models)} models...")
+    # print(f"Generated {len(models)} models.")
 
-    eq_env_against_memory_rationality(
-        models=models,
-        memory_range=[m.memory_count for m in models],
-        rat_range=[m.rationality for m in models],
-        savedir=Path("data/eq_env_vs_memory_rationality"),
-    )
+    # filepath_eq_env = "data/eq_env_vs_memory_rationality"
+    # eq_env_against_memory_rationality(
+    #     models=models,
+    #     memory_range=[m.memory_count for m in models],
+    #     rat_range=[m.rationality for m in models],
+    #     savedir=filepath_eq_env,
+    # )
+    # print("Plotting equilibrium environment state...")
+    # plot_eq_env_against_memory_rationality(
+    #     filepath=filepath_eq_env + "/eq_env_state.npz",
+    #     savedir="plots/eq_env_vs_memory_rationality/",
+    # )
 
-    nclusters_against_memory_rationality(
-        models=models,
-        option="environment",
-        memory_range=[m.memory_count for m in models],
-        rat_range=[m.rationality for m in models],
-        savedir=Path("data/n_clusters_vs_memory_rationality"),
-    )
+    # filepath_nclusters = "data/n_clusters_vs_memory_rationality"
+    # nclusters_against_memory_rationality(
+    #     models=models,
+    #     option="environment",
+    #     memory_range=[m.memory_count for m in models],
+    #     rat_range=[m.rationality for m in models],
+    #     savedir=filepath_nclusters,
+    # )
+    # print("Plotting number of clusters against memory and rationality...")
+    # plot_nclusters_against_memory_rationality(
+    #     filepath=filepath_nclusters + "/n_clusters.npz",
+    #     savedir="plots/n_clusters_vs_memory_rationality/",
+    # )

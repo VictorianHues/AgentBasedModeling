@@ -1,5 +1,6 @@
 """Script to plot cluster analysis results."""
 
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -10,10 +11,11 @@ from abm_project.cluster_analysis import (
 )
 
 
-def plot_cluster_across_memory(critical_times, option, savedir):
+def plot_cluster_across_memory(filepath, critical_times, option, savedir):
     """Plot critical time against memory count for different options.
 
     Args:
+        filepath: Path to the npz file containing critical times.
         critical_times: Dictionary where keys are memory counts and values are lists of
                         critical times for each memory count.
         option: Option indicating the type of analysis (e.g., "environment").
@@ -47,10 +49,11 @@ def plot_cluster_across_memory(critical_times, option, savedir):
     plt.close()
 
 
-def plot_ncluster_given_memory(model, option, num_steps, savedir):
+def plot_ncluster_given_memory(filepath, model, option, num_steps, savedir):
     """Plot the number of clusters over time for a given model and option.
 
     Args:
+        filepath: Path to the npz file containing cluster data.
         model: VectorisedModel instance to analyze.
         option: Option indicating the type of analysis (e.g., "environment").
         num_steps: Number of timesteps to run the model.
@@ -87,8 +90,6 @@ def plot_eq_env_against_memory_rationality(filepath, savedir=None):
         filepath: Path to the npz file containing equilibrium environment state.
         savedir: Directory to save the plot. If None, saves in current directory.
     """
-    savedir = savedir or Path(savedir).mkdir(parents=True, exist_ok=True)
-
     # Read the equilibrium state from the npz file
     data = np.load(filepath)
     eq_env_state = data["eq_env_state"]
@@ -116,21 +117,72 @@ def plot_eq_env_against_memory_rationality(filepath, savedir=None):
     # plt.yticks(fontsize=15)
 
     if savedir:
+        savedir += (
+            f"memory_({memory_range[0]},{memory_range[-1]})"
+            + f"rationality({rat_range[0]},{rat_range[-1]})"
+        )
+        os.makedirs(savedir, exist_ok=True)
         plt.savefig(
-            savedir
-            / f"n_clusters_vs_memory({memory_range[0]},{memory_range[-1]})_\
-            rationality({rat_range[0]},{rat_range[-1]}).png",
+            os.path.join(savedir, "eq_env_vs_memory_rationality.png"),
             dpi=300,
             bbox_inches="tight",
         )
+        print("Plot saved as 'eq_env_vs_memory_rationality.png'")
     # plt.show()
     plt.close()
 
 
-def plot_ncluster_across_memory(cluster_n, option, savedir):
+def plot_nclusters_against_memory_rationality(
+    filepath, savedir=None, option="environment"
+):
+    """Plot the number of clusters against memory and rationality.
+
+    Args:
+        filepath: Path to the npz file containing cluster data.
+        savedir: Directory to save the plot. If None, saves in current directory.
+        option: Option indicating the type of analysis (e.g., "environment").
+    """
+    # Read the equilibrium state from the npz file
+    data = np.load(filepath)
+    n_clusters = data["n_clusters"]
+    memory_range = data["memory_range"]
+    rat_range = data["rat_range"]
+
+    plt.figure(figsize=(12, 8))
+    plt.imshow(
+        n_clusters,
+        aspect="auto",
+        cmap="viridis",
+        origin="lower",
+        extent=[rat_range[0], rat_range[-1], memory_range[0], memory_range[-1]],
+    )
+
+    plt.colorbar(label="Number of Clusters")
+    plt.xlabel("Rationality (rat)")
+    plt.ylabel("Memory Count (mem_count)")
+    plt.title(f"Number of Clusters as Function of rat and mem_count ({option})")
+    plt.xticks(rat_range)
+    plt.xticks(rotation=90)
+    plt.yticks(memory_range)
+
+    if savedir:
+        savedir += (
+            f"memory_({memory_range[0]},{memory_range[-1]})"
+            + f"rationality({rat_range[0]},{rat_range[-1]})"
+        )
+        os.makedirs(savedir, exist_ok=True)
+        plt.savefig(
+            os.path.join(savedir, "n_clusters_vs_memory.png"),
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+
+def plot_ncluster_across_memory(filepath, cluster_n, option, savedir):
     """Plot the number of clusters across different memory counts.
 
     Args:
+        filepath: Path to the npz file containing cluster data.
         cluster_n: Dictionary where keys are memory counts and values are lists of
                     number of clusters at each time step.
         option: Option indicating the type of analysis (e.g., "environment").
