@@ -314,6 +314,8 @@ class VectorisedModel:
         actions = self.action[start:stop]  # shape: (memory, num_agents)
 
         if actions.shape[0] < 2:
+            if self.neighb_prediction_option == "true_pref":
+                return self.adj @ self.s[self.time]
             return self.mean_local_action(memory=self.memory_count)
 
         if self.neighb_prediction_option == "linear":
@@ -396,15 +398,23 @@ class VectorisedModel:
         Where :math:`a^* = (a + 1)/2` is a transformation of the action to the set 
         :math:`\{0,1\}`.
         """
+        preference = self.calculate_individual_preference(action)
+        social_pressure = self.calculate_social_pressure(action)
+
+        return self.b[0] * preference - self.b[1] * social_pressure
+
+    def calculate_individual_preference(self, action: int) -> npt.NDArray[np.float64]:
+        """Calculate agents' individual preference for an action."""
         if self.severity_benefit_option == "adaptive":
             a = int((action + 1) / 2)
-            severity_benefit = (a) * self.curr_s + (1 - a) * (4 - self.curr_s)
+            individual_preference = (a) * self.curr_s + (1 - a) * (4 - self.curr_s)
         else:
-            severity_benefit = -(2 * self.environment[self.time - 1] - 1) * action
+            individual_preference = -(2 * self.environment[self.time - 1] - 1) * action
+        return individual_preference
 
-        deviation_cost = (action - self.pred_neighb_action()) ** 2
-
-        return self.b[0] * severity_benefit - self.b[1] * deviation_cost
+    def calculate_social_pressure(self, action: int) -> npt.NDArray[np.float64]:
+        """Calculate agents' social pressure when taking a given action."""
+        return (action - self.pred_neighb_action()) ** 2
 
     def mean_local_action(self, memory: int = 1) -> npt.NDArray[np.float64]:
         """Calculate the average action in each agents' local neighborhood.
