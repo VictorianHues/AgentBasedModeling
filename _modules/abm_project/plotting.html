@@ -77,6 +77,8 @@
 
 
 
+<div class="viewcode-block" id="get_plot_directory">
+<a class="viewcode-back" href="../../api.html#abm_project.get_plot_directory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the directory for saving plots.</span>
 
@@ -91,9 +93,12 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">)</span>
     <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plot_dir</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">file_name</span> <span class="k">else</span> <span class="n">plot_dir</span>
-    <span class="k">return</span> <span class="n">plot_dir</span>
+    <span class="k">return</span> <span class="n">plot_dir</span></div>
 
 
+
+<div class="viewcode-block" id="get_data_directory">
+<a class="viewcode-back" href="../../api.html#abm_project.get_data_directory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_data_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the directory for saving data files.</span>
 
@@ -108,9 +113,12 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_dir</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
     <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">file_name</span> <span class="k">else</span> <span class="n">data_dir</span>
-    <span class="k">return</span> <span class="n">data_dir</span>
+    <span class="k">return</span> <span class="n">data_dir</span></div>
 
 
+
+<div class="viewcode-block" id="plot_current_grid_state">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_current_grid_state">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_current_grid_state</span><span class="p">(</span>
     <span class="n">grid</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">colorbar_label</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -136,9 +144,12 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot saved to </span><span class="si">{</span><span class="n">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="animate_grid_states">
+<a class="viewcode-back" href="../../api.html#abm_project.animate_grid_states">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">animate_grid_states</span><span class="p">(</span>
     <span class="n">grid_history</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">colorbar_label</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -194,9 +205,12 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">ani</span>
+    <span class="k">return</span> <span class="n">ani</span></div>
 
 
+
+<div class="viewcode-block" id="plot_grid_average_over_time">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_grid_average_over_time">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_grid_average_over_time</span><span class="p">(</span><span class="n">grid_values</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot overall agent values over time.</span>
 
@@ -223,9 +237,12 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot saved to </span><span class="si">{</span><span class="n">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="plot_list_over_time">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_list_over_time">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_list_over_time</span><span class="p">(</span>
     <span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend_labels</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -253,9 +270,12 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot saved to </span><span class="si">{</span><span class="n">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="plot_mean_and_variability_array">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_mean_and_variability_array">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_mean_and_variability_array</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">):</span>
@@ -263,7 +283,7 @@
     <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Mean&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;std&quot;</span><span class="p">:</span>
@@ -289,15 +309,18 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot saved to </span><span class="si">{</span><span class="n">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="plot_sobol_indices">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_sobol_indices">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_sobol_indices</span><span class="p">(</span><span class="n">Si</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">output_label</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot Sobol sensitivity indices for given time steps and variable names.&quot;&quot;&quot;</span>
     <span class="n">num_vars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">:</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sobol Sensitivity Analysis for </span><span class="si">{</span><span class="n">output_label</span><span class="si">}</span><span class="s2"> at t=</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># First-order indices</span>
@@ -325,15 +348,18 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot saved to </span><span class="si">{</span><span class="n">get_plot_directory</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="plot_support_derivative">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_support_derivative">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_support_derivative</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">savedir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot the derivative of support for cooperation with respect to environment.&quot;&quot;&quot;</span>
     <span class="n">savedir</span> <span class="o">=</span> <span class="n">savedir</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
 
     <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
-        <span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
 
     <span class="n">support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
@@ -366,9 +392,12 @@
     <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Change in support for cooperation, varying environment and pessimism&quot;</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">supylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\frac</span><span class="si">{ds}{dn}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savedir</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
+
+<div class="viewcode-block" id="plot_phase_portrait">
+<a class="viewcode-back" href="../../api.html#abm_project.plot_phase_portrait">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_phase_portrait</span><span class="p">(</span>
     <span class="n">c</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">recovery</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -488,7 +517,8 @@
     <span class="c1"># 4. Draw locations where dm/dt diverges (critical points)</span>
     <span class="c1"># !! Currently commented because unfinished derivation.</span>
     <span class="k">if</span> <span class="n">critical_points</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Plotting ds/dt = 0 is not yet implemented.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Plotting ds/dt = 0 is not yet implemented.&quot;</span><span class="p">)</span></div>
+
     <span class="c1">#    # Check if critical points exist</span>
     <span class="c1">#    if c &gt;= 1 / (2 * rationality):</span>
     <span class="c1">#        t = np.arccosh(np.sqrt(2 * rationality * c))</span>
@@ -505,6 +535,135 @@
     <span class="c1">#            color=&quot;gray&quot;,</span>
     <span class="c1">#            label=r&quot;$\frac{dm}{dt} \to \infty$&quot;,</span>
     <span class="c1">#        )</span>
+
+
+<div class="viewcode-block" id="get_file_basename">
+<a class="viewcode-back" href="../../api.html#abm_project.get_file_basename">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_file_basename</span><span class="p">(</span><span class="n">suffix</span><span class="p">,</span> <span class="n">neighb</span><span class="p">,</span> <span class="n">severity</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a standardized file basename based on parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        suffix (str): Suffix for the file name.</span>
+<span class="sd">        neighb (str): Neighborhood type (e.g., &quot;linear&quot;, &quot;von_neumann&quot;).</span>
+<span class="sd">        severity (str): Severity level (e.g., &quot;low&quot;, &quot;medium&quot;, &quot;high&quot;).</span>
+<span class="sd">        radius (int): Radius of the neighborhood.</span>
+<span class="sd">        b2 (float | None): Second utility function weight, or None if not applicable.</span>
+<span class="sd">        env (str): Environment update type (e.g., &quot;static&quot;, &quot;dynamic&quot;).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: A standardized file basename.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">_neighb-</span><span class="si">{</span><span class="n">neighb</span><span class="si">}</span><span class="s2">_sev-</span><span class="si">{</span><span class="n">severity</span><span class="si">}</span><span class="s2">_rad-</span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2">_&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;b2-</span><span class="si">{</span><span class="s1">&#39;1&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">b2</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;None&#39;</span><span class="si">}</span><span class="s2">_env-</span><span class="si">{</span><span class="n">env</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_and_plot_heatmap">
+<a class="viewcode-back" href="../../api.html#abm_project.save_and_plot_heatmap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_and_plot_heatmap</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">,</span>
+    <span class="n">suffix</span><span class="p">,</span>
+    <span class="n">neighb</span><span class="p">,</span>
+    <span class="n">severity</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">,</span>
+    <span class="n">b2</span><span class="p">,</span>
+    <span class="n">env_update_type</span><span class="p">,</span>
+    <span class="n">savedir</span><span class="p">,</span>
+    <span class="n">rationality_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">gamma_s_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save and plot a heatmap of the given data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (np.ndarray): 2D array of data to plot.</span>
+<span class="sd">        title (str): Title for the heatmap.</span>
+<span class="sd">        suffix (str): Suffix for the file name.</span>
+<span class="sd">        neighb (str): Neighborhood type (e.g., &quot;linear&quot;, &quot;von_neumann&quot;).</span>
+<span class="sd">        severity (str): Severity level (e.g., &quot;low&quot;, &quot;medium&quot;, &quot;high&quot;).</span>
+<span class="sd">        radius (int): Radius of the neighborhood.</span>
+<span class="sd">        b2 (float | None): Second utility function weight,</span>
+<span class="sd">            or None if not applicable.</span>
+<span class="sd">        env_update_type (str): Environment update type (e.g., &quot;static&quot;, &quot;dynamic&quot;).</span>
+<span class="sd">        savedir (Path): Directory to save the heatmap and data.</span>
+<span class="sd">        rationality_values (list[float] | None): List of rationality</span>
+<span class="sd">            values for x-axis ticks.</span>
+<span class="sd">        gamma_s_values (list[float] | None): List of support</span>
+<span class="sd">            update rates for y-axis ticks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dir_name</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;neighb-</span><span class="si">{</span><span class="n">neighb</span><span class="si">}</span><span class="s2">_sev-</span><span class="si">{</span><span class="n">severity</span><span class="si">}</span><span class="s2">_rad-</span><span class="si">{</span><span class="n">radius</span><span class="si">}</span><span class="s2">_&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;b2-</span><span class="si">{</span><span class="s1">&#39;1&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">b2</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;None&#39;</span><span class="si">}</span><span class="s2">_env-</span><span class="si">{</span><span class="n">env_update_type</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="n">plot_dir</span> <span class="o">=</span> <span class="n">savedir</span> <span class="o">/</span> <span class="n">dir_name</span>
+    <span class="n">plot_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">base</span> <span class="o">=</span> <span class="n">get_file_basename</span><span class="p">(</span><span class="n">suffix</span><span class="p">,</span> <span class="n">neighb</span><span class="p">,</span> <span class="n">severity</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">env_update_type</span><span class="p">)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">plot_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;data_</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">.npy&quot;</span>
+    <span class="n">fig_path</span> <span class="o">=</span> <span class="n">plot_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;heatmap_</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">.png&quot;</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="n">fig_width</span> <span class="o">=</span> <span class="mf">3.5</span>  <span class="c1"># inches (single column width)</span>
+    <span class="n">fig_height</span> <span class="o">=</span> <span class="mf">2.5</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">fig_width</span><span class="p">,</span> <span class="n">fig_height</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Check if data is in [0, 1] and set vmin/vmax accordingly</span>
+    <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">suffix</span> <span class="o">!=</span> <span class="s2">&quot;peak_freq&quot;</span><span class="p">:</span>
+        <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">rationality_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gamma_s_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_tick_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rationality_values</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rationality_values</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">y_tick_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma_s_values</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma_s_values</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">x_tick_labels</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rationality_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x_tick_indices</span><span class="p">]</span>
+        <span class="n">y_tick_labels</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gamma_s_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">y_tick_indices</span><span class="p">]</span>
+
+        <span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">xticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">yticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+            <span class="n">cbar_kws</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span> <span class="s2">&quot;shrink&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s2">&quot;pad&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">square</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">x_tick_indices</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">x_tick_labels</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">y_tick_indices</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">y_tick_labels</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">xticklabels</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">yticklabels</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+            <span class="n">cbar_kws</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span> <span class="s2">&quot;shrink&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s2">&quot;pad&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">square</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Rationality (λ)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Support Update Rate (γₛ)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;major&quot;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">collections</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">colorbar</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
 </pre></div>
 
           </div>

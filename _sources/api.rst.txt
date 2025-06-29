@@ -43,3 +43,17 @@ Metrics
 .. automodule:: abm_project.metrics
    :members:
 
+Plotting Tools
+-------
+.. automodule:: abm_project.plotting
+   :members:
+
+Utilities
+-------
+.. automodule:: abm_project.utils
+   :members:
+
+Batch Run Tools
+----------------
+.. automodule:: abm_project.batch_run_tools
+   :members:

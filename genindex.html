@@ -44,6 +44,7 @@
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -70,6 +71,13 @@
 
       <ul>
         <li><a href="api.html#module-abm_project.agent">module</a>
+</li>
+      </ul></li>
+      <li>
+    abm_project.batch_run_tools
+
+      <ul>
+        <li><a href="api.html#module-abm_project.batch_run_tools">module</a>
 </li>
       </ul></li>
       <li>
@@ -101,14 +109,28 @@
 </li>
       </ul></li>
       <li>
+    abm_project.plotting
+
+      <ul>
+        <li><a href="api.html#module-abm_project.plotting">module</a>
+</li>
+      </ul></li>
+      <li>
+    abm_project.utils
+
+      <ul>
+        <li><a href="api.html#module-abm_project.utils">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
     abm_project.vectorised_model
 
       <ul>
         <li><a href="api.html#module-abm_project.vectorised_model">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.action">action (abm_project.vectorised_model.VectorisedModel attribute)</a>
 </li>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.action_probabilities">action_probabilities() (abm_project.vectorised_model.VectorisedModel method)</a>
@@ -133,7 +155,15 @@
 </li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.agents">agents (abm_project.oop_model.BaseModel attribute)</a>
 </li>
+      <li><a href="api.html#abm_project.batch_run_tools.analyze_environment_clusters_periodic">analyze_environment_clusters_periodic() (in module abm_project.batch_run_tools)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.animate_grid_states">animate_grid_states() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.batch_run_tools.attribute_variance_over_time">attribute_variance_over_time() (in module abm_project.batch_run_tools)</a>
+</li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.ave_neighb_action">ave_neighb_action() (abm_project.oop_model.BaseModel method)</a>
+</li>
+      <li><a href="api.html#abm_project.batch_run_tools.average_metric_over_time">average_metric_over_time() (in module abm_project.batch_run_tools)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -161,18 +191,24 @@
 </li>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.calculate_individual_preference">calculate_individual_preference() (abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.agent.Agent.calculate_perceived_severity">calculate_perceived_severity() (abm_project.agent.Agent method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.calculate_social_pressure">calculate_social_pressure() (abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
       <li><a href="api.html#abm_project.kraan.KraanModel.choose">choose() (abm_project.kraan.KraanModel method)</a>
 </li>
+      <li><a href="api.html#abm_project.batch_run_tools.clustering_score_over_time">clustering_score_over_time() (in module abm_project.batch_run_tools)</a>
+</li>
       <li><a href="api.html#abm_project.mean_field.compute_s_from_p">compute_s_from_p() (in module abm_project.mean_field)</a>
 </li>
       <li><a href="api.html#abm_project.configure_mpl">configure_mpl() (in module abm_project)</a>
+
+      <ul>
+        <li><a href="api.html#abm_project.plotting.configure_mpl">(in module abm_project.plotting)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -235,11 +271,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.oop_model.BaseModel.env_update_option">env_update_option (abm_project.oop_model.BaseModel attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.environment">environment (abm_project.vectorised_model.VectorisedModel attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.kraan.exogenous_env">exogenous_env() (in module abm_project.kraan)</a>
+</li>
+      <li><a href="api.html#abm_project.utils.exponential_update">exponential_update() (in module abm_project.utils)</a>
+</li>
+      <li><a href="api.html#abm_project.batch_run_tools.extract_mean_and_variance">extract_mean_and_variance() (in module abm_project.batch_run_tools)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -251,9 +291,11 @@
 </li>
       <li><a href="api.html#abm_project.mean_field.f_dn_dt">f_dn_dt() (in module abm_project.mean_field)</a>
 </li>
+      <li><a href="api.html#abm_project.mean_field.f_ds_dt">f_ds_dt() (in module abm_project.mean_field)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#abm_project.mean_field.f_ds_dt">f_ds_dt() (in module abm_project.mean_field)</a>
+      <li><a href="api.html#abm_project.batch_run_tools.UnionFind.find">find() (abm_project.batch_run_tools.UnionFind method)</a>
 </li>
       <li><a href="api.html#abm_project.mean_field.fixedpoint_mean_action">fixedpoint_mean_action() (in module abm_project.mean_field)</a>
 </li>
@@ -269,11 +311,19 @@
 </li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.get_agent_grid_attribute">get_agent_grid_attribute() (abm_project.oop_model.BaseModel method)</a>
 </li>
+      <li><a href="api.html#abm_project.plotting.get_data_directory">get_data_directory() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.batch_run_tools.get_dominant_frequency_and_power">get_dominant_frequency_and_power() (in module abm_project.batch_run_tools)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.plotting.get_file_basename">get_file_basename() (in module abm_project.plotting)</a>
+</li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.get_neighbor_attribute_values">get_neighbor_attribute_values() (abm_project.oop_model.BaseModel method)</a>
 </li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.get_neighbors">get_neighbors() (abm_project.oop_model.BaseModel method)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.get_plot_directory">get_plot_directory() (in module abm_project.plotting)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -306,6 +356,20 @@
   </ul></td>
 </tr></table>
 
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.utils.lattice2d">lattice2d() (in module abm_project.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.utils.linear_update">linear_update() (in module abm_project.utils)</a>
+</li>
+      <li><a href="api.html#abm_project.batch_run_tools.local_action_agreement_score">local_action_agreement_score() (in module abm_project.batch_run_tools)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -321,6 +385,8 @@
 </li>
         <li><a href="api.html#module-abm_project.agent">abm_project.agent</a>
 </li>
+        <li><a href="api.html#module-abm_project.batch_run_tools">abm_project.batch_run_tools</a>
+</li>
         <li><a href="api.html#module-abm_project.kraan">abm_project.kraan</a>
 </li>
         <li><a href="api.html#module-abm_project.mean_field">abm_project.mean_field</a>
@@ -328,6 +394,10 @@
         <li><a href="api.html#module-abm_project.metrics">abm_project.metrics</a>
 </li>
         <li><a href="api.html#module-abm_project.oop_model">abm_project.oop_model</a>
+</li>
+        <li><a href="api.html#module-abm_project.plotting">abm_project.plotting</a>
+</li>
+        <li><a href="api.html#module-abm_project.utils">abm_project.utils</a>
 </li>
         <li><a href="api.html#module-abm_project.vectorised_model">abm_project.vectorised_model</a>
 </li>
@@ -350,10 +420,26 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#abm_project.metrics.pluralistic_ignorance">pluralistic_ignorance() (in module abm_project.metrics)</a>
+      <li><a href="api.html#abm_project.utils.piecewise_exponential_update">piecewise_exponential_update() (in module abm_project.utils)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_current_grid_state">plot_current_grid_state() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_grid_average_over_time">plot_grid_average_over_time() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_list_over_time">plot_list_over_time() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_mean_and_variability_array">plot_mean_and_variability_array() (in module abm_project.plotting)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.plotting.plot_phase_portrait">plot_phase_portrait() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_sobol_indices">plot_sobol_indices() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.plotting.plot_support_derivative">plot_support_derivative() (in module abm_project.plotting)</a>
+</li>
+      <li><a href="api.html#abm_project.metrics.pluralistic_ignorance">pluralistic_ignorance() (in module abm_project.metrics)</a>
+</li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.pred_neighb_action">pred_neighb_action() (abm_project.oop_model.BaseModel method)</a>
 
       <ul>
@@ -392,6 +478,8 @@
         <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.run">(abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api.html#abm_project.batch_run_tools.run_parameter_batch">run_parameter_batch() (in module abm_project.batch_run_tools)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -400,7 +488,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.s">s (abm_project.vectorised_model.VectorisedModel attribute)</a>
 </li>
+      <li><a href="api.html#abm_project.plotting.save_and_plot_heatmap">save_and_plot_heatmap() (in module abm_project.plotting)</a>
+</li>
       <li><a href="api.html#abm_project.oop_model.BaseModel.save_results">save_results() (abm_project.oop_model.BaseModel method)</a>
+</li>
+      <li><a href="api.html#abm_project.utils.sigmoid">sigmoid() (in module abm_project.utils)</a>
+</li>
+      <li><a href="api.html#abm_project.utils.sigmoid_update">sigmoid_update() (in module abm_project.utils)</a>
 </li>
       <li><a href="api.html#abm_project.kraan.KraanModel.simmer">simmer() (abm_project.kraan.KraanModel method)</a>
 
@@ -408,10 +502,10 @@
         <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer">(abm_project.vectorised_model.VectorisedModel method)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer_time">simmer_time (abm_project.vectorised_model.VectorisedModel attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.simmer_time">simmer_time (abm_project.vectorised_model.VectorisedModel attribute)</a>
+</li>
       <li><a href="api.html#abm_project.mean_field.solve">solve() (in module abm_project.mean_field)</a>
 </li>
       <li><a href="api.html#abm_project.mean_field.solve_for_equilibria">solve_for_equilibria() (in module abm_project.mean_field)</a>
@@ -444,12 +538,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#abm_project.kraan.KraanModel.u_active">u_active (abm_project.kraan.KraanModel property)</a>
 </li>
-      <li><a href="api.html#abm_project.mean_field.FixedpointResult.unstable">unstable() (abm_project.mean_field.FixedpointResult method)</a>
+      <li><a href="api.html#abm_project.batch_run_tools.UnionFind.union">union() (abm_project.batch_run_tools.UnionFind method)</a>
 </li>
-      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.update_env">update_env() (abm_project.vectorised_model.VectorisedModel method)</a>
+      <li><a href="api.html#abm_project.batch_run_tools.UnionFind">UnionFind (class in abm_project.batch_run_tools)</a>
+</li>
+      <li><a href="api.html#abm_project.mean_field.FixedpointResult.unstable">unstable() (abm_project.mean_field.FixedpointResult method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#abm_project.vectorised_model.VectorisedModel.update_env">update_env() (abm_project.vectorised_model.VectorisedModel method)</a>
+</li>
       <li><a href="api.html#abm_project.agent.Agent.update_env_perception_coeff">update_env_perception_coeff() (abm_project.agent.Agent method)</a>
 </li>
       <li><a href="api.html#abm_project.agent.Agent.update_environment_status">update_environment_status() (abm_project.agent.Agent method)</a>

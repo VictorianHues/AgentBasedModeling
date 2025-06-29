@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>abm_project.batch_run_tools &#8212; ABM Project 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abm_project.batch_run_tools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Batch run tools for ABM project.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.fft</span><span class="w"> </span><span class="kn">import</span> <span class="n">rfft</span><span class="p">,</span> <span class="n">rfftfreq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">convolve</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abm_project.oop_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+
+<div class="viewcode-block" id="run_parameter_batch">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.run_parameter_batch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_parameter_batch</span><span class="p">(</span>
+    <span class="n">num_runs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">model_class</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run a batch of agent-based model simulations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        num_runs (int): Number of model runs to execute.</span>
+<span class="sd">        model_class (type): The class of the model to instantiate.</span>
+<span class="sd">        steps (int): Number of simulation steps to run for each model.</span>
+<span class="sd">        **kwargs: Additional keyword arguments to pass to the model constructor.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[BaseModel]: List of model instances after running the simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_runs</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">models</span></div>
+
+
+
+<div class="viewcode-block" id="extract_mean_and_variance">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.extract_mean_and_variance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_mean_and_variance</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract the mean and variance of a specified attribute.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        models (list): List of BaseModel instances.</span>
+<span class="sd">        attribute (str): The name of the attribute history</span>
+<span class="sd">            to extract (e.g., &quot;agent_action_history&quot;).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (means, variances), where each is a list of values per time step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Determine the number of time steps in the simulation</span>
+    <span class="n">num_steps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">attribute</span><span class="p">))</span>
+
+    <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">variances</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Iterate through each time step</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_steps</span><span class="p">):</span>
+        <span class="c1"># Get the attribute grid at time t from each model</span>
+        <span class="n">grids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">model</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">attribute</span><span class="p">)[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">])</span>
+
+        <span class="c1"># Compute the mean and variance of values across the grids</span>
+        <span class="n">step_means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span> <span class="k">for</span> <span class="n">grid</span> <span class="ow">in</span> <span class="n">grids</span><span class="p">])</span>
+        <span class="n">step_vars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span> <span class="k">for</span> <span class="n">grid</span> <span class="ow">in</span> <span class="n">grids</span><span class="p">])</span>
+
+        <span class="c1"># Record the average mean and variance across all model runs</span>
+        <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">step_means</span><span class="p">))</span>
+        <span class="n">variances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">step_vars</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">means</span><span class="p">,</span> <span class="n">variances</span></div>
+
+
+
+<div class="viewcode-block" id="average_metric_over_time">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.average_metric_over_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">average_metric_over_time</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">inner_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the average of a given attribute over time across all models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        models (list[BaseModel]): List of BaseModel instances.</span>
+<span class="sd">        attr (str): Attribute name to average (e.g., &#39;agent_action_history&#39;).</span>
+<span class="sd">        inner_mean (bool): If True, take mean over</span>
+<span class="sd">            inner array before averaging across models.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Average value at each time step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">history_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">attr</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">inner_mean</span><span class="p">:</span>
+        <span class="c1"># For each time step, compute the mean of the inner array for each model,</span>
+        <span class="c1"># then average these means across all models.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">history_length</span><span class="p">):</span>
+            <span class="n">inner_means</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="c1"># Get the attribute at time t for model m (should be an array-like)</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">t</span><span class="p">]</span>
+                <span class="n">mean_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+                <span class="n">inner_means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean_value</span><span class="p">)</span>
+                <span class="c1"># Average the means across all models for this time step</span>
+                <span class="n">avg_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">inner_means</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_mean</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">history_length</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="attribute_variance_over_time">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.attribute_variance_over_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attribute_variance_over_time</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the mean variance of a given attribute over time across all models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        models (list[BaseModel]): List of BaseModel instances.</span>
+<span class="sd">        attr (str): Attribute name to compute variance over</span>
+<span class="sd">            (e.g., &#39;agent_peer_pressure_coeff_history&#39;).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Mean variance at each time step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">history_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">attr</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">t</span><span class="p">])</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">history_length</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="local_action_agreement_score">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.local_action_agreement_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">local_action_agreement_score</span><span class="p">(</span>
+    <span class="n">flat_grid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute a spatial clustering score based on local action agreement.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        flat_grid (np.ndarray): 1D array of agent actions.</span>
+<span class="sd">        width (int): Width of the agent grid.</span>
+<span class="sd">        height (int): Height of the agent grid.</span>
+<span class="sd">        radius (int): Neighborhood radius.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Clustering score (0 to 1).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">flat_grid</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;flat_grid size does not match width x height&quot;</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">flat_grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">kernel</span><span class="p">[</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Exclude center</span>
+
+    <span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">grid</span><span class="p">):</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="p">(</span><span class="n">grid</span> <span class="o">==</span> <span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">same_neighbors</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">total_neighbors</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">grid</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">local_agreement</span> <span class="o">=</span> <span class="n">same_neighbors</span> <span class="o">/</span> <span class="n">total_neighbors</span>
+        <span class="n">score</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">local_agreement</span> <span class="o">*</span> <span class="n">match</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">score</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">size</span></div>
+
+
+
+<div class="viewcode-block" id="clustering_score_over_time">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.clustering_score_over_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clustering_score_over_time</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute a clustering score at each time step for a 1D action vector per step.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: The model instance.</span>
+<span class="sd">        attribute (str): Attribute name for the per-timestep 1D agent data.</span>
+<span class="sd">        width (int): Grid width.</span>
+<span class="sd">        height (int): Grid height.</span>
+<span class="sd">        radius (int): Neighborhood radius.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[float]: Clustering scores per time step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">time_series</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">local_action_agreement_score</span><span class="p">(</span>
+            <span class="n">flat_grid</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">flat_grid</span> <span class="ow">in</span> <span class="n">time_series</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="UnionFind">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.UnionFind">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnionFind</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Union-Find data structure for efficient connectivity checks.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize Union-Find structure with given size.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UnionFind.find">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.UnionFind.find">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the root of the component containing x with path compression.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="UnionFind.union">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.UnionFind.union">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Union the components containing x and y.&quot;&quot;&quot;</span>
+        <span class="n">rx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">ry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rx</span> <span class="o">!=</span> <span class="n">ry</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="n">ry</span><span class="p">]</span> <span class="o">=</span> <span class="n">rx</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="analyze_environment_clusters_periodic">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.analyze_environment_clusters_periodic">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_environment_clusters_periodic</span><span class="p">(</span>
+    <span class="n">environment</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">diagonal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze clusters in a 2D environment with periodic boundaries.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        environment: 1D array of environment values per agent.</span>
+<span class="sd">        width: Grid width.</span>
+<span class="sd">        height: Grid height.</span>
+<span class="sd">        threshold: Threshold to binarize the environment (default = 0.5)</span>
+<span class="sd">        diagonal: If True, use 8-connectivity (diagonal neighbors included).</span>
+<span class="sd">            If False, use 4-connectivity (adjacent only).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        num_clusters: Number of clusters found</span>
+<span class="sd">        cluster_sizes: List of sizes of each cluster</span>
+<span class="sd">        labels: 2D array of labeled clusters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env_grid</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">env_grid</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="n">uf</span> <span class="o">=</span> <span class="n">UnionFind</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">idx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">y</span> <span class="o">%</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">%</span> <span class="n">width</span><span class="p">)</span>  <span class="c1"># periodic indexing</span>
+
+    <span class="c1"># Define neighbor offsets</span>
+    <span class="n">neighbors</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>  <span class="c1"># 4-connectivity</span>
+    <span class="k">if</span> <span class="n">diagonal</span><span class="p">:</span>
+        <span class="n">neighbors</span> <span class="o">+=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>  <span class="c1"># 8-connectivity</span>
+
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">height</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">binary</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">dx</span><span class="p">)</span> <span class="o">%</span> <span class="n">width</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">dy</span><span class="p">)</span> <span class="o">%</span> <span class="n">height</span>
+                <span class="k">if</span> <span class="n">binary</span><span class="p">[</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">]:</span>
+                    <span class="n">uf</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">idx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">idx</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">))</span>
+
+    <span class="c1"># Count clusters</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">label_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">next_label</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">height</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">binary</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]:</span>
+                <span class="n">root</span> <span class="o">=</span> <span class="n">uf</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">idx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_map</span><span class="p">:</span>
+                    <span class="n">label_map</span><span class="p">[</span><span class="n">root</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_label</span>
+                    <span class="n">next_label</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">labels</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">root</span><span class="p">]</span>
+
+    <span class="n">num_clusters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_map</span><span class="p">)</span>
+    <span class="n">cluster_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_clusters</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">num_clusters</span><span class="p">,</span> <span class="n">cluster_sizes</span><span class="p">,</span> <span class="n">labels</span></div>
+
+
+
+<div class="viewcode-block" id="get_dominant_frequency_and_power">
+<a class="viewcode-back" href="../../api.html#abm_project.batch_run_tools.get_dominant_frequency_and_power">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_dominant_frequency_and_power</span><span class="p">(</span>
+    <span class="n">signal</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the dominant frequency and its power in a time series signal.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        signal (np.ndarray): 1D array of time series data.</span>
+<span class="sd">        dt (float): Time step between samples in seconds.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple[float, float]: Dominant frequency (Hz) and its power.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">signal</span> <span class="o">-</span> <span class="n">signal</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rfft</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">rfftfreq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">),</span> <span class="n">d</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+    <span class="n">dominant_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">freqs</span><span class="p">[</span><span class="n">dominant_idx</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">[</span><span class="n">dominant_idx</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">ABM Project</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Karolina Chlopicka, Victoria Peterson, Shania Sinha, Henry Zwart.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
