@@ -9,6 +9,7 @@ from abm_project import sensitivity_analysis
 from abm_project.plotting import configure_mpl
 from abm_project.sensitivity_analysis import (
     PawnIndices,
+    SobolIndices,
     pawn_analysis,
     sobol_analysis,
 )
@@ -100,6 +101,64 @@ def plot_pawn_heatmap(indices: PawnIndices, savedir: Path):
     fig.savefig(savedir / "pawn_heatmap.pdf", bbox_inches="tight")
 
 
+def plot_sobol_indices(indices: SobolIndices, savedir: Path):
+    fig, axes = plt.subplots(
+        ncols=2,
+        figsize=(3.5, 1.75),
+        constrained_layout=True,
+        sharey=True,
+    )
+
+    n_indices = len(sensitivity_analysis.PARAMETER_NAMES)
+    n_outcomes = len(indices.to_list())
+
+    y = np.arange(n_indices)
+
+    # If plotting multiple outcomes, offset each one
+    if n_outcomes == 1:
+        offsets = [0]
+    else:
+        offsets = np.linspace(-0.25, 0.25, n_outcomes, endpoint=True)
+
+    for idxes, offset in zip(indices.to_list(), offsets, strict=True):
+        # First-order
+        axes[0].errorbar(
+            idxes.first_order.index,
+            y - offset,
+            xerr=idxes.first_order.confidence,
+            linestyle="None",
+            marker="o",
+            linewidth=0.5,
+            markersize=2,
+        )
+
+        # Total-order
+        axes[1].errorbar(
+            idxes.total_order.index,
+            y - offset,
+            xerr=idxes.total_order.confidence,
+            linestyle="None",
+            marker="o",
+            linewidth=0.5,
+            markersize=2,
+        )
+
+    axes[0].set_ylim(-0.3, n_indices - 1 + 0.3)
+    axes[0].set_yticks(range(n_indices), sensitivity_analysis.PARAMETER_NAMES)
+
+    axes[0].set_title("First-order")
+    axes[0].set_xlabel(r"$S_i$")
+    axes[1].set_title("Total-order")
+    axes[1].set_xlabel(r"$S_T$")
+
+    for ax in axes.flatten():
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.axvline(0, color="black", linestyle="dashed", linewidth=0.5, alpha=0.5)
+
+    fig.savefig(savedir / "sobol_indices.pdf", bbox_inches="tight")
+
+
 if __name__ == "__main__":
     DATA_DIR = Path("data")
     FIGURES_DIR = Path("results/figures")
@@ -118,10 +177,7 @@ if __name__ == "__main__":
         cluster_count,
     )
     sobol_indices = sobol_analysis(
-        mean_environment,
-        mean_action,
         pluralistic_ignorance,
-        cluster_count,
     )
 
     configure_mpl()
@@ -129,4 +185,4 @@ if __name__ == "__main__":
         mean_environment, mean_action, pluralistic_ignorance, cluster_count, FIGURES_DIR
     )
     plot_pawn_heatmap(pawn_indices, FIGURES_DIR)
-    # plot_sobol_indices()
+    plot_sobol_indices(sobol_indices, FIGURES_DIR)
