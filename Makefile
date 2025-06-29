@@ -6,6 +6,7 @@ ENTRYPOINT ?= uv run
 QUALITY ?= low
 
 FIGURE_NAMES = \
+		sensitivity_analysis_outcome_distributions.pdf \
 		appendix_phase_portraits.pdf \
 		appendix_fixed_point_mean_action.pdf
 
@@ -30,6 +31,17 @@ $(FIGURES_DIR)/appendix_fixed_point_mean_action.pdf: \
 			scripts/appendix_fixed_point_actions.py \
 			| $(FIGURES_DIR) 
 	$(ENTRYPOINT) $< 
+
+$(FIGURES_DIR)/sensitivity_analysis_outcome_distributions.pdf: \
+			scripts/sensitivity_analysis_plots.py \
+			$(DATA_DIR)/sensitivity_analysis_outcome_measurements.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $<
+
+$(DATA_DIR)/sensitivity_analysis_outcome_measurements.npz: \
+			scripts/sensitivity_analysis_outcome_measurements.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $<
 
 
 
