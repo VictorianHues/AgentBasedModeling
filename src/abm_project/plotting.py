@@ -24,6 +24,7 @@ def configure_mpl():
     plt.rc("mathtext", fontset="stix")
     plt.rc("font", size=FONT_SIZE_DEFAULT)
     plt.rc("figure", labelsize=FONT_SIZE_DEFAULT)
+    plt.rc("legend", fontsize=FONT_SIZE_SMALL)
     plt.rc("figure", dpi=300)
 
     sns.set_context(
