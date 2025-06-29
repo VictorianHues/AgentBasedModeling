@@ -3,40 +3,11 @@ from pathlib import Path
 
 import numpy as np
 import tqdm as tqdm
-from SALib.sample import sobol as sobol_sample
 
 from abm_project import cluster_analysis, metrics
+from abm_project.sensitivity_analysis import sample_parameter_space
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
-
-
-# get parameter values
-def problem():
-    problem = {
-        "num_vars": 6,
-        "names": [
-            "width",
-            "rationality",
-            "memory_count",
-            "adaptation_speed",
-            "radius",
-            "recovery_rate",
-        ],
-        "bounds": [
-            [5, 50],
-            [0, 10],
-            [2, 10],
-            [0.001, 0.05],
-            [0, 1],
-            [0.5, 2.0],
-        ],
-    }
-    return problem
-
-
-def sample_parameter_space(n: int):
-    param_values = sobol_sample.sample(problem(), n, calc_second_order=False)
-    return param_values
 
 
 def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
