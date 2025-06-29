@@ -76,10 +76,10 @@ class VectorisedModel:
         radius_option: str = DEFAULT_RADIUS_OPTION,
         prop_pessimistic: float = 0,
         pessimism_level: float = 1,
-        randomise: bool = False,
+        randomise: bool = True,
         b_1: npt.NDArray[np.float64] | None = None,
         b_2: npt.NDArray[np.float64] | None = None,
-        gamma_s: float = 0.001,
+        gamma_s: float = 0.01,
     ):
         """Construct new vectorised model.
 
@@ -118,7 +118,7 @@ class VectorisedModel:
         self.height = height
         self.memory_count = memory_count
         self.env_update_fn = env_update_fn or piecewise_exponential_update(
-            alpha=1, beta=1, rate=0.01
+            1, 1, 0.01
         )  # linear_update(0.05)
         self.rng = rng or np.random.default_rng()
         self.max_storage = max_storage + 1
@@ -134,14 +134,14 @@ class VectorisedModel:
             (self.N_WEIGHTS, self.num_agents),
             dtype=np.float64,
         )
-        if b_1 is not None and b_2 is not None:
-            self.b[0] = b_1
-            self.b[1] = b_2
-        else:
-            # Initialise weights randomly, normalised to sum to 1
+        self.b[0] = b_1
+        self.b[1] = b_2
+        if b_1 is None:
             self.b[0] = self.rng.random(self.num_agents)
+        if b_2 is None:
             self.b[1] = self.rng.random(self.num_agents)
-            self.b = self.b / self.b.sum(axis=0, keepdims=True)
+
+        self.b = self.b / self.b.sum(axis=0, keepdims=True)
 
         self.gamma_s = gamma_s
 
