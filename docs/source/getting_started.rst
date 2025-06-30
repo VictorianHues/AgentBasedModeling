@@ -27,3 +27,9 @@ And then run the simulation code:
 
    $ uv run scripts/my_script.py
 
+
+What next? See :doc:`contributing` to contribute changes to the project, or :doc:`experiments`
+to reproduce the experimental results in the corresponding report.
+
+
+
