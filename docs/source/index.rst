@@ -9,7 +9,7 @@ Climate-related decision-making ABM
 This project uses agent-based modelling to investigate the feedback cycle between 
 public support for climate action and individually-perceived climate change severity.
 
-.. image:: phase_plots.png
+.. image:: phase_portraits.png
 
 Check out the :doc:`getting_started` section for details on how to contribute to this
 project, or :doc:`experiments` to reproduce our experiments.
