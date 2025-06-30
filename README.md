@@ -1,8 +1,5 @@
 # Climate-behaviour ABM with coupled environmental dynamics
 
-![Phase portraits from mean-field analysis of climate-related decision-making ABM](phase_portraits.png)
-![Phase portraits](phase_portraits.png)
-
 This repository contains the agent-based model implementation and experiments supporting the corresponding
 report into individual climate-related decision-making in coupled human-environment dynamical systems.
 
