@@ -5,6 +5,8 @@ report into individual climate-related decision-making in coupled human-environm
 
 ![test](docs/source/phase_portraits.png)
 
+<img src="docs/source/phase_portraits.png" width="35%" />
+
 
 To contribute to this project, or reproduce our results, see the project documentation available at 
 [victorianhues.github.io/AgentBasedModeling](https://victorianhues.github.io/AgentBasedModeling/).
