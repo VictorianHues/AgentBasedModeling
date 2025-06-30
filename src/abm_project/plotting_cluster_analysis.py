@@ -4,6 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MaxNLocator
 
 from abm_project.cluster_analysis import cluster_time_series
 
@@ -86,7 +87,11 @@ def plot_eqenv_across_memory_rationality(data_file, savedir=None):
     rationality_range = data["rationality_range"]
 
     # Plotting the equilibrium environment status
-    fig, ax = plt.subplots(figsize=(5, 3.75))
+    fig, ax = plt.subplots(figsize=(4.5, 4.25))
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(False)
     cbar = ax.imshow(
         eq_env_status,
         aspect="auto",
@@ -102,21 +107,24 @@ def plot_eqenv_across_memory_rationality(data_file, savedir=None):
         vmin=0.0,
     )
     plt.colorbar(cbar, label="Equilibrium Environment Status")
-    plt.xlabel("Rationality Level")
-    plt.ylabel("Memory Count")
-    plt.xticks(rationality_range)
+    plt.xlabel("Rationality Level", fontsize=12)
+    plt.ylabel("Memory Count", fontsize=12)
+    plt.xticks(rationality_range, fontsize=10)
     plt.xticks(rotation=90)
-    plt.yticks(memory_range)
-    plt.title("Equilibrium Environment Across Memory and Rationality")
+    # Show only 6 ticks on the x-axis
+    plt.yticks(memory_range, fontsize=10)
+    # plt.title("Equilibrium Environment Across Memory and Rationality")
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
     plt.tight_layout()
 
     if savedir:
         fig.savefig(
-            savedir / "eq_env_across_memory_rationality.png",
+            savedir / "eq_env_across_memory_rationality_lowgs.pdf",
             dpi=300,
             bbox_inches="tight",
         )
-        print("Plot saved as 'eq_env_across_memory_rationality.pdf'")
+        print("Plot saved as 'eq_env_across_memory_rationality_lowgs.pdf'")
 
     # plt.show()
     plt.close(fig)

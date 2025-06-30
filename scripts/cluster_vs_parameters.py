@@ -3,14 +3,12 @@
 from pathlib import Path
 
 import numpy as np
-from tqdm import tqdm
 
 from abm_project.cluster_analysis import cluster_time_series
 from abm_project.plotting_cluster_analysis import (
     plot_eqenv_across_memory_rationality,
 )
 from abm_project.utils import piecewise_exponential_update
-from abm_project.vectorised_model import VectorisedModel
 
 
 def calc_eqenv_across_memory_rationality(
@@ -107,31 +105,31 @@ if __name__ == "__main__":
     rng = None
 
     memory_count_range = [a for a in np.arange(10, 151, 10)]
-    rationality_range = np.linspace(0.01, 2.0, 15)
+    rationality_range = np.linspace(0.01, 2.0, 30)
 
     gamma_s = 0.004
 
     models = []
 
-    for memory_count in memory_count_range:
-        for rationality in tqdm(
-            rationality_range, desc=f"Memory Count {memory_count}, Rationality: "
-        ):
-            model = VectorisedModel(
-                num_agents=num_agents,
-                width=width,
-                height=height,
-                memory_count=memory_count,
-                rng=rng,
-                env_update_fn=env_update_fn,
-                rationality=rationality,
-                gamma_s=gamma_s,
-                neighb_prediction_option="linear",
-                severity_benefit_option="adaptive",
-                max_storage=num_steps,
-            )
-            model.run(num_steps)
-            models.append(model)
+    # for memory_count in memory_count_range:
+    #     for rationality in tqdm(
+    #         rationality_range, desc=f"Memory Count {memory_count}, Rationality: "
+    #     ):
+    #         model = VectorisedModel(
+    #             num_agents=num_agents,
+    #             width=width,
+    #             height=height,
+    #             memory_count=memory_count,
+    #             rng=rng,
+    #             env_update_fn=env_update_fn,
+    #             rationality=rationality,
+    #             gamma_s=gamma_s,
+    #             neighb_prediction_option="linear",
+    #             severity_benefit_option="adaptive",
+    #             max_storage=num_steps,
+    #         )
+    #         model.run(num_steps)
+    #         models.append(model)
 
     # start = time.time()
     # model = VectorisedModel(
@@ -156,13 +154,13 @@ if __name__ == "__main__":
     # across memory and rationality levels:
     data_eqenv_filename = "eq_env_state_memory_rationality"
 
-    calc_eqenv_across_memory_rationality(
-        models=models,
-        memory_range=memory_count_range,
-        rationality_range=rationality_range,
-        save_as_name=data_eqenv_filename,
-        savedir=Path("data"),
-    )
+    # calc_eqenv_across_memory_rationality(
+    #     models=models,
+    #     memory_range=memory_count_range,
+    #     rationality_range=rationality_range,
+    #     save_as_name=data_eqenv_filename,
+    #     savedir=Path("data"),
+    # )
 
     plot_eqenv_across_memory_rationality(
         data_file=Path("data/" + data_eqenv_filename + ".npz"), savedir=Path("plots")
