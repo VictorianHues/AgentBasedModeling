@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -16,7 +17,12 @@ from abm_project.sensitivity_analysis import (
 
 
 def plot_outcome_distributions(
-    mean_environment, mean_action, pluralistic_ignorance, cluster_count, savedir: Path
+    mean_environment,
+    mean_action,
+    pluralistic_ignorance,
+    cluster_count,
+    savedir: Path,
+    quality_label: str,
 ):
     fig, axes = plt.subplots(
         nrows=2,
@@ -76,11 +82,13 @@ def plot_outcome_distributions(
     fig.supylabel("Density")
 
     fig.savefig(
-        savedir / "sensitivity_analysis_outcome_distributions.pdf", bbox_inches="tight"
+        savedir
+        / f"sensitivity_analysis_outcome_distributions_{quality_label}_quality.pdf",
+        bbox_inches="tight",
     )
 
 
-def plot_pawn_heatmap(indices: PawnIndices, savedir: Path):
+def plot_pawn_heatmap(indices: PawnIndices, savedir: Path, quality_label: str):
     fig, ax = plt.subplots(figsize=(3.5, 3.5), constrained_layout=True)
     sns.heatmap(
         indices.stack(),
@@ -98,10 +106,12 @@ def plot_pawn_heatmap(indices: PawnIndices, savedir: Path):
         ax=ax,
     )
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
-    fig.savefig(savedir / "pawn_heatmap.pdf", bbox_inches="tight")
+    fig.savefig(
+        savedir / f"pawn_heatmap_{quality_label}_quality.pdf", bbox_inches="tight"
+    )
 
 
-def plot_sobol_indices(indices: SobolIndices, savedir: Path):
+def plot_sobol_indices(indices: SobolIndices, savedir: Path, quality_label: str):
     fig, axes = plt.subplots(
         ncols=2,
         figsize=(3.5, 1.75),
@@ -156,13 +166,25 @@ def plot_sobol_indices(indices: SobolIndices, savedir: Path):
         ax.spines["right"].set_visible(False)
         ax.axvline(0, color="black", linestyle="dashed", linewidth=0.5, alpha=0.5)
 
-    fig.savefig(savedir / "sobol_indices.pdf", bbox_inches="tight")
+    fig.savefig(
+        savedir / f"sobol_indices_{quality_label}_quality.pdf", bbox_inches="tight"
+    )
 
 
 if __name__ == "__main__":
     DATA_DIR = Path("data")
     FIGURES_DIR = Path("results/figures")
-    outcomes = np.load(DATA_DIR / "sensitivity_analysis_outcome_measurements.npz")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    args = parser.parse_args()
+
+    quality_label = "low" if args.quick else "high"
+
+    outcomes = np.load(
+        DATA_DIR
+        / f"sensitivity_analysis_outcome_measurements_{quality_label}_quality.npz"
+    )
     parameters = outcomes["parameters"]
     mean_environment = outcomes["mean_environment"]
     mean_action = outcomes["mean_action"]
@@ -181,12 +203,13 @@ if __name__ == "__main__":
     )
 
     configure_mpl()
-    plot_pawn_heatmap(pawn_indices, FIGURES_DIR)
-    plot_sobol_indices(sobol_indices, FIGURES_DIR)
+    plot_pawn_heatmap(pawn_indices, FIGURES_DIR, quality_label)
+    plot_sobol_indices(sobol_indices, FIGURES_DIR, quality_label)
     plot_outcome_distributions(
         mean_environment,
         mean_action,
         pluralistic_ignorance,
         cluster_count,
         FIGURES_DIR,
+        quality_label,
     )

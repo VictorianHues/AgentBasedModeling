@@ -1,3 +1,4 @@
+import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
@@ -27,7 +28,7 @@ def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     return i, repeat, env_mean, action_mean, pi_mean, clusters
 
 
-def main(repeats: int, steps: int, n_samples: int, savedir: Path):
+def main(repeats: int, steps: int, n_samples: int, savedir: Path, quality_label: str):
     param_values = sample_parameter_space(n_samples)
     environment_output = np.empty((repeats, len(param_values)))
     action_output = np.empty_like(environment_output)
@@ -79,7 +80,9 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path):
                 futures.append(future)
 
         for future in tqdm.tqdm(
-            as_completed(futures), total=repeats * len(param_values)
+            as_completed(futures),
+            desc="Gathering sensitivity analysis outcome measurements",
+            total=repeats * len(param_values),
         ):
             param_idx, repeat, n_mean, a_mean, pi_mean, clusters = future.result()
             environment_output[repeat, param_idx] = n_mean
@@ -93,7 +96,8 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path):
     clusters_output = clusters_output.mean(axis=0)
 
     np.savez(
-        savedir / "sensitivity_analysis_outcome_measurements.npz",
+        savedir
+        / f"sensitivity_analysis_outcome_measurements_{quality_label}_quality.npz",
         parameters=param_values,
         mean_environment=environment_output,
         mean_action=action_output,
@@ -103,8 +107,28 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path):
 
 
 if __name__ == "__main__":
-    REPEATS = 5
-    STEPS = 2000
-    N_SAMPLES = 2048
     DATA_DIR = Path("data")
-    main(REPEATS, STEPS, N_SAMPLES, DATA_DIR)
+    STEPS = 2000
+
+    # Quick-run settings
+    QUICK_REPEATS = 1
+    QUICK_N_SAMPLES = 128
+
+    # Full (report) settings
+    FULL_REPEATS = 5
+    FULL_N_SAMPLES = 2048
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    args = parser.parse_args()
+
+    if args.quick:
+        repeats = QUICK_REPEATS
+        n_samples = QUICK_N_SAMPLES
+        quality_label = "low"
+    else:
+        repeats = FULL_REPEATS
+        n_samples = FULL_N_SAMPLES
+        quality_label = "high"
+
+    main(repeats, STEPS, n_samples, DATA_DIR, quality_label)

@@ -5,8 +5,17 @@ DATA_DIR = data
 ENTRYPOINT ?= uv run
 QUALITY ?= low
 
+ifeq ($(QUALITY),low)
+	QUALITY_PARAMS = --quick
+else ifeq ($(QUALITY),high)
+	QUALITY_PARAMS = 
+else
+	$(error Invalid quality specifier: $(QUALITY). Choose 'low' or 'high'.)
+endif
+
 FIGURE_NAMES = \
-		sensitivity_analysis_outcome_distributions.pdf \
+		sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf \
+		phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
 		appendix_fixed_point_mean_action.pdf
 
@@ -14,6 +23,7 @@ FIGURE_NAMES = \
 FIGURES = $(patsubst %, $(FIGURES_DIR)/%, $(FIGURE_NAMES))
 
 .PHONY: all documentation clean
+
 
 
 # ========================
@@ -32,24 +42,48 @@ $(FIGURES_DIR)/appendix_fixed_point_mean_action.pdf: \
 			| $(FIGURES_DIR) 
 	$(ENTRYPOINT) $< 
 
-$(FIGURES_DIR)/sensitivity_analysis_outcome_distributions.pdf: \
+$(FIGURES_DIR)/sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf: \
 			scripts/sensitivity_analysis_plots.py \
 			src/abm_project/sensitivity_analysis.py \
-			$(DATA_DIR)/sensitivity_analysis_outcome_measurements.npz \
+			$(DATA_DIR)/sensitivity_analysis_outcome_measurements_$(QUALITY)_quality.npz \
 			| $(FIGURES_DIR)
-	$(ENTRYPOINT) $<
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
-$(DATA_DIR)/sensitivity_analysis_outcome_measurements.npz: \
+
+$(FIGURES_DIR)/phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf: \
+			scripts/environment_vs_rationality_and_memory_phaseplot.py \
+			$(DATA_DIR)/eq_env_vs_rationality_and_memory_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+
+# ========================
+# Data and heavy analysis
+# ========================
+$(DATA_DIR)/eq_env_vs_rationality_and_memory_$(QUALITY)_quality.npz: \
+			scripts/equilibrium_env_vs_memory_and_rationality_measurements.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+	 
+$(DATA_DIR)/sensitivity_analysis_outcome_measurements_$(QUALITY)_quality.npz: \
 			scripts/sensitivity_analysis_outcome_measurements.py \
 			| $(DATA_DIR)
-	$(ENTRYPOINT) $<
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) 
 
 
 
+
+
+# ========================
+# Create required directories
+# ========================
 $(FIGURES_DIR):
 	mkdir -p $@
 
 $(ANIMATIONS_DIR):
+	mkdir -p $@
+
+$(DATA_DIR):
 	mkdir -p $@
 
 
