@@ -34,7 +34,7 @@ def main(
     ax.set_xlabel(r"Rationality $\lambda$")
     ax.set_ylabel(r"Memory size")
     ax.set_xticks(np.linspace(0, rationalities.max(), 5))
-    ax.set_yticks(memory_sizes)
+    ax.set_yticks(memory_sizes[::2])
 
     fig.savefig(
         savedir / f"phaseplot_env_vs_rationality_memory_{quality_label}_quality.pdf",
