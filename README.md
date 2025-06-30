@@ -3,6 +3,8 @@
 This repository contains the agent-based model implementation and experiments supporting the corresponding
 report into individual climate-related decision-making in coupled human-environment dynamical systems.
 
+![test](docs/source/phase_portraits.png)
+
 
 To contribute to this project, or reproduce our results, see the project documentation available at 
 [victorianhues.github.io/AgentBasedModeling](https://victorianhues.github.io/AgentBasedModeling/).
