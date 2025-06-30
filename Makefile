@@ -15,6 +15,9 @@ endif
 
 FIGURE_NAMES = \
 		sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf \
+		equilibrium_env_vs_rationality_$(QUALITY)_quality.pdf \
+		equilibrium_env_vs_gamma_s_$(QUALITY)_quality.pdf \
+		time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf \
 		phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
 		appendix_fixed_point_mean_action.pdf
@@ -49,6 +52,23 @@ $(FIGURES_DIR)/sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf
 			| $(FIGURES_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
+$(FIGURES_DIR)/equilibrium_env_vs_rationality_$(QUALITY)_quality.pdf: \
+			scripts/plot_equilibrium_env_for_varying_rationality.py \
+			$(DATA_DIR)/eq_env_vs_rationality_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+$(FIGURES_DIR)/equilibrium_env_vs_gamma_s_$(QUALITY)_quality.pdf: \
+			scripts/plot_eq_environment_for_varying_agent_adaptation.py \
+			$(DATA_DIR)/eq_env_vs_gamma_s_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+$(FIGURES_DIR)/time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf: \
+			scripts/plot_time_series_env_varying_rationality.py \
+			$(DATA_DIR)/time_series_mean_env_for_varying_rationality_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
 $(FIGURES_DIR)/phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf: \
 			scripts/environment_vs_rationality_and_memory_phaseplot.py \
@@ -60,10 +80,29 @@ $(FIGURES_DIR)/phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf: \
 # ========================
 # Data and heavy analysis
 # ========================
+$(DATA_DIR)/eq_env_vs_rationality_$(QUALITY)_quality.npz: \
+			scripts/measure_eq_environment_for_varying_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+
+$(DATA_DIR)/eq_env_vs_gamma_s_$(QUALITY)_quality.npz: \
+			scripts/measure_eq_environment_for_varying_agent_adaptation.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+
 $(DATA_DIR)/eq_env_vs_rationality_and_memory_$(QUALITY)_quality.npz: \
 			scripts/equilibrium_env_vs_memory_and_rationality_measurements.py \
 			| $(DATA_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
+
+$(DATA_DIR)/time_series_mean_env_for_varying_rationality_$(QUALITY)_quality.npz: \
+			scripts/measure_time_series_env_varying_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+
 	 
 $(DATA_DIR)/sensitivity_analysis_outcome_measurements_$(QUALITY)_quality.npz: \
 			scripts/sensitivity_analysis_outcome_measurements.py \
