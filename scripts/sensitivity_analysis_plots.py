@@ -21,13 +21,15 @@ def plot_outcome_distributions(
     mean_action,
     pluralistic_ignorance,
     cluster_count,
+    peak_frequency,
+    dominant_frequency_power,
     savedir: Path,
     quality_label: str,
 ):
     fig, axes = plt.subplots(
-        nrows=2,
+        nrows=3,
         ncols=2,
-        figsize=(3, 2),
+        figsize=(3, 3),
         constrained_layout=True,
     )
 
@@ -78,6 +80,34 @@ def plot_outcome_distributions(
     axes[1, 1].set_xlim(0, None)
     axes[1, 1].grid(True, linestyle="--", alpha=0.5)
     axes[1, 1].set_yscale("log")
+
+    # Peak frequency
+    axes[2, 0].hist(
+        peak_frequency,
+        bins=30,
+        color="gold",
+        edgecolor="black",
+        alpha=0.7,
+        density=True,
+    )
+    axes[2, 0].set_title("Peak frequency")
+    axes[2, 0].set_xlim(0, None)
+    axes[2, 0].grid(True, linestyle="--", alpha=0.5)
+    axes[2, 0].set_yscale("log")
+
+    # Dominant frequency power
+    axes[2, 1].hist(
+        dominant_frequency_power,
+        bins=30,
+        color="gold",
+        edgecolor="black",
+        alpha=0.7,
+        density=True,
+    )
+    axes[2, 1].set_title("Dominant freq. power")
+    axes[2, 1].set_xlim(0, None)
+    axes[2, 1].grid(True, linestyle="--", alpha=0.5)
+    axes[2, 1].set_yscale("log")
 
     fig.supylabel("Density")
 
@@ -190,6 +220,8 @@ if __name__ == "__main__":
     mean_action = outcomes["mean_action"]
     pluralistic_ignorance = outcomes["pluralistic_ignorance"]
     cluster_count = outcomes["cluster_count"]
+    peak_frequency = outcomes["peak_frequency"]
+    dominant_frequency_power = outcomes["dominant_frequency_power"]
 
     pawn_indices = pawn_analysis(
         parameters,
@@ -197,6 +229,8 @@ if __name__ == "__main__":
         mean_action,
         pluralistic_ignorance,
         cluster_count,
+        peak_frequency,
+        dominant_frequency_power,
     )
     sobol_indices = sobol_analysis(
         pluralistic_ignorance,
@@ -210,6 +244,8 @@ if __name__ == "__main__":
         mean_action,
         pluralistic_ignorance,
         cluster_count,
+        peak_frequency,
+        dominant_frequency_power,
         FIGURES_DIR,
         quality_label,
     )

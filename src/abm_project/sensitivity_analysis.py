@@ -21,6 +21,8 @@ OUTCOME_NAMES = [
     "Mean action",
     "Pluralistic ignorance",
     "Cluster count",
+    "Peak frequency",
+    "Dominant frequency power",
 ]
 
 PROBLEM = {
@@ -52,6 +54,8 @@ class PawnIndices:
     mean_action: npt.NDArray[np.float64]
     pluralistic_ignorance: npt.NDArray[np.float64]
     cluster_count: npt.NDArray[np.float64]
+    peak_frequency: npt.NDArray[np.float64]
+    dominant_frequency_power: npt.NDArray[np.float64]
 
     def stack(self) -> npt.NDArray[np.float64]:
         """Get all indices in a 2D Numpy array.
@@ -65,6 +69,8 @@ class PawnIndices:
                 self.mean_action,
                 self.pluralistic_ignorance,
                 self.cluster_count,
+                self.peak_frequency,
+                self.dominant_frequency_power,
             ]
         )
 
@@ -161,6 +167,8 @@ def pawn_analysis(
     mean_action: npt.NDArray[np.float64],
     pluralistic_ignorance: npt.NDArray[np.float64],
     cluster_count: npt.NDArray[np.float64],
+    peak_frequency: npt.NDArray[np.float64],
+    dominant_frequency_power: npt.NDArray[np.float64],
 ) -> PawnIndices:
     """Compute median Pawn indices for each outcome variable.
 
@@ -169,6 +177,8 @@ def pawn_analysis(
     - Mean action
     - Pluralistic ignorance
     - Cluster count
+    - Peak (fourier) frequency
+    - Dominant frequency power
 
     Args:
         parameters: Parameter values used to generate the outcome measurements
@@ -180,6 +190,10 @@ def pawn_analysis(
             ignorance at the end of simulation.
         cluster_count: For each parameter sample, the total number of environment
             clusters at the end of simulation.
+        peak_frequency: For each parameter sample, the maximum power frequency observed
+            in the mean environment state.
+        dominant_frequency_power: The power of the dominant fourier frequency for each
+            parameter sample.
 
     Returns:
         A PawnIndices object with the median Pawn index for each varied parameter.
@@ -197,4 +211,6 @@ def pawn_analysis(
         mean_action=compute_median_indices(mean_action),
         pluralistic_ignorance=compute_median_indices(pluralistic_ignorance),
         cluster_count=compute_median_indices(cluster_count),
+        peak_frequency=compute_median_indices(peak_frequency),
+        dominant_frequency_power=compute_median_indices(dominant_frequency_power),
     )

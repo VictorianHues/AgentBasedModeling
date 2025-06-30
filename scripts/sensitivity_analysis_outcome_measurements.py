@@ -6,6 +6,7 @@ import numpy as np
 import tqdm as tqdm
 
 from abm_project import cluster_analysis, metrics
+from abm_project.batch_run_tools import get_dominant_frequency_and_power
 from abm_project.sensitivity_analysis import sample_parameter_space
 from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
@@ -24,8 +25,11 @@ def run_single_simulation(i, repeat, steps, recovery_rate, **kwargs):
     clusters, _ = cluster_analysis.cluster_given_timestep(
         model, "environment", steps - 1
     )
+    peak_freq, power = get_dominant_frequency_and_power(
+        model.environment[: model.time].mean(axis=1)
+    )
 
-    return i, repeat, env_mean, action_mean, pi_mean, clusters
+    return i, repeat, env_mean, action_mean, pi_mean, clusters, peak_freq, power
 
 
 def main(repeats: int, steps: int, n_samples: int, savedir: Path, quality_label: str):
@@ -34,6 +38,8 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path, quality_label:
     action_output = np.empty_like(environment_output)
     pluralistic_ignorance = np.empty_like(environment_output)
     clusters_output = np.empty_like(environment_output)
+    peak_frequency = np.empty_like(environment_output)
+    dom_frequency_power = np.empty_like(environment_output)
 
     with ProcessPoolExecutor() as executor:
         futures = []
@@ -84,16 +90,22 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path, quality_label:
             desc="Gathering sensitivity analysis outcome measurements",
             total=repeats * len(param_values),
         ):
-            param_idx, repeat, n_mean, a_mean, pi_mean, clusters = future.result()
+            (param_idx, repeat, n_mean, a_mean, pi_mean, clusters, peak_freq, power) = (
+                future.result()
+            )
             environment_output[repeat, param_idx] = n_mean
             action_output[repeat, param_idx] = a_mean
             pluralistic_ignorance[repeat, param_idx] = pi_mean
             clusters_output[repeat, param_idx] = clusters
+            peak_frequency[repeat, param_idx] = peak_freq
+            dom_frequency_power[repeat, param_idx] = power
 
     environment_output = environment_output.mean(axis=0)
     action_output = action_output.mean(axis=0)
     pluralistic_ignorance = pluralistic_ignorance.mean(axis=0)
     clusters_output = clusters_output.mean(axis=0)
+    peak_frequency = peak_frequency.mean(axis=0)
+    dom_frequency_power = dom_frequency_power.mean(axis=0)
 
     np.savez(
         savedir
@@ -103,6 +115,8 @@ def main(repeats: int, steps: int, n_samples: int, savedir: Path, quality_label:
         mean_action=action_output,
         pluralistic_ignorance=pluralistic_ignorance,
         cluster_count=clusters_output,
+        peak_frequency=peak_frequency,
+        dominant_frequency_power=dom_frequency_power,
     )
 
 
