@@ -3,9 +3,9 @@
 This repository contains the agent-based model implementation and experiments supporting the corresponding
 report into individual climate-related decision-making in coupled human-environment dynamical systems.
 
-![test](docs/source/phase_portraits.png)
-
-<img src="docs/source/phase_portraits.png" width="35%" />
+<p align="center">
+    <img src="docs/source/phase_portraits.png" width="50%" />
+</p>
 
 
 To contribute to this project, or reproduce our results, see the project documentation available at 
