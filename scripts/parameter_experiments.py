@@ -1,5 +1,6 @@
 import concurrent.futures
 import itertools
+import random
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -7,8 +8,9 @@ from pathlib import Path
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+import powerlaw
 from matplotlib.colors import ListedColormap
+from tqdm import tqdm
 
 from abm_project.batch_run_tools import (
     analyze_environment_clusters_periodic,
@@ -57,6 +59,7 @@ def plot_environment_for_varying_rationality(
                     b_2,
                     env_update_fn_type,
                     memory_count,
+                    num_steps,
                 )
             )
 
@@ -135,6 +138,7 @@ def plot_environment_for_varying_rationality(
     ]
     for ylabel, data_dict, ode_data, fname, ylim in plot_info:
         fig, ax = plt.subplots(figsize=(3.5, 2.2), constrained_layout=True)
+
         for lmbda in rationality:
             arr = np.stack(data_dict[lmbda])
             mean = arr.mean(axis=0)
@@ -142,6 +146,7 @@ def plot_environment_for_varying_rationality(
             ci = 1.97 * std / np.sqrt(repeats)
             ax.plot(t, mean, label=f"$\\lambda = {lmbda:.2f}$")
             ax.fill_between(t, mean - ci, mean + ci, alpha=0.3)
+
         ode_data = ode_data
         # ODE
         # ax.plot(t_ode,
@@ -243,11 +248,11 @@ def run_model_with_timeseries(args):
         b_2,
         env_update_fn_type,
         memory_count,
+        num_steps,
     ) = args
     num_agents = 900
     width = 30
     height = 30
-    num_steps = 1000
 
     if env_update_fn_type == "linear":
         env_update_fn = linear_update(0.01)
@@ -317,7 +322,13 @@ def plot_steady_state_environment_for_varying_rationality(
 
     rationality = np.linspace(min_rationality, max_rationality, 25)
 
-    results = np.empty((repeats, len(rationality)))
+    # Prepare arrays for all outputs
+    results_env = np.empty((repeats, len(rationality)))
+    results_num_clusters = np.empty((repeats, len(rationality)))
+    results_mean_cluster_size = np.empty((repeats, len(rationality)))
+    results_max_cluster_size = np.empty((repeats, len(rationality)))
+    results_peak_freq = np.empty((repeats, len(rationality)))
+    results_power = np.empty((repeats, len(rationality)))
 
     tasks = [
         (
@@ -337,50 +348,231 @@ def plot_steady_state_environment_for_varying_rationality(
     ]
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        for r, i, _, _, _, mean_env, _, _ in executor.map(run_model, tasks):
+        for (
+            r,
+            i,
+            num_clusters,
+            mean_cluster_size,
+            max_cluster_size,
+            mean_env,
+            peak_freq,
+            power,
+        ) in executor.map(run_model, tasks):
             print(f"Completed run {r + 1} for rationality {rationality[i]:.2f}")
-            results[r, i] = mean_env
+            results_env[r, i] = mean_env
+            results_num_clusters[r, i] = num_clusters
+            results_mean_cluster_size[r, i] = mean_cluster_size
+            results_max_cluster_size[r, i] = max_cluster_size
+            results_peak_freq[r, i] = peak_freq
+            results_power[r, i] = power
 
-    # Plot mean environment at steady state
-    fig, ax = plt.subplots(
-        figsize=(7, 4),
-        constrained_layout=True,
+    # Helper for plotting (optimized for two-column report)
+    def plot_with_ci(data, ylabel, fname, ylim=None, annotate_steepest=False):
+        fig, ax = plt.subplots(
+            figsize=(3.3, 2.2), constrained_layout=True
+        )  # ~8.5cm x 5.5cm
+        mean = data.mean(axis=0)
+        std = data.std(axis=0, ddof=1)
+        ci = 1.97 * std / np.sqrt(repeats)
+        ax.plot(rationality, mean, label="Mean", linewidth=1)
+        ax.fill_between(rationality, mean - ci, mean + ci, alpha=0.3, linewidth=0)
+        if annotate_steepest:
+            dmean = np.gradient(mean, rationality)
+            idx_steepest = np.argmax(np.abs(dmean))
+            ax.plot(
+                rationality[idx_steepest], mean[idx_steepest], "ro", label="Steepest"
+            )
+            ax.annotate(
+                f"Steepest\n($\\lambda$={rationality[idx_steepest]:.2f})",
+                xy=(rationality[idx_steepest], mean[idx_steepest]),
+                xytext=(rationality[idx_steepest] + 0.2, mean[idx_steepest]),
+                arrowprops=dict(arrowstyle="->", color="red", lw=0.7),
+                color="red",
+                fontsize=7,
+                ha="left",
+                va="bottom",
+            )
+        ax.set_xlabel(r"Rationality ($\lambda$)")
+        ax.set_ylabel(ylabel)
+        if ylim:
+            ax.set_ylim(*ylim)
+        ax.set_xlim(min_rationality, max_rationality)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.legend(fontsize=6, loc="best", frameon=False)
+        # Use smaller ticks and labels for two-column
+        ax.tick_params(axis="both", which="major", labelsize=7)
+        fig.savefig(savedir / fname, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+
+    # Plot all outputs
+    plot_with_ci(
+        results_env,
+        r"Equilibrium mean environment ($\overline{n}^*$)",
+        "equilibrium_env_vs_rationality.png",
+        ylim=(0, 1),
+        annotate_steepest=True,
+    )
+    plot_with_ci(
+        results_num_clusters,
+        "Number of clusters",
+        "num_clusters_vs_rationality.png",
+    )
+    plot_with_ci(
+        results_mean_cluster_size,
+        "Mean cluster size",
+        "mean_cluster_size_vs_rationality.png",
+    )
+    plot_with_ci(
+        results_max_cluster_size,
+        "Max cluster size",
+        "max_cluster_size_vs_rationality.png",
+    )
+    plot_with_ci(
+        results_peak_freq,
+        "Dominant frequency of environment",
+        "peak_freq_vs_rationality.png",
+    )
+    plot_with_ci(
+        results_power,
+        "Power at dominant frequency",
+        "power_vs_rationality.png",
     )
 
-    mean = results.mean(axis=0)
-    std = results.std(axis=0, ddof=1)
-    ci = 1.97 * std / np.sqrt(repeats)
-    ax.plot(rationality, mean, label="Mean")
-    ax.fill_between(rationality, mean - ci, mean + ci, alpha=0.3)
 
-    # maximum absolute derivative
-    dmean = np.gradient(mean, rationality)
-    idx_steepest = np.argmax(np.abs(dmean))
-    ax.plot(rationality[idx_steepest], mean[idx_steepest], "ro", label="Steepest point")
-    ax.annotate(
-        f"Steepest\n($\\lambda$={rationality[idx_steepest]:.2f})",
-        xy=(rationality[idx_steepest], mean[idx_steepest]),
-        xytext=(rationality[idx_steepest] + 0.2, mean[idx_steepest]),
-        arrowprops=dict(arrowstyle="->", color="red"),
-        color="red",
-        fontsize=10,
-        ha="left",
+def plot_steady_state_environment_for_varying_gamma_s(
+    savedir: Path | None = None,
+    rationality: float = 2.0,
+    memory_count_single: int = 10,
+    neighb_prediction_option=None,
+    severity_benefit_option=None,
+    radius_option="single",
+    b_2=None,
+    env_update_fn_type="linear",
+    repeats: int = 50,
+    min_gamma_s: float = 0.001,
+    max_gamma_s: float = 0.02,
+):
+    savedir = savedir or Path(".")
+    savedir.mkdir(parents=True, exist_ok=True)
+
+    gamma_s_values = np.linspace(min_gamma_s, max_gamma_s, 25)
+
+    # Prepare arrays for all outputs
+    results_env = np.empty((repeats, len(gamma_s_values)))
+    results_num_clusters = np.empty((repeats, len(gamma_s_values)))
+    results_mean_cluster_size = np.empty((repeats, len(gamma_s_values)))
+    results_max_cluster_size = np.empty((repeats, len(gamma_s_values)))
+    results_peak_freq = np.empty((repeats, len(gamma_s_values)))
+    results_power = np.empty((repeats, len(gamma_s_values)))
+
+    tasks = [
+        (
+            r,
+            i,
+            rationality,
+            gamma_s,
+            neighb_prediction_option,
+            severity_benefit_option,
+            radius_option,
+            b_2,
+            env_update_fn_type,
+            memory_count_single,
+        )
+        for r in range(repeats)
+        for i, gamma_s in enumerate(gamma_s_values)
+    ]
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for (
+            r,
+            i,
+            num_clusters,
+            mean_cluster_size,
+            max_cluster_size,
+            mean_env,
+            peak_freq,
+            power,
+        ) in executor.map(run_model, tasks):
+            print(f"Completed run {r + 1} for gamma_s {gamma_s_values[i]:.4f}")
+            results_env[r, i] = mean_env
+            results_num_clusters[r, i] = num_clusters
+            results_mean_cluster_size[r, i] = mean_cluster_size
+            results_max_cluster_size[r, i] = max_cluster_size
+            results_peak_freq[r, i] = peak_freq
+            results_power[r, i] = power
+
+    # Helper for plotting
+    def plot_with_ci(data, ylabel, fname, ylim=None, annotate_steepest=False):
+        fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+        mean = data.mean(axis=0)
+        std = data.std(axis=0, ddof=1)
+        ci = 1.97 * std / np.sqrt(repeats)
+        ax.plot(gamma_s_values, mean, label="Mean")
+        ax.fill_between(gamma_s_values, mean - ci, mean + ci, alpha=0.3)
+        if annotate_steepest:
+            dmean = np.gradient(mean, gamma_s_values)
+            idx_steepest = np.argmax(np.abs(dmean))
+            ax.plot(
+                gamma_s_values[idx_steepest],
+                mean[idx_steepest],
+                "ro",
+                label="Steepest point",
+            )
+            ax.annotate(
+                f"Steepest\n($\\gamma_s$={gamma_s_values[idx_steepest]:.4f})",
+                xy=(gamma_s_values[idx_steepest], mean[idx_steepest]),
+                xytext=(gamma_s_values[idx_steepest] + 0.002, mean[idx_steepest]),
+                arrowprops=dict(arrowstyle="->", color="red"),
+                color="red",
+                fontsize=10,
+                ha="left",
+            )
+        ax.set_xlabel(r"Support update rate ($\gamma_s$)")
+        ax.set_ylabel(ylabel)
+        if ylim:
+            ax.set_ylim(*ylim)
+        ax.set_xlim(min_gamma_s, max_gamma_s)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.legend()
+        fig.savefig(savedir / fname, dpi=300, bbox_inches="tight")
+        plt.show()
+
+    # Plot all outputs
+    plot_with_ci(
+        results_env,
+        r"Equilibrium mean environment ($\overline{n}^*$)",
+        "equilibrium_env_vs_gamma_s.png",
+        ylim=(0, 1),
+        annotate_steepest=True,
     )
-
-    ax.set_xlabel(r"Rationality ($\lambda$)")
-    ax.set_ylabel(r"Equilibrium mean environment ($\overline{n}^*$)")
-    ax.set_ylim(0, 1)
-    ax.set_xlim(min_rationality, max_rationality)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.legend()
-
-    fig.savefig(
-        savedir / "equilibrium_env_vs_rationality.png",
-        dpi=300,
-        bbox_inches="tight",
+    plot_with_ci(
+        results_num_clusters,
+        "Number of clusters",
+        "num_clusters_vs_gamma_s.png",
+        annotate_steepest=True,
     )
-    plt.show()
+    plot_with_ci(
+        results_mean_cluster_size,
+        "Mean cluster size",
+        "mean_cluster_size_vs_gamma_s.png",
+    )
+    plot_with_ci(
+        results_max_cluster_size,
+        "Max cluster size",
+        "max_cluster_size_vs_gamma_s.png",
+    )
+    plot_with_ci(
+        results_peak_freq,
+        "Dominant frequency of environment",
+        "peak_freq_vs_gamma_s.png",
+    )
+    plot_with_ci(
+        results_power,
+        "Power at dominant frequency",
+        "power_vs_gamma_s.png",
+    )
 
 
 def run_and_animate_vectorised_model(
@@ -448,7 +640,7 @@ def run_and_animate_vectorised_model(
 
     fig, ax = plt.subplots()
     im = ax.imshow(env_status_history[0], cmap="RdYlGn", origin="lower", vmin=0, vmax=1)
-    # ax.set_title("Agent Environment Status Over Time")
+    ax.set_title("Agent Environment Status Over Time")
 
     def update_env(frame):
         im.set_array(env_status_history[frame])
@@ -473,7 +665,7 @@ def run_and_animate_vectorised_model(
     im = ax.imshow(
         agent_action_history[0], cmap=ListedColormap(["red", "green"]), origin="lower"
     )
-    # ax.set_title("Agent Actions Over Time")
+    ax.set_title("Agent Actions Over Time")
 
     def update_action(frame):
         im.set_array(agent_action_history[frame])
@@ -507,35 +699,14 @@ def plot_distributions_for_param_combo(
     seed: int = 42,
     savedir: Path = Path("plots"),
 ):
-    """
-    Run multiple simulations for a given parameter set and plot distributions
-    for clusters, environmental status, frequency, and power.
-
-    Args:
-        lmbda: Rationality (λ)
-        gamma_s: Support update rate (γₛ)
-        neighb, severity, radius: Model option strings
-        b2: Optional array for b2 weights
-        env_update_type: "linear" or "piecewise"
-        repeats: Number of runs
-        memory_count: Memory count for model
-        seed: Random seed
-        savedir: Directory to save plots
-    """
-    import random
-
-    from tqdm import tqdm
-
     savedir = Path(savedir)
     savedir.mkdir(parents=True, exist_ok=True)
 
     np.random.seed(seed)
     random.seed(seed)
 
-    # Store outputs
     results = defaultdict(list)
 
-    # Prepare tasks
     tasks = [
         (
             r,
@@ -562,68 +733,139 @@ def plot_distributions_for_param_combo(
         except Exception as e:
             print(f"[!] Error on run {args[0]}: {e}")
 
-    # Plotting and saving individual plots
     plot_info = [
         ("num_clusters", "Cluster Count", "Clusters"),
         ("mean_env", "Mean Environmental Status", "Mean Env"),
-        ("peak_freq", "Peak Frequency", "Frequency"),
+        ("peak_freq", "Dominant Frequency", "Frequency"),
         ("power", "Fourier Power", "Power"),
     ]
 
+    # Use smaller figure size and font for double-column compatibility
+    plt.rcParams.update(
+        {
+            "font.size": 10,
+            "axes.titlesize": 12,
+            "axes.labelsize": 10,
+            "legend.fontsize": 10,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+        }
+    )
+
     for key, title, xlabel in plot_info:
-        # Linear scale
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.histplot(results[key], bins=20, ax=ax)
-        # ax.set_title(f"{title} (λ={lmbda:.2f}, γₛ={gamma_s:.3f})")
-        ax.set_xlabel(xlabel)
-        plt.tight_layout()
-        # Power law fit and line (linear scale)
         data = np.array(results[key])
-        data = data[data > 0]
-        if len(data) > 0:
-            # Fit power law: y = a * x^(-alpha)
-            # Use log-log linear regression for exponent estimation
-            counts, bin_edges = np.histogram(data, bins=20)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            mask = (counts > 0) & (bin_centers > 0)
-            if np.sum(mask) > 1:
-                log_x = np.log10(bin_centers[mask])
-                log_y = np.log10(counts[mask])
-                slope, intercept = np.polyfit(log_x, log_y, 1)
-                alpha = -slope
-                # Plot power law line
-                x_fit = np.linspace(
-                    bin_centers[mask].min(), bin_centers[mask].max(), 100
+        # Remove NaN and infinite values first
+        data = data[np.isfinite(data)]
+        data = data[data > 0]  # Filter zeros and negatives
+
+        # Power-law fit using powerlaw package
+        if len(data) > 10 and np.max(data) > np.min(data):  # Check for valid data range
+            try:
+                fit = powerlaw.Fit(data, discrete=False, verbose=False)
+                alpha = fit.power_law.alpha
+                xmin = fit.power_law.xmin
+
+                # Compare to exponential distribution
+                R, p = fit.distribution_compare("power_law", "exponential")
+
+                # Plot CCDF
+                fig, ax = plt.subplots(figsize=(3.3, 2.2), constrained_layout=True)
+                fit.plot_ccdf(label="Empirical", ax=ax, color="black", linewidth=1)
+                fit.power_law.plot_ccdf(
+                    label=f"Power law (α={alpha:.2f})",
+                    ax=ax,
+                    color="red",
+                    linestyle="--",
+                    linewidth=1,
                 )
-                y_fit = 10**intercept * x_fit**slope
-                ax.plot(x_fit, y_fit, "r--", label=f"Power law: $x^{{-{alpha:.2f}}}$")
-                ax.legend()
-        fname = (
-            savedir
-            / f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}_{env_update_type}_linear.png"
-        )
-        plt.savefig(fname, dpi=150)
-        plt.close(fig)
 
-        # Log scale
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.histplot(results[key], bins=20, ax=ax, log_scale=(True, True))
-        title = title
-        # ax.set_title(f"Log {title} (λ={lmbda:.2f}, γₛ={gamma_s:.3f})")
-        ax.set_xlabel(xlabel)
-        ax.set_yscale("log")
-        plt.tight_layout()
+                # Add vertical line for x_min
+                # ax.axvline(xmin,
+                #    color="blue",
+                #    linestyle=":",
+                #    linewidth=1,
+                #    label=f"$x_{{min}}$={xmin:.2f}")
 
-        if len(data) > 0 and np.sum(mask) > 1:
-            ax.plot(x_fit, y_fit, "r--", label=f"Power law: $x^{{-{alpha:.2f}}}$")
-            ax.legend()
-        fname = (
-            savedir
-            / f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}_{env_update_type}_log.png"
-        )
-        plt.savefig(fname, dpi=150)
-        plt.close(fig)
+                if np.min(data) > 0 and np.max(data) > np.min(data):
+                    ax.set_xscale("log")
+                    ax.set_yscale("log")
 
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel("CCDF")
+                ax.set_title(
+                    f"{title}\n($\\lambda$={lmbda:.2f}, $\\gamma_s$={{gamma_s:.3f}})",
+                    pad=2,
+                )
+                ax.legend(loc="lower left", frameon=False)
+                ax.text(
+                    0.97,
+                    0.03,
+                    f"$x_{{min}}$={xmin:.2f}\nR={R:.2f}, p={p:.3f}",
+                    transform=ax.transAxes,
+                    fontsize=6,
+                    verticalalignment="bottom",
+                    horizontalalignment="right",
+                    bbox=dict(
+                        boxstyle="round", facecolor="white", alpha=0.7, linewidth=0.5
+                    ),
+                )
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+
+                fname = (
+                    savedir / f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}"
+                    "_{env_update_type}_ccdf.png"
+                )
+                plt.tight_layout(pad=0.2)
+                plt.savefig(fname, dpi=300)
+                plt.show()
+
+            except Exception as e:
+                print(f"Error fitting power-law for {key}: {e}")
+                # Create a simple histogram instead
+                fig, ax = plt.subplots(figsize=(3.3, 2.2), constrained_layout=True)
+                ax.hist(data, bins=20, alpha=0.7, edgecolor="black")
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel("Frequency")
+                ax.set_title(
+                    f"{title}\n($\\lambda$={lmbda:.2f},$\\gamma_s$={gamma_s:.3f})",
+                    pad=2,
+                )
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+
+                fname = (
+                    savedir / f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}"
+                    "_{env_update_type}_hist.png"
+                )
+                plt.tight_layout(pad=0.2)
+                plt.savefig(fname, dpi=300)
+                plt.show()
+
+        else:
+            print(f"Not enough valid data to fit power-law for {key} (n = {len(data)})")
+            # Still create a simple plot if we have some data
+            if len(data) > 0:
+                fig, ax = plt.subplots(figsize=(3.3, 2.2), constrained_layout=True)
+                ax.hist(data, bins=min(10, len(data)), alpha=0.7, edgecolor="black")
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel("Frequency")
+                ax.set_title(
+                    f"{title}\n($\\lambda$={lmbda:.2f},$\\gamma_s$={gamma_s:.3f})",
+                    pad=2,
+                )
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+
+                fname = (
+                    savedir / f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}_"
+                    f"{env_update_type}_limited.png"
+                )
+                plt.tight_layout(pad=0.2)
+                plt.savefig(fname, dpi=300)
+                plt.show()
+
+    plt.rcdefaults()
     return results
 
 
@@ -664,13 +906,13 @@ def compute_and_save_heatmap(
 
     if all(path.exists() for path in base_paths.values()):
         print(
-            f"[✓] Skipping: {neighb}, {severity}, {radius}, "
+            f"Skipping: {neighb}, {severity}, {radius}, "
             f"b2={'1' if b2 is not None else 'None'}, env={env_update_type}"
         )
         data_arrays = {suffix: np.load(path) for suffix, path in base_paths.items()}
     else:
         print(
-            f"[→] Computing: {neighb}, {severity}, {radius}, "
+            f"Computing: {neighb}, {severity}, {radius}, "
             f"b2={'1' if b2 is not None else 'None'}, env={env_update_type}"
         )
         cluster_counts = np.zeros((len(gamma_s_values), len(rationality_values)))
@@ -854,30 +1096,44 @@ if __name__ == "__main__":
     results_dir = Path("plots")
     results_dir.mkdir(exist_ok=True)
 
-    # plot_heatmap_env_vs_rationality_and_gamma_s(savedir=results_dir, memory_count=10)
+    plot_heatmap_env_vs_rationality_and_gamma_s(savedir=results_dir, memory_count=10)
 
-    lambda_single = 0.01
-    gamma_s_single = 1.5
-    neighb_single = None  # "linear"
-    severity_single = None  # "adaptive"  # "adaptive"
+    lambda_single = 4.0
+    gamma_s_single = 0.0044
+    neighb_single = "linear"
+    severity_single = "adaptive"  # "adaptive"
     radius_single = "single"  # "single" or "all"
-    b2_single = np.full(900, 1.0)
+    b2_single = None  # np.full(900, 1.0)
     env_update_type_single = "piecewise"  # "linear" or "piecewise"
     memory_count_single = 10
 
-    # plot_steady_state_environment_for_varying_rationality(
-    #     savedir=results_dir,
-    #     gamma_s=gamma_s_single,
-    #     memory_count_single=memory_count_single,
-    #     neighb_prediction_option=neighb_single,
-    #     severity_benefit_option=severity_single,
-    #     radius_option= radius_single,
-    #     b_2= b2_single,
-    #     env_update_fn_type= env_update_type_single,
-    #     repeats=10,
-    #     min_rationality=0.0,
-    #     max_rationality=8.0,
-    # )
+    plot_steady_state_environment_for_varying_rationality(
+        savedir=results_dir,
+        gamma_s=gamma_s_single,
+        memory_count_single=memory_count_single,
+        neighb_prediction_option=neighb_single,
+        severity_benefit_option=severity_single,
+        radius_option=radius_single,
+        b_2=b2_single,
+        env_update_fn_type=env_update_type_single,
+        repeats=10,
+        min_rationality=0.0,
+        max_rationality=2.0,
+    )
+
+    plot_steady_state_environment_for_varying_gamma_s(
+        savedir=results_dir,
+        rationality=lambda_single,
+        memory_count_single=memory_count_single,
+        neighb_prediction_option=neighb_single,
+        severity_benefit_option=severity_single,
+        radius_option=radius_single,
+        b_2=b2_single,
+        env_update_fn_type=env_update_type_single,
+        repeats=50,
+        min_gamma_s=0.001,
+        max_gamma_s=0.01,
+    )
 
     plot_environment_for_varying_rationality(
         savedir=results_dir,
@@ -889,33 +1145,33 @@ if __name__ == "__main__":
         b_2=b2_single,
         env_update_fn_type=env_update_type_single,
         repeats=10,
-        rationality=np.array([0.0, 1.5, 8.0]),
-        num_steps=1000,
+        rationality=np.array([1.0, 2.0, 4.0, 6.0]),
+        num_steps=2000,
     )
 
-    # plot_distributions_for_param_combo(
-    #     lmbda=lambda_single,
-    #     gamma_s=gamma_s_single,
-    #     neighb=neighb_single,
-    #     severity=severity_single,
-    #     env_update_type= env_update_type_single,
-    #     repeats=500,
-    #     memory_count=memory_count_single,
-    #     savedir=results_dir,
-    # )
+    plot_distributions_for_param_combo(
+        lmbda=lambda_single,
+        gamma_s=gamma_s_single,
+        neighb=neighb_single,
+        severity=severity_single,
+        env_update_type=env_update_type_single,
+        repeats=500,
+        memory_count=memory_count_single,
+        savedir=results_dir,
+    )
 
-    # run_and_animate_vectorised_model(
-    #     results_dir=results_dir,
-    #     num_agents=900,
-    #     width=30,
-    #     height=30,
-    #     num_steps=1000,
-    #     memory_count=memory_count_single,
-    #     lmbda=lambda_single,
-    #     gamma_s=gamma_s_single,
-    #     neighb_prediction_option=neighb_single,
-    #     severity_benefit_option=severity_single,
-    #     radius_option=radius_single,
-    #     b_2=b2_single,
-    #     env_update_fn_type=env_update_type_single,
-    # )
+    run_and_animate_vectorised_model(
+        results_dir=results_dir,
+        num_agents=900,
+        width=30,
+        height=30,
+        num_steps=2000,
+        memory_count=memory_count_single,
+        lmbda=lambda_single,
+        gamma_s=gamma_s_single,
+        neighb_prediction_option=neighb_single,
+        severity_benefit_option=severity_single,
+        radius_option=radius_single,
+        b_2=b2_single,
+        env_update_fn_type=env_update_type_single,
+    )

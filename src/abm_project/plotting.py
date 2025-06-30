@@ -543,6 +543,8 @@ def save_and_plot_heatmap(
     vmin, vmax = None, None
     if np.nanmin(data) >= 0 and np.nanmax(data) <= 1 and suffix != "peak_freq":
         vmin, vmax = 0, 1
+    if suffix == "power":
+        vmin, vmax = 0, 30000
 
     if rationality_values is not None and gamma_s_values is not None:
         x_tick_indices = np.arange(
