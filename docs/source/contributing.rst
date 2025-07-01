@@ -145,6 +145,7 @@ so it is typically straightforward to add new experiments. The general process i
 follows:
 
 1. Decide how many scripts you need.
+""""""""""""""""""""""""""""""""""""
 
 If the experiment comprises a computationally-heavy "simulation" or "analysis" 
 section as well as a lightweight "plotting" section, we advise separating these into 
@@ -155,6 +156,7 @@ the plotting script; if we only change the "plotting" script, it will only run t
 one. 
 
 2. Create your scripts.
+""""""""""""""""""""""""""""""""""""
 
 Scripts for the Makefile are contained in the 
 `scripts <https://github.com/VictorianHues/AgentBasedModeling/tree/main/scripts>`_ 
@@ -198,6 +200,7 @@ an argument.
    Make. You do not need to create them manually. 
 
 3. (Optional) add "fast-execution" parameters
+"""""""""""""""""""""""""""""""""""""""""""""
 
 The Makefile supports two operation modes: low quality (the default) and high quality.
 The first allows experiments to be run under reduced settings (repeats, timesteps, 
@@ -252,6 +255,7 @@ filename indicating which mode we've generated it in.
 Now it's time to add our scripts to the Makefile.
 
 4. Specifying what we want Make to create.
+"""""""""""""""""""""""""""""""""""""""""""""
 
 Lets suppose that our figure name is, ``my_figure.pdf``.
 
@@ -261,6 +265,7 @@ Note that you'll need to add an escape character (``\``) at the end of the line,
 the line before, to ensure that Make doesn't insert a linebreak.
 
 5. Specifying how to create it.
+"""""""""""""""""""""""""""""""""""""""""""""
 
 Now suppose that our figure is created by ``scripts/plot_my_figure.py``, and that 
 before this, we need to generate some data from a set of simulations with a separate
