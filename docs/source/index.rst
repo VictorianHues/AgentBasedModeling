@@ -10,6 +10,8 @@ This project uses agent-based modelling to investigate the feedback cycle betwee
 public support for climate action and individually-perceived climate change severity.
 
 .. image:: phase_portraits.png
+   :width: 70%
+   :align: center
 
 Check out the :doc:`getting_started` section for details on how to contribute to this
 project, or :doc:`experiments` to reproduce our experiments.
