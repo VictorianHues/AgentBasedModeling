@@ -24,6 +24,7 @@ def configure_mpl():
     plt.rc("mathtext", fontset="stix")
     plt.rc("font", size=FONT_SIZE_DEFAULT)
     plt.rc("figure", labelsize=FONT_SIZE_DEFAULT)
+    plt.rc("legend", fontsize=FONT_SIZE_SMALL)
     plt.rc("figure", dpi=300)
 
     sns.set_context(
@@ -401,7 +402,9 @@ def plot_phase_portrait(
         ax = plt.gca()
 
     # 1. Plot phase portait
-    ax.streamplot(N, M, DN_DT, DM_DT, density=[1.5, 2.5], linewidth=0.5, zorder=1)
+    ax.streamplot(
+        N, M, DN_DT, DM_DT, density=[1.5, 2.5], arrowsize=0.5, linewidth=0.5, zorder=1
+    )
 
     # 2. Draw nullclines
     # m' = 0 when s' = 0
