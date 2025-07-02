@@ -93,8 +93,8 @@ if __name__ == "__main__":
     HEIGHT = 30
     STEPS = 1000
 
-    QUICK_REPEATS = 1
-    QUICK_GAMMA_STEPS = 5
+    QUICK_REPEATS = 5
+    QUICK_GAMMA_STEPS = 25
 
     FULL_REPEATS = 50
     FULL_GAMMA_STEPS = 25
