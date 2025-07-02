@@ -195,14 +195,19 @@ cython_debug/
 .cursorindexingignore
 
 # Results/data files
-# *.png
-# *.mp4
+*.png
+*.mp4
 *.jpg
-# *.jpeg
-# *.gif
+*.jpeg
+*.gif
 *.npz
 *.npy
+
+# Do not ignore the following files:
+!docs/source/figures/*
 
 # DS_Store
 .DS_Store
 results/**
+plots/**
+data/**
