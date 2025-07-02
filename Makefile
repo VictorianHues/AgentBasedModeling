@@ -13,10 +13,18 @@ else
 	$(error Invalid quality specifier: $(QUALITY). Choose 'low' or 'high'.)
 endif
 
+FOURIER_POWER_HEATMAPS = \
+		fourier_power_rationality_vs_gamma_s_nonadaptive_nonpredictive_peerconst_$(QUALITY)_quality.pdf \
+		fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerconst_$(QUALITY)_quality.pdf \
+		fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerrandomised_$(QUALITY)_quality.pdf \
+		fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf
+		
+
 FIGURE_NAMES = \
 		sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf \
 		equilibrium_env_vs_rationality_$(QUALITY)_quality.pdf \
 		equilibrium_env_vs_gamma_s_$(QUALITY)_quality.pdf \
+		$(FOURIER_POWER_HEATMAPS) \
 		time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf \
 		phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
@@ -76,6 +84,39 @@ $(FIGURES_DIR)/phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf: \
 			| $(FIGURES_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
+#  ----------------------
+#  Fourier power heatmaps
+#  ----------------------
+#  Non-adaptive, non-predictive, constant peer pressure
+$(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_nonpredictive_peerconst_$(QUALITY)_quality.pdf: \
+			scripts/plot_fourier_power_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_nonpredictive_peerconst_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure
+
+
+#  Non-adaptive, linear-predictive, constant peer pressure
+$(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerconst_$(QUALITY)_quality.pdf: \
+			scripts/plot_fourier_power_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerconst_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure --neighborhood-prediction linear
+
+
+#  Non-adaptive, linear-predictive, randomised peer pressure
+$(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerrandomised_$(QUALITY)_quality.pdf: \
+			scripts/plot_fourier_power_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerrandomised_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --neighborhood-prediction linear
+
+
+#  Adaptive, non-predictive, randomised peer pressure
+$(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf: \
+			scripts/plot_fourier_power_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.npz \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference
 
 # ========================
 # Data and heavy analysis
@@ -110,7 +151,35 @@ $(DATA_DIR)/sensitivity_analysis_outcome_measurements_$(QUALITY)_quality.npz: \
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS) 
 
 
+#  ----------------------
+#  Fourier power heatmaps
+#  ----------------------
+#  Non-adaptive, non-predictive, constant peer pressure
+$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_nonpredictive_peerconst_$(QUALITY)_quality.npz: \
+			scripts/measure_fourier_power_varying_gamma_s.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure
 
+#
+#  Non-adaptive, linear-predictive, constant peer pressure
+$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerconst_$(QUALITY)_quality.npz: \
+			scripts/measure_fourier_power_varying_gamma_s.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure --neighborhood-prediction linear
+
+
+#  Non-adaptive, linear-predictive, randomised peer pressure
+$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerrandomised_$(QUALITY)_quality.npz: \
+			scripts/measure_fourier_power_varying_gamma_s.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --neighborhood-prediction linear
+
+	
+#  Adaptive, non-predictive, randomised peer pressure
+$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.npz: \
+			scripts/measure_fourier_power_varying_gamma_s.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference
 
 
 # ========================
