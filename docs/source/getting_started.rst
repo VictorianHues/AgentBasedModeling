@@ -4,11 +4,13 @@ Getting started
 Setting up
 ----------
 
-First things first, clone the project repository from GitHub:
+First things first, clone the project repository from GitHub using the GitHub CLI:
 
 .. code-block:: console
 
    $ gh repo clone VictorianHues/AgentBasedModeling
+
+You can also clone the repository using HTTPS or SSH.
 
 This project uses `uv <https://docs.astral.sh/uv/>`_ for Python environment management.
 To ensure consistent results, we recommend using uv when working with this project or 
@@ -21,15 +23,20 @@ required dependencies:
 
    $ uv sync
 
-And then run the simulation code:
+And then run your simulation code:
 
 .. code-block:: console
 
    $ uv run scripts/my_script.py
 
+.. important::
 
-What next? See :doc:`contributing` to contribute changes to the project, or :doc:`experiments`
-to reproduce the experimental results in the corresponding report.
+   If you are trying to recreate the results from the `report 
+   <https://github.com/VictorianHues/AgentBasedModeling/blob/main/project_report.pdf>`_, 
+   visit the :doc:`experiments` section for details on how to run the experiments. 
+   The above command is just an example of how to run a new or existing script using uv.
+
+What next? See :doc:`contributing` to contribute changes to the project.
 
 
 
