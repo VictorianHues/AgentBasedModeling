@@ -42,12 +42,14 @@ def run_model(args):
     else:
         raise ValueError(f"Unknown env_update_fn_type: {env_update_fn_type}")
 
+    rng = np.random.default_rng(r)
+
     model = VectorisedModel(
         num_agents=num_agents,
         width=width,
         height=height,
         memory_count=memory_count,
-        rng=None,
+        rng=rng,
         env_update_fn=env_update_fn,
         rationality=lmbda,
         simmer_time=1,
@@ -261,15 +263,13 @@ def plot_distributions_for_param_combo(
 
 if __name__ == "__main__":
     FIGURES_DIR = Path("results/figures")
-    NEIGHB = "linear"
     SEVERITY = "adaptive"
     ENV_UPDATE_TYPE = "piecewise"
-    N_REPEATS = 250
     MEMORY_SIZE = 10
     PARAMS = [
-        # (lambda, gamma_s)
-        (4.0, 0.0042),
-        (4.0, 0.0048),
+        # (neigborhood prediction option, lambda, gamma_s)
+        (None, 4.0, 0.0042),
+        ("linear", 4.0, 0.0048),
     ]
 
     QUICK_REPEATS = 100
@@ -288,11 +288,11 @@ if __name__ == "__main__":
         quality_label = "high"
         repeats = FULL_REPEATS
 
-    for λ, γ in PARAMS:
+    for neighb_predict_opt, λ, γ in PARAMS:
         plot_distributions_for_param_combo(
             lmbda=λ,
             gamma_s=γ,
-            neighb=NEIGHB,
+            neighb=neighb_predict_opt,
             severity=SEVERITY,
             env_update_type=ENV_UPDATE_TYPE,
             repeats=repeats,
