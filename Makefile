@@ -18,6 +18,12 @@ FOURIER_POWER_HEATMAPS = \
 		fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerconst_$(QUALITY)_quality.pdf \
 		fourier_power_rationality_vs_gamma_s_nonadaptive_predictive_peerrandomised_$(QUALITY)_quality.pdf \
 		fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf
+
+EQ_ENV_VARYING_GAMMA_S_HEATMAPS = \
+		equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerconst_$(QUALITY)_quality.pdf \
+		equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf \
+		equilibrium_env_rationality_vs_gamma_s_predictive_peerconst_$(QUALITY)_quality.pdf \
+		equilibrium_env_rationality_vs_gamma_s_predictive_peerrandomised_$(QUALITY)_quality.pdf \
 		
 
 FIGURE_NAMES = \
@@ -25,6 +31,7 @@ FIGURE_NAMES = \
 		equilibrium_env_vs_rationality_$(QUALITY)_quality.pdf \
 		equilibrium_env_vs_gamma_s_$(QUALITY)_quality.pdf \
 		$(FOURIER_POWER_HEATMAPS) \
+		$(EQ_ENV_VARYING_GAMMA_S_HEATMAPS) \
 		time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf \
 		phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
@@ -118,6 +125,41 @@ $(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerr
 			| $(FIGURES_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference
 
+
+#  ----------------------
+#  Equilibrium environment heatmaps for varying gamma_s and rationality
+#  ----------------------
+# Non-predictive, constant peer pressure
+$(FIGURES_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerconst_$(QUALITY)_quality.pdf: \
+			scripts/plot_environment_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerconst_$(QUALITY)_quality.npz  \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure
+
+
+# Non-predictive, randomised peer pressure
+$(FIGURES_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf: \
+			scripts/plot_environment_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerrandomised_$(QUALITY)_quality.npz  \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) 
+
+
+# Predictive, constant peer pressure
+$(FIGURES_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerconst_$(QUALITY)_quality.pdf: \
+			scripts/plot_environment_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerconst_$(QUALITY)_quality.npz  \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure --neighborhood-prediction linear
+
+
+# Predictive, randomised peer pressure
+$(FIGURES_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerrandomised_$(QUALITY)_quality.pdf: \
+			scripts/plot_environment_varying_gamma_s_rationality.py \
+			$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerrandomised_$(QUALITY)_quality.npz  \
+			| $(FIGURES_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --neighborhood-prediction linear
+
 # ========================
 # Data and heavy analysis
 # ========================
@@ -180,6 +222,37 @@ $(DATA_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrand
 			scripts/measure_fourier_power_varying_gamma_s.py \
 			| $(DATA_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference
+
+
+#  ----------------------
+#  Equilibrium environment heatmaps for varying gamma_s and rationality
+#  ----------------------
+# Non-predictive, constant peer pressure
+$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerconst_$(QUALITY)_quality.npz: \
+			scripts/measure_environment_varying_gamma_s_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure
+
+
+# Non-predictive, randomised peer pressure
+$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerrandomised_$(QUALITY)_quality.npz: \
+			scripts/measure_environment_varying_gamma_s_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) 
+
+
+# Predictive, constant peer pressure
+$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerconst_$(QUALITY)_quality.npz: \
+			scripts/measure_environment_varying_gamma_s_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --const-peer-pressure --neighborhood-prediction linear
+
+
+# Predictive, randomised peer pressure
+$(DATA_DIR)/equilibrium_env_rationality_vs_gamma_s_predictive_peerrandomised_$(QUALITY)_quality.npz: \
+			scripts/measure_environment_varying_gamma_s_rationality.py \
+			| $(DATA_DIR)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --neighborhood-prediction linear 
 
 
 # ========================
