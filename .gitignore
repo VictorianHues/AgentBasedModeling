@@ -204,7 +204,8 @@ cython_debug/
 *.npy
 
 # Do not ignore the following files:
-!docs/source/figures/*
+!docs/source/figures/11b_env.gif
+!docs/source/figures/phase_portraits.png
 
 # DS_Store
 .DS_Store
