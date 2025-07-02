@@ -34,8 +34,5 @@ And then run your simulation code:
    If you are trying to recreate the results from the `report 
    <https://github.com/VictorianHues/AgentBasedModeling/blob/main/project_report.pdf>`_, 
    visit the :doc:`experiments` section for details on how to run the experiments. 
-   The above command is just an example of how to run a new or existing script using uv.
 
 What next? See :doc:`contributing` to contribute changes to the project.
-
-
