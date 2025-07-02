@@ -27,7 +27,7 @@ And then run your simulation code:
 
 .. code-block:: console
 
-   $ uv run scripts/my_script.py
+   $ make
 
 .. important::
 
@@ -37,6 +37,5 @@ And then run your simulation code:
    The above command is just an example of how to run a new or existing script using uv.
 
 What next? See :doc:`contributing` to contribute changes to the project.
-
 
 
