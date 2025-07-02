@@ -75,14 +75,41 @@
   <section id="climate-related-decision-making-abm">
 <h1>Climate-related decision-making ABM<a class="headerlink" href="#climate-related-decision-making-abm" title="Link to this heading"></a></h1>
 <p>This project uses agent-based modelling to investigate the feedback cycle between
-public support for climate action and individually-perceived climate change severity.</p>
-<a class="reference internal image-reference" href="_images/phase_portraits.png"><img alt="_images/phase_portraits.png" class="align-center" src="_images/phase_portraits.png" style="width: 70%;" />
+public support for climate action and individually-perceived climate change severity.
+We extend existing work in this area to explore how system dynamics and equilibria
+differ in the coupled model when agents are heterogeneous in their preferences and
+perception of the environment. You can find the associated report
+<a class="reference download internal" download="" href="_downloads/dcfbde01a79947d1c52f157990876f74/project_report.pdf"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+<a class="reference internal image-reference" href="_images/phase_portraits.png"><img alt="_images/phase_portraits.png" class="align-center" src="_images/phase_portraits.png" style="width: 60%;" />
 </a>
-<p>Check out the <a class="reference internal" href="getting_started.html"><span class="doc">Getting started</span></a> section for details on how to contribute to this
-project, or <a class="reference internal" href="experiments.html"><span class="doc">Reproducing experiments</span></a> to reproduce our experiments.</p>
-<p>The repository is licensed under the <a class="reference external" href="https://github.com/VictorianHues/AgentBasedModeling/blob/main/LICENSE">MIT License</a>.</p>
+<p>All code is written in Python 3.13. The core model,
+<a class="reference internal" href="api.html#abm_project.vectorised_model.VectorisedModel" title="abm_project.vectorised_model.VectorisedModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">abm_project.vectorised_model.VectorisedModel</span></code></a>, is implemented as a Python
+class wrapping efficient vectorised (Numpy) data structures. The model is designed
+with extensibility in mind, with key components modularised and configurable at
+model initialisation. For instance, it is straightforward to implement new methods
+for updating agents’ local environments, which are passed to the model as functions.</p>
+<p>The repository itself is structured as a Python package which contains reusable
+components. Specific experiments are separated out into scripts, which are orchestrated
+by a <a class="reference external" href="https://github.com/VictorianHues/AgentBasedModeling/blob/main/Makefile">Makefile</a>.
+We use <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> to ensure a consistent, version-locked Python
+environment for experimentation.</p>
+<p>Core modules in the Python package (<code class="docutils literal notranslate"><span class="pre">abm_project</span></code>) include:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="api.html#vectorised-model-api"><span class="std std-ref">abm_project.vectorised_model</span></a>: The core model, used in all of
+our experiments.</p></li>
+<li><p><a class="reference internal" href="api.html#mean-field-api"><span class="std std-ref">abm_project.mean_field</span></a>: A mean-field approximation to the core model.
+Includes functions to solve for equilibria, expected mean action, and running simulations using the derived mean-field dynamical system.</p></li>
+<li><p><a class="reference internal" href="api.html#oop-model-api"><span class="std std-ref">abm_project.oop_model</span></a>: A predecessor to the <code class="docutils literal notranslate"><span class="pre">VectorisedModel</span></code>, whose
+implementation prioritises ease-of-use and descriptivity. <strong>Note:</strong> the <code class="docutils literal notranslate"><span class="pre">OOPModel</span></code> is not
+actively maintained, and does not reflect the current state of <code class="docutils literal notranslate"><span class="pre">VectorisedModel</span></code>.</p></li>
+<li><p><a class="reference internal" href="api.html#kraan-api"><span class="std std-ref">abm_project.kraan</span></a>: An implementation of the 2D lattice model described in
+<a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S2214629618301932">Kraan et al</a>, which
+inspired our work.</p></li>
+</ul>
 <section id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
+<p>Check out the <a class="reference internal" href="getting_started.html"><span class="doc">Getting started</span></a> section for details on how to contribute to this
+project, or <a class="reference internal" href="experiments.html"><span class="doc">Reproducing experiments</span></a> to reproduce our experiments.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
@@ -91,6 +118,7 @@ project, or <a class="reference internal" href="experiments.html"><span class="d
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 </div>
+<p>The repository is licensed under the <a class="reference external" href="https://github.com/VictorianHues/AgentBasedModeling/blob/main/LICENSE">MIT License</a>.</p>
 </section>
 </section>
 

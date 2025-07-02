@@ -1,10 +1,15 @@
 API Reference
 =============
 
+.. _vectorised-model-api:
+
 Vectorised Model
 -----------------
 .. automodule:: abm_project.vectorised_model
    :members:
+
+
+.. _mean-field-api:
 
 Mean-field
 ----------
@@ -16,12 +21,16 @@ Metrics
 .. automodule:: abm_project.metrics
    :members:
 
+.. _kraan-api:
+
 Kraan Model
 ------------
 
 .. automodule:: abm_project.kraan
    :members:
    :undoc-members:
+
+.. _oop-model-api:
 
 OOP Model
 ----------------
