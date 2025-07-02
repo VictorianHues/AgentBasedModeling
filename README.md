@@ -10,7 +10,7 @@ report into individual climate-related decision-making in coupled human-environm
 
 <p align="center">
     <img src="docs/source/figures/phase_portraits.png" width="70%"/><br>
-    <em>Fig 2: Mean field phase portraits of action for different agent rationality levels and social norm weight.</em>
+    <em>Fig 2: Mean field phase portraits for different agent rationality levels and social norm weight.</em>
 </p>
 
 
