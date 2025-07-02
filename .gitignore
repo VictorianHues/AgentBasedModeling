@@ -203,6 +203,12 @@ cython_debug/
 *.npz
 *.npy
 
+# Do not ignore the following files:
+!docs/source/figures/11b_env.gif
+!docs/source/figures/phase_portraits.png
+
 # DS_Store
 .DS_Store
 results/**
+plots/**
+data/**

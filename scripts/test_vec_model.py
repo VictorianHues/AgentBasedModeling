@@ -459,9 +459,9 @@ def main():
     width = 50
     height = 50
     num_steps = 1000
-    memory_count = 40
-    rationality = 1.5
-    gamma_s = 0.001
+    memory_count = 1
+    rationality = 3.3
+    gamma_s = 0.01
     env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
     rng = None
 
@@ -475,7 +475,7 @@ def main():
         env_update_fn=env_update_fn,
         rationality=rationality,
         simmer_time=1,
-        neighb_prediction_option="linear",
+        neighb_prediction_option=None,
         severity_benefit_option="adaptive",
         gamma_s=gamma_s,
         max_storage=num_steps,
@@ -537,8 +537,6 @@ def main():
     plt.colorbar(im, ax=ax, label="Agent Action (-1 or 1)")
     plt.tight_layout()
     ani.save(results_dir / "example_actions.mp4", dpi=150)
-
-    # plot_cluster_time_series(savedir=results_dir, model=model)
 
 
 if __name__ == "__main__":
