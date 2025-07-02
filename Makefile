@@ -24,6 +24,10 @@ EQ_ENV_VARYING_GAMMA_S_HEATMAPS = \
 		equilibrium_env_rationality_vs_gamma_s_nonpredictive_peerrandomised_$(QUALITY)_quality.pdf \
 		equilibrium_env_rationality_vs_gamma_s_predictive_peerconst_$(QUALITY)_quality.pdf \
 		equilibrium_env_rationality_vs_gamma_s_predictive_peerrandomised_$(QUALITY)_quality.pdf \
+
+EQ_ENV_VARYING_MEMORY_HEATMAPS = \
+		equilibrium_env_rationality_vs_memory_gamma_s_0_004_$(QUALITY)_quality.pdf \
+		equilibrium_env_rationality_vs_memory_gamma_s_0_01_$(QUALITY)_quality.pdf
 		
 
 FIGURE_NAMES = \
@@ -32,8 +36,8 @@ FIGURE_NAMES = \
 		equilibrium_env_vs_gamma_s_$(QUALITY)_quality.pdf \
 		$(FOURIER_POWER_HEATMAPS) \
 		$(EQ_ENV_VARYING_GAMMA_S_HEATMAPS) \
+		$(EQ_ENV_VARYING_MEMORY_HEATMAPS) \
 		time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf \
-		phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
 		appendix_fixed_point_mean_action.pdf
 
@@ -85,11 +89,13 @@ $(FIGURES_DIR)/time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf: \
 			| $(FIGURES_DIR)
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
-$(FIGURES_DIR)/phaseplot_env_vs_rationality_memory_$(QUALITY)_quality.pdf: \
+
+# Equilibrium environment for varying memory size and rationality
+$(FIGURES_DIR)/equilibrium_env_rationality_vs_memory_gamma_s_%_$(QUALITY)_quality.pdf: \
 			scripts/environment_vs_rationality_and_memory_phaseplot.py \
-			$(DATA_DIR)/eq_env_vs_rationality_and_memory_$(QUALITY)_quality.npz \
+			$(DATA_DIR)/equilibrium_env_rationality_vs_memory_gamma_s_%_$(QUALITY)_quality.npz \
 			| $(FIGURES_DIR)
-	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --gamma-s '$*'
 
 #  ----------------------
 #  Fourier power heatmaps
@@ -175,10 +181,10 @@ $(DATA_DIR)/eq_env_vs_gamma_s_$(QUALITY)_quality.npz: \
 	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
 
-$(DATA_DIR)/eq_env_vs_rationality_and_memory_$(QUALITY)_quality.npz: \
+$(DATA_DIR)/equilibrium_env_rationality_vs_memory_gamma_s_%_$(QUALITY)_quality.npz: \
 			scripts/equilibrium_env_vs_memory_and_rationality_measurements.py \
 			| $(DATA_DIR)
-	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --gamma-s '$*'
 
 
 $(DATA_DIR)/time_series_mean_env_for_varying_rationality_$(QUALITY)_quality.npz: \

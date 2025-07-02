@@ -12,8 +12,7 @@ def main(
     mean_environment: npt.NDArray[np.float64],
     memory_sizes: npt.NDArray[np.float64],
     rationalities: npt.NDArray[np.float64],
-    savedir: Path,
-    quality_label: str,
+    savepath: Path,
 ):
     fig, ax = plt.subplots(figsize=(3.5, 2.5), constrained_layout=True)
     cbar = ax.imshow(
@@ -37,7 +36,7 @@ def main(
     ax.set_yticks(memory_sizes[::2])
 
     fig.savefig(
-        savedir / f"phaseplot_env_vs_rationality_memory_{quality_label}_quality.pdf",
+        savepath,
         bbox_inches="tight",
     )
 
@@ -48,16 +47,19 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--gamma-s", type=str)
     args = parser.parse_args()
 
     quality_label = "low" if args.quick else "high"
-    results = np.load(
-        DATA_DIR / f"eq_env_vs_rationality_and_memory_{quality_label}_quality.npz"
+    filename = (
+        f"equilibrium_env_rationality_vs_memory_gamma_s"
+        f"_{args.gamma_s}"
+        f"_{quality_label}_quality"
     )
+    results = np.load(DATA_DIR / f"{filename}.npz")
     main(
         mean_environment=results["mean_environment"].mean(axis=0),
         memory_sizes=results["memory_sizes"],
         rationalities=results["rationalities"],
-        savedir=FIGURES_DIR,
-        quality_label=quality_label,
+        savepath=FIGURES_DIR / f"{filename}.pdf",
     )
