@@ -4,15 +4,15 @@ This repository contains the agent-based model implementation and experiments su
 report into individual climate-related decision-making in coupled human-environment dynamical systems.
 
 <p align="center">
-    <img src="docs/source/figures/11b_env.gif" width="70%" /><br>
+    <img src="docs/source/figures/11b_env.gif" width="50%" /><br>
     <em>Fig 1: Emergence of clustering environment level across time.</em>
 </p>
 
+
 <p align="center">
-    <img src="docs/source/figures/phase_portraits.png" width="70%"/><br>
+    <img src="docs/source/figures/phase_portraits.png" width="50%"/><br>
     <em>Fig 2: Mean field phase portraits for different agent rationality levels and social norm weight.</em>
 </p>
-
 
 To contribute to this project, or reproduce our results, see the project documentation available at 
 [victorianhues.github.io/AgentBasedModeling](https://victorianhues.github.io/AgentBasedModeling/).
