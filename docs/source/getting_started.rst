@@ -29,7 +29,7 @@ And then run your simulation code:
 
    $ make
 
-.. .. important::
+.. important::
 
    If you are trying to recreate the results from the `report 
    <https://github.com/VictorianHues/AgentBasedModeling/blob/main/project_report.pdf>`_, 
