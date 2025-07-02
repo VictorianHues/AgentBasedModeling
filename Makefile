@@ -40,7 +40,7 @@ FIGURE_NAMES = \
 		time_series_mean_env_by_rationality_$(QUALITY)_quality.pdf \
 		appendix_phase_portraits.pdf \
 		appendix_fixed_point_mean_action.pdf \
-		num_clusters_lambda4.00_gamma0.005_piecewise_ccdf.pdf
+		num_clusters_lambda4.00_gamma0.005_piecewise_ccdf_$(QUALITY)_quality.pdf
 
 # Prefix figure names with figures directory
 FIGURES = $(patsubst %, $(FIGURES_DIR)/%, $(FIGURE_NAMES))
@@ -65,10 +65,10 @@ $(FIGURES_DIR)/appendix_fixed_point_mean_action.pdf: \
 			| $(FIGURES_DIR) 
 	$(ENTRYPOINT) $< 
 
-$(FIGURES_DIR)/num_clusters_lambda4.00_gamma0.005_piecewise_ccdf.pdf: \
+$(FIGURES_DIR)/num_clusters_lambda4.00_gamma0.005_piecewise_ccdf_$(QUALITY)_quality.pdf: \
 			scripts/create_ccdfs.py \
 			| $(FIGURES_DIR)
-	$(ENTRYPOINT) $<
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS)
 
 $(FIGURES_DIR)/sensitivity_analysis_outcome_distributions_$(QUALITY)_quality.pdf: \
 			scripts/sensitivity_analysis_plots.py \

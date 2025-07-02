@@ -1,3 +1,4 @@
+import argparse
 import random
 from collections import defaultdict
 from pathlib import Path
@@ -89,17 +90,15 @@ def plot_distributions_for_param_combo(
     gamma_s: float,
     neighb: str = "linear",
     severity: str = "adaptive",
-    radius: str = "all",
+    radius: str = "single",
     b2: np.ndarray = None,
     env_update_type: str = "linear",
     repeats: int = 100,
     memory_count: int = 10,
     seed: int = 42,
-    savedir: Path = Path("plots"),
+    savedir: Path = Path("results/figures"),
+    quality_label: str = "low",
 ):
-    savedir = Path(savedir)
-    savedir.mkdir(parents=True, exist_ok=True)
-
     np.random.seed(seed)
     random.seed(seed)
 
@@ -212,7 +211,7 @@ def plot_distributions_for_param_combo(
 
                 fname = (
                     f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}"
-                    f"_{env_update_type}_ccdf.pdf"
+                    f"_{env_update_type}_ccdf_{quality_label}_quality.pdf"
                 )
                 plt.savefig(savedir / fname, bbox_inches="tight")
 
@@ -232,7 +231,7 @@ def plot_distributions_for_param_combo(
 
                 fname = (
                     f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}"
-                    f"_{env_update_type}_hist.pdf"
+                    f"_{env_update_type}_hist_{quality_label}_quality.pdf"
                 )
                 plt.savefig(savedir / fname, bbox_inches="tight")
 
@@ -253,7 +252,7 @@ def plot_distributions_for_param_combo(
 
                 fname = (
                     f"{key}_lambda{lmbda:.2f}_gamma{gamma_s:.3f}_"
-                    f"{env_update_type}_limited.pdf"
+                    f"{env_update_type}_limited_{quality_label}_quality.pdf"
                 )
                 plt.savefig(savedir / fname, bbox_inches="tight")
 
@@ -273,7 +272,21 @@ if __name__ == "__main__":
         (4.0, 0.0048),
     ]
 
+    QUICK_REPEATS = 100
+    FULL_REPEATS = 500
+
     configure_mpl()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    args = parser.parse_args()
+
+    if args.quick:
+        quality_label = "low"
+        repeats = QUICK_REPEATS
+    else:
+        quality_label = "high"
+        repeats = FULL_REPEATS
 
     for λ, γ in PARAMS:
         plot_distributions_for_param_combo(
@@ -282,7 +295,8 @@ if __name__ == "__main__":
             neighb=NEIGHB,
             severity=SEVERITY,
             env_update_type=ENV_UPDATE_TYPE,
-            repeats=N_REPEATS,
+            repeats=repeats,
             memory_count=MEMORY_SIZE,
             savedir=FIGURES_DIR,
+            quality_label=quality_label,
         )
