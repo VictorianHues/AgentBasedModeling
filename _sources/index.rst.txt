@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Climate-related decision-making ABM
+Climate-related Decision-making ABM
 ===================================
 
 This project uses agent-based modelling to investigate the feedback cycle between 
@@ -13,8 +13,12 @@ differ in the coupled model when agents are heterogeneous in their preferences a
 perception of the environment. You can find the associated report 
 :download:`here <../../project_report.pdf>`.
 
-.. image:: phase_portraits.png
-   :width: 60%
+.. image:: figures/11b_env.gif
+   :width: 70%
+   :align: center
+
+.. image:: figures/phase_portraits.png
+   :width: 70%
    :align: center
 
 All code is written in Python 3.13. The core model, 

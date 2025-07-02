@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reproducing experiments" href="experiments.html" />
-    <link rel="prev" title="Climate-related decision-making ABM" href="index.html" /> 
+    <link rel="prev" title="Climate-related Decision-making ABM" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -80,10 +80,11 @@
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
 <section id="setting-up">
 <h2>Setting up<a class="headerlink" href="#setting-up" title="Link to this heading"></a></h2>
-<p>First things first, clone the project repository from GitHub:</p>
+<p>First things first, clone the project repository from GitHub using the GitHub CLI:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>gh<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>VictorianHues/AgentBasedModeling
 </pre></div>
 </div>
+<p>You can also clone the repository using HTTPS or SSH.</p>
 <p>This project uses <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> for Python environment management.
 To ensure consistent results, we recommend using uv when working with this project or
 re-running experiments. The following steps assume that you are using uv.</p>
@@ -92,12 +93,17 @@ required dependencies:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>uv<span class="w"> </span>sync
 </pre></div>
 </div>
-<p>And then run the simulation code:</p>
+<p>And then run your simulation code:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make
 </pre></div>
 </div>
-<p>What next? See <a class="reference internal" href="contributing.html"><span class="doc">Contributing</span></a> to contribute changes to the project, or <a class="reference internal" href="experiments.html"><span class="doc">Reproducing experiments</span></a>
-to reproduce the experimental results in the corresponding report.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>If you are trying to recreate the results from the <a class="reference external" href="https://github.com/VictorianHues/AgentBasedModeling/blob/main/project_report.pdf">report</a>,
+visit the <a class="reference internal" href="experiments.html"><span class="doc">Reproducing experiments</span></a> section for details on how to run the experiments.
+The above command is just an example of how to run a new or existing script using uv.</p>
+</div>
+<p>What next? See <a class="reference internal" href="contributing.html"><span class="doc">Contributing</span></a> to contribute changes to the project.</p>
 </section>
 </section>
 
@@ -105,7 +111,7 @@ to reproduce the experimental results in the corresponding report.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Climate-related decision-making ABM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Climate-related Decision-making ABM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="experiments.html" class="btn btn-neutral float-right" title="Reproducing experiments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
