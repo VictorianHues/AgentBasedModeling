@@ -1,4 +1,4 @@
-# Climate behaviour ABM with coupled environmental dynamics
+# Individual Decision-Making in Coupled Agent-Environment Systems
 
 This repository contains the agent-based model implementation and experiments supporting the corresponding
 report into individual climate-related decision-making in coupled human-environment dynamical systems.
