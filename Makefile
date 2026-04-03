@@ -135,7 +135,7 @@ $(FIGURES_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerr
 			scripts/plot_fourier_power_varying_gamma_s_rationality.py \
 			$(DATA_DIR)/fourier_power_rationality_vs_gamma_s_adaptive_nonpredictive_peerrandomised_$(QUALITY)_quality.npz \
 			| $(FIGURES_DIR)
-	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference
+	$(ENTRYPOINT) $< $(QUALITY_PARAMS) --dynamic-action-preference --const-peer-pressure
 
 
 #  ----------------------
