@@ -23,6 +23,7 @@ def run_model_with_timeseries(args):
         neighb_prediction_option=None,
         max_storage=steps,
         gamma_s=gamma_s,
+        b_2=np.full(width * height, 1.0),
     )
     model.run(steps)
     mean_environment = model.environment[: model.time + 1].mean(axis=1)
@@ -38,7 +39,7 @@ def main(
     height: int,
     steps: int,
 ):
-    rationality = np.array([1.0, 3.0, 4.7, 5.5, 6.5])
+    rationality = np.array([1.0, 3.0, 4.3, 5.5, 6.5])
     mean_environment = np.empty(
         (repeats, len(rationality), steps + 1), dtype=np.float64
     )
@@ -69,13 +70,13 @@ def main(
 if __name__ == "__main__":
     DATA_DIR = Path("data")
 
-    GAMMA_S = 0.001
+    GAMMA_S = 0.015
     WIDTH = 30
     HEIGHT = 30
-    N_STEPS = 1000
+    N_STEPS = 2000
 
     QUICK_REPEATS = 1
-    FULL_REPEATS = 10
+    FULL_REPEATS = 50
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--quick", action="store_true")
