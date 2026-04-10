@@ -1,5 +1,6 @@
 import argparse
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -11,8 +12,25 @@ from abm_project.utils import piecewise_exponential_update
 from abm_project.vectorised_model import VectorisedModel
 
 
+def get_parallel_workers(default_workers: int = 12) -> int:
+    """Return a conservative process count; override with ABM_MAX_WORKERS."""
+    cpu_count = os.cpu_count() or 1
+    env_value = os.getenv("ABM_MAX_WORKERS")
+    if env_value is not None:
+        try:
+            return max(1, min(int(env_value), cpu_count))
+        except ValueError:
+            print(
+                "Invalid ABM_MAX_WORKERS="
+                f"'{env_value}'. Falling back to "
+                f"{default_workers}."
+            )
+    return max(1, min(default_workers, cpu_count))
+
+
 def measure_peak_frequency_power(args):
     (
+        base_seed,
         r,
         γi,
         λi,
@@ -27,7 +45,8 @@ def measure_peak_frequency_power(args):
         steps,
     ) = args
     env_update_fn = piecewise_exponential_update(recovery=1, pollution=1, gamma=0.01)
-    rng = np.random.default_rng(r)
+    seed_seq = np.random.SeedSequence([base_seed, r, γi, λi])
+    rng = np.random.default_rng(seed_seq)
     model = VectorisedModel(
         num_agents=width * height,
         width=width,
@@ -62,37 +81,42 @@ def main(
     height: int,
     steps: int,
     memory_count: int,
+    base_seed: int,
 ):
     power_data = np.empty((repeats, len(gamma_s), len(rationality)), dtype=np.float64)
 
-    with ProcessPoolExecutor() as executor:
-        futures = []
-        for r in range(repeats):
-            for γi, γ in enumerate(gamma_s):
-                for λi, λ in enumerate(rationality):
-                    future = executor.submit(
-                        measure_peak_frequency_power,
-                        (
-                            r,
-                            γi,
-                            λi,
-                            γ,
-                            λ,
-                            neighborhood_prediction_option,
-                            dynamic_action_preference,
-                            peer_pressure_coeff,
-                            memory_count,
-                            width,
-                            height,
-                            steps,
-                        ),
-                    )
-                    futures.append(future)
+    workers = get_parallel_workers()
+    print(f"Using {workers} worker process(es) for Fourier power measurement.")
 
-        desc = "Collecting peak fourier power for varying rationality, agent adaptation"
-        n_tasks = repeats * len(rationality) * len(gamma_s)
-        for future in tqdm(as_completed(futures), desc=desc, total=n_tasks):
-            (repeat, γi, λi, val) = future.result()
+    tasks = (
+        (
+            base_seed,
+            r,
+            γi,
+            λi,
+            γ,
+            λ,
+            neighborhood_prediction_option,
+            dynamic_action_preference,
+            peer_pressure_coeff,
+            memory_count,
+            width,
+            height,
+            steps,
+        )
+        for r in range(repeats)
+        for γi, γ in enumerate(gamma_s)
+        for λi, λ in enumerate(rationality)
+    )
+
+    desc = "Collecting peak fourier power for varying rationality, agent adaptation"
+    n_tasks = repeats * len(rationality) * len(gamma_s)
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        for repeat, γi, λi, val in tqdm(
+            executor.map(measure_peak_frequency_power, tasks, chunksize=1),
+            desc=desc,
+            total=n_tasks,
+        ):
             power_data[repeat, γi, λi] = val
 
     adaptive_label = dynamic_action_preference or "nonadaptive"
@@ -127,20 +151,32 @@ if __name__ == "__main__":
     MEMORY_COUNT = 10
     CONST_PEER_PRESSURE_WEIGHT = np.full(WIDTH * HEIGHT, 1.0)
 
-    QUICK_REPEATS = 5
-    QUICK_GAMMA_S_STEPS = 20
-    QUICK_RATIONALITY_STEPS = 20
+    QUICK_REPEATS = 3
+    QUICK_GAMMA_S_STEPS = 25
+    QUICK_RATIONALITY_STEPS = 25
 
-    FULL_REPEATS = 25
-    FULL_GAMMA_S_STEPS = 20
-    FULL_RATIONALITY_STEPS = 20
+    FULL_REPEATS = 20
+    FULL_GAMMA_S_STEPS = 25
+    FULL_RATIONALITY_STEPS = 25
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--quick", action="store_true")
     parser.add_argument("--const-peer-pressure", action="store_true")
     parser.add_argument("--dynamic-action-preference", action="store_true")
     parser.add_argument("--neighborhood-prediction")
+    parser.add_argument(
+        "--base-seed",
+        type=int,
+        default=0,
+        help=(
+            "Base seed used to derive unique RNG streams for each "
+            "(repeat, gamma_s, rationality) task."
+        ),
+    )
     args = parser.parse_args()
+
+    if args.base_seed < 0:
+        parser.error("--base-seed must be >= 0")
 
     if args.quick:
         quality_label = "low"
@@ -177,4 +213,5 @@ if __name__ == "__main__":
         height=HEIGHT,
         steps=N_STEPS,
         memory_count=MEMORY_COUNT,
+        base_seed=args.base_seed,
     )

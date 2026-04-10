@@ -172,6 +172,218 @@ def clustering_score_over_time(
     ]
 
 
+def compute_spatial_correlation(grid: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Compute radial spatial correlation C(r) for a 2D field with periodic BCs.
+
+    Correlation is computed from mean-subtracted values and normalised so C(0)=1.
+    A fast FFT-based autocovariance is used before radial averaging.
+    """
+    if grid.ndim != 2:
+        raise ValueError("grid must be a 2D array")
+
+    height, width = grid.shape
+    field = grid.astype(np.float64, copy=False)
+    fluctuations = field - field.mean()
+
+    # Periodic autocovariance from Wiener-Khinchin theorem
+    spectrum = np.fft.fft2(fluctuations)
+    autocov = np.fft.ifft2(np.abs(spectrum) ** 2).real / (height * width)
+
+    c0 = autocov[0, 0]
+    max_radius = min(height, width) // 2
+    distances = np.arange(max_radius + 1, dtype=np.float64)
+    if c0 <= 0:
+        corr_values = np.full_like(distances, np.nan)
+        corr_values[0] = 1.0
+        return distances, corr_values
+
+    y_idx = np.arange(height)
+    x_idx = np.arange(width)
+    dy = np.minimum(y_idx, height - y_idx)[:, None]
+    dx = np.minimum(x_idx, width - x_idx)[None, :]
+    radial_distance = np.sqrt(dx**2 + dy**2)
+
+    radial_bin = np.rint(radial_distance).astype(np.int64)
+    mask = radial_bin <= max_radius
+
+    binned_sum = np.bincount(
+        radial_bin[mask].ravel(),
+        weights=autocov[mask].ravel(),
+        minlength=max_radius + 1,
+    )
+    binned_count = np.bincount(radial_bin[mask].ravel(), minlength=max_radius + 1)
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        corr_values = binned_sum / binned_count
+    corr_values = corr_values / c0
+    corr_values[0] = 1.0
+
+    return distances, corr_values
+
+
+def estimate_correlation_length(
+    distances: np.ndarray,
+    correlation_values: np.ndarray,
+) -> float:
+    """Estimate correlation length from C(r).
+
+    Uses first crossing below exp(-1). If no crossing exists, falls back to
+    exponential decay fit in log space on positive correlations.
+    """
+    dist = np.asarray(distances, dtype=np.float64)
+    corr = np.asarray(correlation_values, dtype=np.float64)
+    if dist.size == 0 or corr.size == 0:
+        return float("nan")
+
+    valid = np.isfinite(dist) & np.isfinite(corr)
+    dist = dist[valid]
+    corr = corr[valid]
+    if dist.size < 2:
+        return float("nan")
+
+    target = np.exp(-1)
+
+    positive_distance = dist > 0
+    d = dist[positive_distance]
+    c = corr[positive_distance]
+    if d.size == 0:
+        return float("nan")
+
+    below = np.where(c <= target)[0]
+    if below.size > 0:
+        i = int(below[0])
+        if i == 0:
+            return float(d[0])
+
+        d0, d1 = d[i - 1], d[i]
+        c0, c1 = c[i - 1], c[i]
+        if c1 == c0:
+            return float(d1)
+
+        frac = (target - c0) / (c1 - c0)
+        return float(d0 + frac * (d1 - d0))
+
+    # Fallback: fit log(C(r)) = a + b r on positive C(r)
+    fit_mask = (d > 0) & (c > 0)
+    if np.count_nonzero(fit_mask) < 2:
+        return float("nan")
+
+    x = d[fit_mask]
+    y = np.log(c[fit_mask])
+    slope, _intercept = np.polyfit(x, y, 1)
+    if slope >= 0:
+        return float("nan")
+
+    return float(-1.0 / slope)
+
+
+def compute_spatial_variance(env: np.ndarray) -> float:
+    """Compute spatial variance across agents for one timestep.
+
+    Var(n) = E[n^2] - (E[n])^2
+    """
+    values = np.asarray(env, dtype=np.float64).ravel()
+    if values.size == 0:
+        return float("nan")
+
+    mean_n = values.mean()
+    mean_n_sq = np.mean(values**2)
+    return float(mean_n_sq - mean_n**2)
+
+
+def compute_time_averaged_variance(env_timeseries: np.ndarray, last_k: int) -> float:
+    """Compute average spatial variance over the last k timesteps."""
+    series = np.asarray(env_timeseries, dtype=np.float64)
+    if series.ndim != 2:
+        raise ValueError(
+            "env_timeseries must be a 2D array of shape (time, num_agents)"
+        )
+    if series.shape[0] == 0:
+        return float("nan")
+
+    k = max(1, min(int(last_k), series.shape[0]))
+    window = series[-k:]
+    variances = np.apply_along_axis(compute_spatial_variance, 1, window)
+    return float(np.nanmean(variances))
+
+
+def compute_autocorrelation(signal: np.ndarray, max_lag: int) -> np.ndarray:
+    """Compute normalized temporal autocorrelation C(tau) up to max_lag.
+
+    C(tau) = <x_t x_{t+tau}> - <x>^2, normalised so C(0)=1.
+    Uses an FFT-based autocovariance for efficiency.
+    """
+    x = np.asarray(signal, dtype=np.float64).ravel()
+    if x.size == 0:
+        return np.array([], dtype=np.float64)
+
+    n = x.size
+    lag_max = max(0, min(int(max_lag), n - 1))
+
+    x = x - x.mean()
+    nfft = 1 << ((2 * n - 1).bit_length())
+    spectrum = np.fft.rfft(x, n=nfft)
+    autocov = np.fft.irfft(spectrum * np.conjugate(spectrum), n=nfft)[:n]
+
+    # Unbiased covariance estimate at each lag.
+    autocov = autocov / np.arange(n, 0, -1)
+    c0 = autocov[0]
+    if c0 <= 0 or not np.isfinite(c0):
+        acf = np.zeros(lag_max + 1, dtype=np.float64)
+        acf[0] = 1.0
+        return acf
+
+    acf = autocov[: lag_max + 1] / c0
+    acf[0] = 1.0
+    return acf
+
+
+def estimate_autocorrelation_time(acf: np.ndarray) -> float:
+    """Estimate characteristic autocorrelation decay time from ACF.
+
+    Uses first crossing below exp(-1); falls back to exponential fit in log-space.
+    """
+    corr = np.asarray(acf, dtype=np.float64)
+    if corr.size < 2:
+        return float("nan")
+
+    lags = np.arange(corr.size, dtype=np.float64)
+    valid = np.isfinite(corr)
+    corr = corr[valid]
+    lags = lags[valid]
+    if corr.size < 2:
+        return float("nan")
+
+    target = np.exp(-1)
+    positive = lags > 0
+    c = corr[positive]
+    t = lags[positive]
+    if c.size == 0:
+        return float("nan")
+
+    below = np.where(c <= target)[0]
+    if below.size > 0:
+        i = int(below[0])
+        if i == 0:
+            return float(t[0])
+        t0, t1 = t[i - 1], t[i]
+        c0, c1 = c[i - 1], c[i]
+        if c1 == c0:
+            return float(t1)
+        frac = (target - c0) / (c1 - c0)
+        return float(t0 + frac * (t1 - t0))
+
+    fit_mask = (t > 0) & (c > 0)
+    if np.count_nonzero(fit_mask) < 2:
+        return float("nan")
+
+    slope, _intercept = np.polyfit(t[fit_mask], np.log(c[fit_mask]), 1)
+    if slope >= 0:
+        return float("nan")
+
+    return float(-1.0 / slope)
+
+
 class UnionFind:
     """Union-Find data structure for efficient connectivity checks."""
 

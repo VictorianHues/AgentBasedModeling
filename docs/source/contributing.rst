@@ -135,6 +135,13 @@ analysis code when only the plotting functions have changed).
 
 To reproduce all current results, simply run ``make`` from the project root. To run the pipeline 
 components in parallel (where Make decides that this is possible), run ``make -j``.
+The default pipeline includes the CCDF gamma sweep at 0.0041, 0.0045, and 0.0049.
+
+Additional useful targets include ``make measure-all`` (data only),
+``make plot-all`` (plots from existing data),
+``make phase-transition-all-configurations``, and
+``make powerlaw-spatial-corr-gamma-sweep``.
+Use ``make help`` to inspect current workflows and configuration knobs.
 
 Adding new experiments/results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -163,9 +170,9 @@ Scripts for the Makefile are contained in the
 directory. When implementing multiple scripts for an experiment, it is good practice
 to use the same name for them, with a descriptive prefix. For example:
 
-* ``scripts/measure_equilibrium_environment_vs_rationality.py``
+* ``scripts/measure_experiments.py``
 
-* ``scripts/plot_equilibrium_environment_vs_rationality.py``
+* ``scripts/plot_experiments.py``
 
 Scripts should follow a general structure:
 

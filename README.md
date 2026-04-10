@@ -18,8 +18,14 @@ To contribute to this project, or reproduce our results, see the project documen
 [victorianhues.github.io/AgentBasedModeling](https://victorianhues.github.io/AgentBasedModeling/).
 
 ## Quick reference
-- **Installation**: Clone the repository and install the required dependencies using `uv sync` (if you have uv) or `pip install -r requirements.txt`. It is recommended to use `uv` for managing the environment.
-- **Running the model**: Use `make -j` to run all the scripts and get approximate (but faster) results. Alternatively, you can run `quality=HIGH make -j` to get more accurate results. 
+- **Installation**: Clone the repository and install dependencies with `uv sync` (recommended) or `pip install -r requirements.txt`.
+- **Run all experiments**: Use `make -j` for quick/approximate results (includes CCDF gamma sweep 0.0041, 0.0045, 0.0049), or `QUALITY=high make -j` for report-quality settings.
+- **Report-focused phase transition analysis**: Use `make phase-transition-analysis`.
+- **Run all predefined phase-transition configurations**: Use `make phase-transition-all-configurations`.
+- **Run CCDF gamma sweep (0.0041, 0.0045, 0.0049)**: Use `make powerlaw-spatial-corr-gamma-sweep`.
+- **Inspect configurable report settings**: Use `make help`.
+- **Control simulation worker count**: Add `ABM_MAX_WORKERS=<n>` (and optionally `ABM_CHUNKSIZE=<n>`) to your make command.
+- **Example custom sweep configuration**: `make temporal-autocorr-susceptibility QUALITY=high CONST_PEER=1 NEIGHBORHOOD_PREDICTION=linear GAMMA_S_STEPS=25 RATIONALITY_STEPS=25`.
 - **Contributing**: Follow the guidelines in the [documentation](https://victorianhues.github.io/AgentBasedModeling/contributing.html).
 
 ## Authors

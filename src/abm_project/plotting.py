@@ -16,30 +16,27 @@ from . import mean_field as mf
 
 def configure_mpl():
     """Configure Matplotlib style."""
-    FONT_SIZE_SMALL = 7
-    FONT_SIZE_DEFAULT = 9
-
-    plt.rc("font", family="Times New Roman")  # LaTeX default font
+    # plt.rc("font", family="Times New Roman")  # LaTeX default font
     plt.rc("font", weight="normal")
     plt.rc("mathtext", fontset="stix")
-    plt.rc("font", size=FONT_SIZE_DEFAULT)
-    plt.rc("figure", labelsize=FONT_SIZE_DEFAULT)
-    plt.rc("legend", fontsize=FONT_SIZE_SMALL)
+    # plt.rc("font", size=FONT_SIZE_DEFAULT)
+    # plt.rc("figure", labelsize=FONT_SIZE_DEFAULT)
+    # plt.rc("legend", fontsize=FONT_SIZE_SMALL)
     plt.rc("figure", dpi=300)
 
-    sns.set_context(
-        "paper",
-        rc={
-            "axes.linewidth": 0.5,
-            "axes.labelsize": FONT_SIZE_DEFAULT,
-            "axes.titlesize": FONT_SIZE_DEFAULT,
-            "xtick.major.width": 0.5,
-            "ytick.major.width": 0.5,
-            "ytick.minor.width": 0.4,
-            "xtick.labelsize": FONT_SIZE_SMALL,
-            "ytick.labelsize": FONT_SIZE_SMALL,
-        },
-    )
+    # sns.set_context(
+    #     "paper",
+    #     rc={
+    #         "axes.linewidth": 0.5,
+    #         "axes.labelsize": FONT_SIZE_DEFAULT,
+    #         "axes.titlesize": FONT_SIZE_DEFAULT,
+    #         "xtick.major.width": 0.5,
+    #         "ytick.major.width": 0.5,
+    #         "ytick.minor.width": 0.4,
+    #         "xtick.labelsize": FONT_SIZE_SMALL,
+    #         "ytick.labelsize": FONT_SIZE_SMALL,
+    #     },
+    # )
 
 
 def get_plot_directory(file_name):
