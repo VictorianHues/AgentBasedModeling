@@ -6,6 +6,10 @@ import numpy as np
 import numpy.typing as npt
 import seaborn as sns
 
+HEATMAP_FONT_FAMILY = "DejaVu Sans"
+HEATMAP_LABEL_FONT_SIZE = 9
+HEATMAP_TICK_FONT_SIZE = 8
+
 
 def main(
     savedir: Path,
@@ -36,15 +40,36 @@ def main(
     )
 
     ax.set_xticks(x_tick_indices)
-    ax.set_xticklabels(x_tick_labels)
+    ax.set_xticklabels(
+        x_tick_labels,
+        fontsize=HEATMAP_TICK_FONT_SIZE,
+        fontfamily=HEATMAP_FONT_FAMILY,
+    )
     ax.set_yticks(y_tick_indices)
-    ax.set_yticklabels(y_tick_labels)
+    ax.set_yticklabels(
+        y_tick_labels,
+        fontsize=HEATMAP_TICK_FONT_SIZE,
+        fontfamily=HEATMAP_FONT_FAMILY,
+    )
 
-    ax.set_xlabel(r"Rationality ($\lambda$)", fontsize=9)
-    ax.set_ylabel(r"Support Update Rate ($\gamma_s$)", fontsize=9)
-    ax.tick_params(axis="both", which="major", labelsize=8)
+    ax.set_xlabel(
+        r"Rationality ($\lambda$)",
+        fontsize=HEATMAP_LABEL_FONT_SIZE,
+        fontfamily=HEATMAP_FONT_FAMILY,
+    )
+    ax.set_ylabel(
+        r"Support Update Rate ($\gamma_s$)",
+        fontsize=HEATMAP_LABEL_FONT_SIZE,
+        fontfamily=HEATMAP_FONT_FAMILY,
+    )
+    ax.tick_params(axis="both", which="major", labelsize=HEATMAP_TICK_FONT_SIZE)
     cbar = ax.collections[0].colorbar
-    cbar.ax.tick_params(labelsize=8)
+    cbar.ax.tick_params(labelsize=HEATMAP_TICK_FONT_SIZE)
+    cbar.ax.set_ylabel(
+        "Power at dominant frequency",
+        fontsize=HEATMAP_LABEL_FONT_SIZE,
+        fontfamily=HEATMAP_FONT_FAMILY,
+    )
 
     fig.savefig(savedir / filename, bbox_inches="tight")
 
